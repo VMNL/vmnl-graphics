@@ -25,10 +25,6 @@ Consequences:
 - do not let it own GPU resources, cache visible behavior, or influence device selection;
 - do not generalize it into application-visible global state.
 
-## 3D Status
-
-The public 3D types remain scaffolding without an operational rendering backend. Do not claim 3D rendering support. If a task makes part of it operational, update every canonical status location describing it as scaffolding.
-
 ## GPU Test Routing
 
 `just test-gpu` runs ignored tests only in `vmnl-gpu-tests`. New Vulkan, surface, presentation, or

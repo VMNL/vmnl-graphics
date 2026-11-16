@@ -73,7 +73,7 @@ class SurfaceTests(unittest.TestCase):
     def test_distinct_types_with_the_same_name_are_not_merged(self) -> None:
         surface = api_docs.parse_surface(
             "pub struct vmnl_graphics::d2::Value\n"
-            "pub struct vmnl_graphics::d3::Value\n"
+            "pub struct vmnl_graphics::common::Value\n"
         )
         self.assertEqual(len(surface.items), 2)
 

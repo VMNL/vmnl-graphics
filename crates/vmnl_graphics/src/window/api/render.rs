@@ -3,20 +3,19 @@
 
 //! Public rendering entry points for `Window`.
 
-use crate::d2::{Drawable2D, RenderItem2D};
-use crate::d3::{Camera, Drawable3D, RenderItem3D};
+use crate::d2::Drawable2D;
 use crate::raw::{
     BufferContents as RawBufferContents, FrameUniform as RawFrameUniform, Geometry as RawGeometry,
-    PendingFrameUniformWrite, Pipeline as RawPipeline, RenderItemRaw, Resources as RawResources,
+    PendingFrameUniformWrite, Pipeline as RawPipeline, Resources as RawResources,
 };
 use crate::window::render::RenderPassCommand;
 use crate::window::Window;
-use crate::{VMNLError, VMNLErrorKind, VMNLResult};
+use crate::VMNLResult;
 
 /// Draw submission strategy for objects inside each logical render pass.
 ///
 /// The mode may change how objects are submitted inside one pass, but it must
-/// not reorder calls to [`FrameRenderer::draw2d`], [`FrameRenderer::draw3d`],
+/// not reorder calls to [`FrameRenderer::draw2d`],
 /// [`FrameRenderer::draw_raw_2d`], or [`FrameRenderer::draw_raw_2d_with`].
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
 pub enum RenderMode {
@@ -29,19 +28,6 @@ pub enum RenderMode {
     Batched,
 }
 
-/// Pending frame render pass.
-enum FramePass<'g> {
-    /// 2D render pass.
-    D2 { items: Vec<RenderItem2D> },
-    /// 3D render pass.
-    D3 {
-        camera: &'g Camera,
-        items: Vec<RenderItem3D>,
-    },
-    /// Raw render pass.
-    Raw { items: Vec<RenderItemRaw> },
-}
-
 /// Pending frame render operation created by [`Window::render`].
 ///
 /// `FrameRenderer` records the logical passes requested for the next frame.
@@ -52,7 +38,7 @@ pub struct FrameRenderer<'w, 'g> {
     window: &'w mut Window,
     mode: RenderMode,
     frame_uniform_writes: Vec<PendingFrameUniformWrite<'g>>,
-    passes: Vec<FramePass<'g>>,
+    passes: Vec<RenderPassCommand>,
 }
 
 impl<'w, 'g> FrameRenderer<'w, 'g> {
@@ -69,8 +55,7 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     ///
     /// The mode applies to the objects inside each pass. It does not change the
     /// order of the passes added with [`FrameRenderer::draw2d`],
-    /// [`FrameRenderer::draw3d`], [`FrameRenderer::draw_raw_2d`], or
-    /// [`FrameRenderer::draw_raw_2d_with`].
+    /// [`FrameRenderer::draw_raw_2d`], or [`FrameRenderer::draw_raw_2d_with`].
     ///
     /// # Arguments
     /// - `mode`: Submission strategy used for objects inside each pass.
@@ -98,8 +83,7 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
 
     /// Add a 2D render pass to the pending frame.
     ///
-    /// Each item must implement [`Drawable2D`], which prevents passing 3D
-    /// resources to this function at compile time. The pass is rendered in the
+    /// Each item must implement [`Drawable2D`]. The pass is rendered in the
     /// same logical order as it was added when [`FrameRenderer::submit`] runs.
     ///
     /// # Arguments
@@ -125,60 +109,10 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     where
         D: Drawable2D + ?Sized,
     {
-        self.passes.push(FramePass::D2 {
+        self.passes.push(RenderPassCommand::D2 {
             items: drawables
                 .into_iter()
                 .map(Drawable2D::render_item_2d)
-                .collect(),
-        });
-        self
-    }
-
-    /// Add a 3D render pass to the pending frame.
-    ///
-    /// Each item must implement [`Drawable3D`], which prevents passing 2D
-    /// shapes to this function at compile time. The pass is accepted by the API
-    /// so 3D resources can already be built and wired, but
-    /// [`FrameRenderer::submit`] currently returns an explicit error if any 3D
-    /// pass is present.
-    ///
-    /// # Arguments
-    /// - `camera`: Camera parameters attached to this 3D pass.
-    /// - `drawables`: Fixed-size array of 3D drawable references to render in this pass.
-    ///
-    /// # Example
-    /// ```rust,no_run
-    /// # use vmnl_graphics::{Context, Window};
-    /// # use vmnl_graphics::common::Rgba;
-    /// # use vmnl_graphics::d3::{Camera, Mesh, Vector3f, Vertex3D};
-    /// # fn main() -> vmnl_graphics::VMNLResult<()> {
-    /// # let context = Context::new()?;
-    /// # let mut window = Window::builder().build(&context)?;
-    /// let camera = Camera::default();
-    /// let vertices = [
-    ///     Vertex3D { position: Vector3f { x: 0.0, y: 0.0, z: 0.0 }, color: Rgba::new(255, 0, 0, 255) },
-    ///     Vertex3D { position: Vector3f { x: 1.0, y: 0.0, z: 0.0 }, color: Rgba::new(0, 255, 0, 255) },
-    ///     Vertex3D { position: Vector3f { x: 0.0, y: 1.0, z: 0.0 }, color: Rgba::new(0, 0, 255, 255) },
-    /// ];
-    /// let mesh = Mesh::indexed(vertices, [0, 1, 2]).build(&context)?;
-    ///
-    /// let result = window.render()
-    ///     .draw3d(&camera, [&mesh])
-    ///     .submit();
-    /// assert!(result.is_err());
-    /// # Ok(())
-    /// # }
-    /// ```
-    #[must_use]
-    pub fn draw3d<D, const N: usize>(mut self, camera: &'g Camera, drawables: [&'g D; N]) -> Self
-    where
-        D: Drawable3D + ?Sized,
-    {
-        self.passes.push(FramePass::D3 {
-            camera,
-            items: drawables
-                .into_iter()
-                .map(Drawable3D::render_item_3d)
                 .collect(),
         });
         self
@@ -197,7 +131,7 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
         pipeline: &'g RawPipeline<TVertex>,
         geometries: [&'g RawGeometry<TVertex>; N],
     ) -> Self {
-        self.passes.push(FramePass::Raw {
+        self.passes.push(RenderPassCommand::Raw {
             items: geometries
                 .into_iter()
                 .map(|geometry| pipeline.render_item(geometry))
@@ -216,7 +150,7 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
         resources: &'g RawResources,
         geometries: [&'g RawGeometry<TVertex>; N],
     ) -> Self {
-        self.passes.push(FramePass::Raw {
+        self.passes.push(RenderPassCommand::Raw {
             items: geometries
                 .into_iter()
                 .map(|geometry| pipeline.render_item_with(geometry, resources))
@@ -262,11 +196,6 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     /// The recorded passes are consumed by this call. A frame with no draw pass
     /// is valid and still clears/presents the swapchain image.
     ///
-    /// For this backend version, 2D passes are submitted through the existing
-    /// 2D renderer. If any 3D pass was recorded, this function returns
-    /// `VMNLErrorKind::InvalidState("3D rendering is not implemented yet")`
-    /// before acquiring a swapchain image.
-    ///
     /// After a logical or framebuffer resize, `submit` recreates the
     /// swapchain images and framebuffers before recording the next frame. A
     /// zero-sized framebuffer, for example while minimized, returns
@@ -298,35 +227,19 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     /// ```
     ///
     /// # Errors
-    /// Returns `InvalidState` if a 3D pass is present. Otherwise returns an
-    /// error if frame-uniform allocation/write/binding, frame acquisition,
+    /// Returns an error if frame-uniform allocation/write/binding, frame acquisition,
     /// command recording, submission, or presentation fails.
     pub fn submit(self) -> VMNLResult<()> {
-        let mut commands: Vec<RenderPassCommand> = Vec::new();
-
-        for pass in self.passes {
-            match pass {
-                FramePass::D2 { items } => commands.push(RenderPassCommand::D2 { items }),
-                FramePass::D3 { camera, items } => {
-                    let _ = (camera, items.len());
-                    return Err(VMNLError::new(VMNLErrorKind::InvalidState(
-                        "3D rendering is not implemented yet".to_string(),
-                    )));
-                }
-                FramePass::Raw { items } => commands.push(RenderPassCommand::Raw { items }),
-            }
-        }
-
         self.window
             .inner
-            .render_commands(self.mode, &commands, self.frame_uniform_writes)
+            .render_commands(self.mode, &self.passes, self.frame_uniform_writes)
     }
 }
 
 impl Window {
     /// Begin a new pending frame render operation.
     ///
-    /// Use the returned [`FrameRenderer`] to append 2D, 3D, or raw passes,
+    /// Use the returned [`FrameRenderer`] to append 2D or raw passes,
     /// then call [`FrameRenderer::submit`] to render and present the frame.
     ///
     /// # Example

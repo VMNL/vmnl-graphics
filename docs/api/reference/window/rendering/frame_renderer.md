@@ -2,7 +2,7 @@
 
 ## Public path and maturity
 
-Import path: `vmnl_graphics::FrameRenderer<'w, 'g>`; created by `Window::render()`. Status: 0.1.0; 2D/raw operational, 3D scaffolded.
+Import path: `vmnl_graphics::FrameRenderer<'w, 'g>`; created by `Window::render()`. Status: 0.1.0; 2D and raw rendering.
 
 ## Purpose and use cases
 
@@ -14,7 +14,6 @@ Records ordered logical passes for one frame and submits them through the borrow
 |---|---|
 | `mode(RenderMode)` | Select object submission strategy. |
 | `draw2d([&D; N])` | Append a pass from `Drawable2D` values. |
-| `draw3d(&Camera, [&D; N])` | Append scaffolded `Drawable3D` pass. |
 | `draw_raw_2d(&Pipeline<T>, [&Geometry<T>; N])` | Append raw pass without descriptors. |
 | `draw_raw_2d_with(&Pipeline<T>, &Resources, [&Geometry<T>; N])` | Append raw pass with descriptors. |
 | `write_frame_uniform(&mut FrameUniform<T>, data)` | Queue one frame-uniform write for the acquired swapchain image. |
@@ -24,7 +23,7 @@ Passes execute in append order. Empty arrays create empty logical passes; a fram
 
 ## Construction, defaults, and validation
 
-`Window::render()` starts with `RenderMode::PerObject`, no passes, and no queued frame-uniform writes. Compatibility of raw pipeline, geometry, resources, window render pass, swapchain image count, and device is checked during submission/build paths. Any recorded 3D pass causes `submit` to return `InvalidState("3D rendering is not implemented yet")` before swapchain acquisition.
+`Window::render()` starts with `RenderMode::PerObject`, no passes, and no queued frame-uniform writes. Compatibility of raw pipeline, geometry, resources, window render pass, swapchain image count, and device is checked during submission/build paths.
 
 ## Units, coordinates, and valid ranges
 
@@ -38,7 +37,7 @@ The builder mutably borrows `Window` and borrows draw resources for `'g`; those 
 
 ## Errors, panics, and failure conditions
 
-`submit` can fail for 3D use, incompatible devices/layouts/render passes, incompatible frame-uniform image counts, frame-uniform allocation/write/binding, zero-size/out-of-date swapchains, command recording, acquisition, device loss, queue submission, or presentation.
+`submit` can fail for incompatible devices/layouts/render passes, incompatible frame-uniform image counts, frame-uniform allocation/write/binding, zero-size/out-of-date swapchains, command recording, acquisition, device loss, queue submission, or presentation.
 
 Optional depth attachments are cleared with the window's immutable `RenderTargetConfig::clear_depth_value` each frame. High-level 2D disables depth testing/writes; each raw pipeline uses its own immutable `DepthState`. Depth values are shared between ordered raw draws in the frame, including across intervening 2D draws; 2D neither tests nor changes them. Resize allocates replacement depth images/views with the same count and extent as the new swapchain images; those allocation/format/extent errors propagate from submission.
 

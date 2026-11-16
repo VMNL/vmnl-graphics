@@ -5,7 +5,7 @@
 
 use vmnl_graphics::{
     common::Rgba,
-    d2::{Shape, Vector2f},
+    d2::{LineCap, Shape, Vector2f},
     Context, Key, PresentMode, VMNLResult, Window,
 };
 
@@ -30,6 +30,7 @@ fn main() -> VMNLResult<()> {
         .build(&context)?;
     let arc = Shape::circle(70.0)
         .sector(0.0, 90.0)
+        .cap(LineCap::Butt)
         .position(640.0, 455.0)
         .color(Rgba::rgba(0, 255, 0, 255))
         .segments(32)

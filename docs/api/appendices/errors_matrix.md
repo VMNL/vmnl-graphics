@@ -14,13 +14,13 @@
 | Cursor position/raw-motion setters | non-finite coordinates (`InvalidState`); unsupported raw enable (`GlfwUnsupportedPlatform`) | Correct coordinates or keep raw motion disabled |
 | `StickConfig` construction | dead zone outside finite `[0, 1)` (`InvalidState`) | Choose a finite threshold in `[0, 1)` |
 | Cursor resource build/assign | invalid image/hotspot (`InvalidState`); unavailable theme shape (`GlfwUnsupportedPlatform`); native GLFW failure | Correct image data, choose another shape, or restore the default cursor |
-| Shape/mesh build | invalid/overflowing geometry; vertex/index allocation failure | Correct geometry or release/reduce resources |
+| Shape build | invalid/overflowing geometry; vertex/index allocation failure | Correct geometry or release/reduce resources |
 | Circle-family build | `InvalidState` for invalid parameters, sector/cap mismatch, zero segments, or invalid topology/counts; generated coordinates are not rechecked and filled widths are not validated | Supply both sector and cap or neither; keep outline offsets finite/positive and generated geometry within usable bounds |
 | Raw pipeline build | `InvalidLineWidth` / `DeviceFeatureNotEnabled` / portability point-polygon or viewport/scissor `InvalidState` before shader I/O; missing/read/compile/interface/layout/pipeline failures | Use valid numeric values and viewport device limits; request required device features before context creation; correct shaders/layout |
 | Viewport/scissor policy resolution | `InvalidState` for invalid viewport numbers/ranges/full dimensions or signed scissor sum overflow | Correct framebuffer-pixel values; headless resolution does not validate device viewport limits |
 | Raw geometry/uniform build | invalid counts/indices or buffer allocation | Correct data/reduce allocation |
 | Raw resources build | context/device/layout/set/binding/type/array/duplicate/missing mismatch; descriptor allocation | Align shader and resource contract |
-| Frame submit | 3D scaffold `InvalidState`; device/render-pass/resource mismatch; out-of-date/zero-size; record/submit/present/device errors | Never submit 3D; retry transient resize; rebuild/terminate on hard device failure |
+| Frame submit | device/render-pass/resource mismatch; out-of-date/zero-size; record/submit/present/device errors | Retry transient resize; rebuild/terminate on hard device failure |
 | GLFW callbacks/infallible setters | No typed result; routed through callback/default backend handling | Log/classify callback and reconcile observed state |
 
 `VMNLErrorKind` is non-exhaustive. This table groups public behavior; exact per-item variants remain in Rustdoc/reference pages.

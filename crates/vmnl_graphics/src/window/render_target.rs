@@ -37,7 +37,6 @@ impl DepthFormat {
 ///
 /// An attachment alone does not enable depth testing/writes: high-level 2D always
 /// disables them; raw pipelines opt in through [`crate::raw::PipelineSpec::depth`].
-/// This does not implement high-level 3D rendering.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct RenderTargetConfig {
     depth: Option<DepthFormat>,

@@ -33,7 +33,7 @@ Treat `docs/` as the canonical home for stable architecture, contracts, and proc
   interface, crate boundary, raw API, backend adapter, or FFI seam decision.
 - Read [`../../references/diagnostic-protocol.md`](../../references/diagnostic-protocol.md) for a
   bug, regression, incorrect result, crash, hang, or performance diagnosis.
-- Read [`references/current-limitations.md`](references/current-limitations.md) before changing context/device selection, GLFW initialization, 3D status, or GPU test routing.
+- Read [`references/current-limitations.md`](references/current-limitations.md) before changing context/device selection, GLFW initialization or GPU test routing.
 - Read [`references/graphics-correctness.md`](references/graphics-correctness.md) for Vulkan, synchronization, swapchain, window, resource, shader, pipeline, unsafe, platform, or performance work.
 - Read [`references/validation.md`](references/validation.md) for every feature, fix, Rust source change, test/example change, tooling change, dependency change, or validation claim.
 
@@ -42,6 +42,5 @@ Treat `docs/` as the canonical home for stable architecture, contracts, and proc
 - Keep explicit low-level pipeline and geometry control in `raw`.
 - Keep every observable high-level default inspectable and replaceable without requiring the raw API.
 - Do not expose backend types as stable public contracts without an explicit raw-API decision.
-- Do not present 3D rendering as operational while its backend remains scaffolding.
 - For a public graphics change, decide public crate exposure and document applicable units, coordinates, defaults, valid ranges, ownership, lifecycle, costs, synchronization, errors, panic/safety conditions, and platform/GPU requirements.
 - Verify claims such as allocation-free, zero-copy, asynchronous, non-blocking, deterministic, or constant-time before documenting them.

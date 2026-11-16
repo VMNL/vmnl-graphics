@@ -17,7 +17,7 @@ window.render()
 # }
 ```
 
-The canonical runnable composition is [`examples/raw/d2_composition`](../../../examples/raw/d2_composition/src/main.rs). A 3D pass must not be inserted: any recorded 3D pass makes submission fail.
+The canonical runnable composition is [`examples/raw/d2_composition`](../../../examples/raw/d2_composition/src/main.rs).
 
 ## Inspect viewport and scissor policies
 

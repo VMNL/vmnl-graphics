@@ -14,7 +14,7 @@ Variants: `Host` and `Device`. The type derives `Debug`, `Clone`, `Copy`, `Defau
 
 ## Construction, defaults, and validation
 
-Select a variant and pass it to a shape, mesh, geometry, or uniform builder. The value is a preference, not a guarantee. VMNL requires host-visible sequential-write memory for current direct uploads.
+Select a variant and pass it to a shape, geometry, or uniform builder. The value is a preference, not a guarantee. VMNL requires host-visible sequential-write memory for current direct uploads.
 
 ## Units, coordinates, and valid ranges
 

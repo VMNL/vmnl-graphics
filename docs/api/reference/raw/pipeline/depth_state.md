@@ -6,7 +6,7 @@ Import path: `vmnl_graphics::raw::DepthState`. Status: 0.1.0.
 
 ## Purpose and use cases
 
-Select immutable depth testing and writes for a raw pipeline. It does not enable the scaffolded high-level 3D renderer.
+Select immutable depth testing and writes for a raw pipeline.
 
 ## Public API
 
@@ -36,7 +36,7 @@ Configuration/getters are allocation-free CPU operations. Pipeline build creates
 
 ## Platform, Vulkan, and display constraints
 
-Basic depth testing/writes require no optional device feature. Rendering needs the selected depth format supported on the window's device. Semantics follow [Vulkan depth state](https://docs.vulkan.org/refpages/latest/refpages/source/VkPipelineDepthStencilStateCreateInfo.html). High-level 2D remains depth-disabled and high-level 3D remains scaffolded.
+Basic depth testing/writes require no optional device feature. Rendering needs the selected depth format supported on the window's device. Semantics follow [Vulkan depth state](https://docs.vulkan.org/refpages/latest/refpages/source/VkPipelineDepthStencilStateCreateInfo.html). High-level 2D remains depth-disabled.
 
 ## Example and related types
 
