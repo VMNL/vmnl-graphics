@@ -4,7 +4,6 @@
 use vmnl_graphics::{
     common::Rgba,
     d2::{Vector2f, Vertex2D},
-    d3::{Vector3f, Vertex3D},
     VMNLResult,
 };
 
@@ -46,30 +45,6 @@ fn vectors_support_public_arithmetic() -> VMNLResult<()> {
     vector2 -= Vector2f { x: 2.0, y: 1.0 };
     assert_eq!(vector2 * 2.0, Vector2f { x: 2.0, y: 10.0 });
 
-    let mut vector3 = Vector3f {
-        x: 2.0,
-        y: 4.0,
-        z: 6.0,
-    };
-    vector3 += Vector3f {
-        x: 1.0,
-        y: 2.0,
-        z: 3.0,
-    };
-    vector3 -= Vector3f {
-        x: 2.0,
-        y: 1.0,
-        z: 4.0,
-    };
-    assert_eq!(
-        vector3 * 2.0,
-        Vector3f {
-            x: 2.0,
-            y: 10.0,
-            z: 10.0,
-        }
-    );
-
     Ok(())
 }
 
@@ -91,37 +66,6 @@ fn public_vertices_retain_partial_equality() -> VMNLResult<()> {
         Vertex2D {
             position: Vector2f { x: 1.0, y: 3.0 },
             color: Rgba::GREEN,
-        }
-    );
-
-    let vertex3 = Vertex3D {
-        position: Vector3f {
-            x: 1.0,
-            y: 2.0,
-            z: 3.0,
-        },
-        color: Rgba::CYAN,
-    };
-    assert_eq!(
-        vertex3,
-        Vertex3D {
-            position: Vector3f {
-                x: 1.0,
-                y: 2.0,
-                z: 3.0,
-            },
-            color: Rgba::CYAN,
-        }
-    );
-    assert_ne!(
-        vertex3,
-        Vertex3D {
-            position: Vector3f {
-                x: 1.0,
-                y: 2.0,
-                z: 4.0,
-            },
-            color: Rgba::CYAN,
         }
     );
 

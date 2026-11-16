@@ -7,7 +7,6 @@ use vmnl_gpu_tests::gpu_test_guard;
 use vmnl_graphics::{
     common::{BufferMemoryPreference, Rgba},
     d2::{Anchor, CornerRadii, LineCap, LineJoin, Shape, Vector2f, Vertex2D},
-    d3::{Mesh, Vector3f, Vertex3D},
     raw, Context, PresentMode, RenderMode, VMNLError, VMNLErrorKind, VMNLResult, Window,
 };
 
@@ -55,20 +54,9 @@ fn v2(x: f32, y: f32) -> Vector2f {
     Vector2f { x, y }
 }
 
-fn v3(x: f32, y: f32, z: f32) -> Vector3f {
-    Vector3f { x, y, z }
-}
-
 fn vertex2(x: f32, y: f32, color: Rgba) -> Vertex2D {
     Vertex2D {
         position: v2(x, y),
-        color,
-    }
-}
-
-fn vertex3(x: f32, y: f32, z: f32, color: Rgba) -> Vertex3D {
-    Vertex3D {
-        position: v3(x, y, z),
         color,
     }
 }
@@ -128,15 +116,6 @@ fn d2_d3_and_raw_builders_create_valid_gpu_resources() -> VMNLResult<()> {
         .width(4.0)
         .cap(LineCap::Round)
         .build(&context)?;
-    let _mesh = Mesh::indexed(
-        [
-            vertex3(0.0, 0.0, 0.0, Rgba::RED),
-            vertex3(1.0, 0.0, 0.0, Rgba::GREEN),
-            vertex3(0.0, 1.0, 0.0, Rgba::BLUE),
-        ],
-        [0, 1, 2],
-    )
-    .build(&context)?;
     let _raw = raw::Geometry::builder([
         RawValidationVertex {
             position: [0.0, 0.0],
@@ -340,18 +319,6 @@ fn gpu_resource_builders_report_expected_invalid_states() -> VMNLResult<()> {
             .position(f32::MAX, 0.0)
             .build(&context),
         "circle vertex positions must not be NaN",
-    )?;
-    assert_invalid_state(
-        Mesh::indexed(
-            [
-                vertex3(0.0, 0.0, 0.0, Rgba::WHITE),
-                vertex3(1.0, 0.0, 0.0, Rgba::WHITE),
-                vertex3(0.0, 1.0, 0.0, Rgba::WHITE),
-            ],
-            [0, 1, 3],
-        )
-        .build(&context),
-        "mesh index 3 is out of bounds for 3 vertices",
     )?;
     assert_invalid_state(
         raw::Geometry::<RawValidationVertex>::builder(Vec::<RawValidationVertex>::new())

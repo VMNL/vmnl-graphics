@@ -1,6 +1,6 @@
 # Workflows
 
-These pages connect public items without duplicating the complete runnable programs under `examples/`. GPU/display snippets are compile-only (`no_run`). There is intentionally no 3D rendering workflow while that backend remains scaffolded.
+These pages connect public items without duplicating the complete runnable programs under `examples/`. GPU/display snippets are compile-only (`no_run`).
 
 | Goal | Workflow | Canonical example |
 |---|---|---|

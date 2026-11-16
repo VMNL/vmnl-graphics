@@ -4,7 +4,6 @@
 use vmnl_graphics::{
     common::Rgba,
     d2::{Vector2f, Vertex2D},
-    d3::{Camera, Vector3f},
     raw, Input, Key, MouseButton, PresentMode, RenderMode, VMNLErrorKind, VMNLResult, Window,
 };
 
@@ -26,23 +25,6 @@ fn main() -> VMNLResult<()> {
     p2 -= Vector2f { x: 2.0, y: 1.0 };
     let scaled2 = p2 * 2.0;
 
-    let mut p3 = Vector3f {
-        x: 1.0,
-        y: 2.0,
-        z: 3.0,
-    };
-    p3 += Vector3f {
-        x: 4.0,
-        y: 5.0,
-        z: 6.0,
-    };
-    p3 -= Vector3f {
-        x: 1.0,
-        y: 1.0,
-        z: 1.0,
-    };
-    let scaled3 = p3 * 0.25;
-
     assert_eq!(from_rgb, Rgba::rgba(20, 40, 80, 255));
     assert_eq!(from_rgba, Rgba::rgba(20, 40, 80, 160));
     assert_eq!(from_new, Rgba::rgba(10, 20, 30, 40));
@@ -52,14 +34,6 @@ fn main() -> VMNLResult<()> {
     assert_eq!(dim_u8, Rgba::rgba(119, 16, 32, 0));
     assert_eq!(dim_f32, Rgba::rgba(119, 16, 32, 0));
     assert_eq!(scaled2, Vector2f { x: 24.0, y: 22.0 });
-    assert_eq!(
-        scaled3,
-        Vector3f {
-            x: 1.0,
-            y: 1.5,
-            z: 2.0,
-        }
-    );
     let input = Input::new();
     assert!(!input.keyboard().is_down(Key::Escape));
     assert!(!input.mouse().is_down(MouseButton::Left));
@@ -70,14 +44,6 @@ fn main() -> VMNLResult<()> {
     assert_eq!(
         raw::Pipeline::<Vertex2D>::builder().topology_value(),
         raw::PrimitiveTopology::TriangleList
-    );
-    assert_eq!(
-        Camera::default().position,
-        Vector3f {
-            x: 0.0,
-            y: 0.0,
-            z: 1.0
-        }
     );
     assert!(matches!(
         Window::builder().size_limit(Some(2), None, Some(1), None),

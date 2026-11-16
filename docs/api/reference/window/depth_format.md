@@ -34,7 +34,7 @@ Choosing or copying a variant allocates nothing. Enabling it allocates one image
 
 ## Platform, Vulkan, and display constraints
 
-Follows [Vulkan depth formats](https://docs.vulkan.org/guide/latest/depth.html). Device support is checked explicitly. Attachment creation alone does not enable depth testing/writes; raw pipelines opt in through `PipelineSpec::depth`, while high-level 2D always disables them. High-level 3D rendering remains scaffolded.
+Follows [Vulkan depth formats](https://docs.vulkan.org/guide/latest/depth.html). Device support is checked explicitly. Attachment creation alone does not enable depth testing/writes; raw pipelines opt in through `PipelineSpec::depth`, while high-level 2D always disables them.
 
 ## Example and related types
 

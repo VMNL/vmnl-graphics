@@ -42,7 +42,7 @@ Setters are CPU-only; source strings/paths may allocate. Build reads paths, runs
 
 Requires an operational window and driver support for the generated pipeline.
 
-Depth defaults to [`DepthState::Disabled`](depth_state.md). `DepthState::Test { compare_op, write_enable }` requires a window built with a depth attachment; otherwise build returns `InvalidState` before shader I/O, including `Always` with writes disabled. All eight [`CompareOp`](compare_op.md) values and both write choices are supported without optional device features. State is immutable and inspectable on both spec and built pipeline. No attachment, format fallback or feature is added implicitly. The pipeline remains tied to its window's device/render pass, including attachments. High-level 2D always disables depth testing/writes; high-level 3D remains scaffolded.
+Depth defaults to [`DepthState::Disabled`](depth_state.md). `DepthState::Test { compare_op, write_enable }` requires a window built with a depth attachment; otherwise build returns `InvalidState` before shader I/O, including `Always` with writes disabled. All eight [`CompareOp`](compare_op.md) values and both write choices are supported without optional device features. State is immutable and inspectable on both spec and built pipeline. No attachment, format fallback or feature is added implicitly. The pipeline remains tied to its window's device/render pass, including attachments. High-level 2D always disables depth testing/writes.
 
 ## Example and related types
 

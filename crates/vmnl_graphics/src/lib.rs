@@ -5,12 +5,11 @@
 //!
 //! Depend directly on the `vmnl_graphics` package and import `vmnl_graphics`.
 //! The root exports context, windowing, events, input, monitoring, rendering,
-//! and error types; [`common`], [`d2`], [`d3`], and [`raw`] group the remaining
+//! and error types; [`common`], [`d2`], and [`raw`] group the remaining
 //! public surface. Procedural macros are re-exported through [`raw`].
 //!
 //! This is the initial graphics API baseline. The 2D and raw rendering paths are operational
-//! within their documented constraints. The 3D types are scaffolding:
-//! submitting a frame containing a 3D pass returns an explicit error.
+//! within their documented constraints.
 //! The [compatibility policy](https://github.com/VMNL/vmnl-graphics/blob/main/docs/deployment.md)
 //! covers published contracts throughout 0.x; explicitly unstable backend interoperability is excluded.
 //!
@@ -32,14 +31,11 @@
 //! # }
 //! ```
 
-/// Shared graphics primitives used by 2D and 3D resources.
+/// Shared graphics primitives.
 pub mod common;
 /// 2D graphics resources and public types.
 #[path = "2d/mod.rs"]
 pub mod d2;
-/// 3D graphics resources and public types.
-#[path = "3d/mod.rs"]
-pub mod d3;
 mod exception;
 mod glfw_backend;
 mod glfw_runtime;

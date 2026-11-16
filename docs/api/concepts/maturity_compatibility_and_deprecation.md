@@ -14,7 +14,6 @@ declared stable are excluded.
 | Context/window/input/monitors | 0.1.0, operational within platform limits |
 | 2D shapes/rendering | 0.1.0, operational |
 | Raw pipelines/geometry/uniforms | 0.1.0, operational within documented limits; backend-coupled traits remain unstable |
-| 3D types/resources | Scaffolded; frame submission unavailable |
 
 From `0.1.0`, replacement APIs must precede deprecation. Deprecations appear in Rustdoc, this book,
 the public API snapshot review, and the release notes. Deprecated `0.x` APIs remain until `1.0.0`;

@@ -1,6 +1,6 @@
 # GPU resources, costs, and synchronization
 
-`build(&Context)` on shapes, meshes, raw geometry, uniforms, and descriptor resources may allocate host and/or device resources and perform CPU-to-buffer writes. `BufferMemoryPreference` is a preference; current direct uploads require host-visible sequential-write memory.
+`build(&Context)` on shapes, raw geometry, uniforms, and descriptor resources may allocate host and/or device resources and perform CPU-to-buffer writes. `BufferMemoryPreference` is a preference; current direct uploads require host-visible sequential-write memory.
 
 `raw::Uniform::write` updates an existing uniform buffer directly. It does not wait for GPU work, rebuild descriptor sets, or allocate a replacement buffer, and it can fail when active CPU or GPU access conflicts with the write.
 

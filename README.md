@@ -27,7 +27,7 @@ A Rust graphics library for games and engines, from useful defaults to explicit 
 
 > [!WARNING]
 > **Version `0.1.0` — initial graphics API baseline.** 2D and raw rendering are available within
-> their documented limits; 3D rendering remains scaffolded. Platform qualification is incomplete;
+> their documented limits. Platform qualification is incomplete;
 > see [Platform Support](https://github.com/VMNL/vmnl-graphics/blob/main/docs/platform_support.md).
 > Do not use in production.
 
@@ -59,7 +59,6 @@ the same public crate.
 | **Windowing and input** | Native windows, events, monitors, keyboard, mouse, and joystick/gamepad access |
 | **2D** | Shapes, indexed geometry, and per-object rendering |
 | **Raw graphics** | Typed pipelines, geometry, uniform buffers, and explicit frame composition |
-| **3D** | Data and resource scaffolding; rendering is not operational |
 
 The guiding constraint is progressive control: start with documented defaults, replace only the
 policies that matter, and descend to explicit raw control without changing the conceptual model.
@@ -92,7 +91,6 @@ flowchart TD
     G --> W["window, input, and monitors"]
     G --> D2["d2 - 2D primitives · available"]
     G --> R["raw - typed graphics control"]
-    G --> D3["d3 - mesh / camera · scaffolding"]
 ```
 
 VMNL exposes a control ladder:
@@ -103,8 +101,7 @@ VMNL exposes a control ladder:
   Vulkano part of the stable public API.
 - **Backend interoperability** - an explicitly unstable escape hatch when raw VMNL is insufficient.
 
-Textures, text, batching, an operational 3D backend, and scene helpers are planned rather than
-current capabilities. The canonical direction and boundaries are documented in
+Textures, text, batching, and scene helpers are planned rather than current capabilities. The canonical direction and boundaries are documented in
 [Architecture](https://github.com/VMNL/vmnl-graphics/blob/main/docs/architecture.md).
 
 ---
@@ -128,12 +125,8 @@ backend interoperability explicitly marked unstable is excluded.
 - Command buffers
 - Frame synchronization
 - 2D shape primitives (`vmnl_graphics::d2`)
-- Render API with explicit 2D / 3D pass separation
+- Ordered composition of 2D and raw passes
 - Raw typed pipelines, geometry, and uniform resources within documented limits
-
-### Graphics - scaffolding only
-
-- 3D mesh and camera API (`vmnl_graphics::d3`) - **API exists, rendering not yet implemented**
 
 ### Windowing / Input - available
 
@@ -147,7 +140,6 @@ backend interoperability explicitly marked unstable is excluded.
 | Area                | State            |
 | ------------------- | ---------------- |
 | Graphics - 2D       | Available        |
-| Graphics - 3D       | Scaffolding only |
 | Windowing / Input   | Available        |
 
 ---
@@ -202,7 +194,7 @@ Technical documentation starts at [docs/README.md](https://github.com/VMNL/vmnl-
 1. **`0.1.0` (current)** - window/input, 2D shapes, and minimal raw graphics form the initial
    graphics API baseline; documented implementation and qualification limits still apply.
 2. **`0.2.0`** - textures without breaking `0.1.0`; text and batching begin in parallel.
-3. **Later `0.x`** - optional graphics composition helpers, operational 3D, and reference applications.
+3. **Later `0.x`** - optional graphics composition helpers, 3D rendering, and reference applications.
 4. **`1.0.0`** - complete stable graphics APIs, qualified platform support, stable C ABI, priority
    C++ wrapper, and demonstrated game and engine rendering workflows.
 

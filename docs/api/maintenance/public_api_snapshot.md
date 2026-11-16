@@ -556,124 +556,6 @@ pub trait vmnl_graphics::d2::Drawable2D
 pub fn vmnl_graphics::d2::Drawable2D::render_item_2d(&self) -> vmnl_graphics::d2::RenderItem2D
 impl vmnl_graphics::d2::Drawable2D for vmnl_graphics::d2::Shape
 pub fn vmnl_graphics::d2::Shape::render_item_2d(&self) -> vmnl_graphics::d2::RenderItem2D
-pub mod vmnl_graphics::d3
-pub struct vmnl_graphics::d3::Camera
-pub vmnl_graphics::d3::Camera::position: vmnl_graphics::d3::Vector3f
-pub vmnl_graphics::d3::Camera::target: vmnl_graphics::d3::Vector3f
-pub vmnl_graphics::d3::Camera::up: vmnl_graphics::d3::Vector3f
-impl vmnl_graphics::d3::Camera
-pub const fn vmnl_graphics::d3::Camera::new(vmnl_graphics::d3::Vector3f, vmnl_graphics::d3::Vector3f, vmnl_graphics::d3::Vector3f) -> Self
-impl core::clone::Clone for vmnl_graphics::d3::Camera
-pub fn vmnl_graphics::d3::Camera::clone(&self) -> vmnl_graphics::d3::Camera
-impl core::cmp::PartialEq for vmnl_graphics::d3::Camera
-pub fn vmnl_graphics::d3::Camera::eq(&self, &vmnl_graphics::d3::Camera) -> bool
-impl core::default::Default for vmnl_graphics::d3::Camera
-pub fn vmnl_graphics::d3::Camera::default() -> Self
-impl core::fmt::Debug for vmnl_graphics::d3::Camera
-pub fn vmnl_graphics::d3::Camera::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
-impl core::marker::Copy for vmnl_graphics::d3::Camera
-impl core::marker::StructuralPartialEq for vmnl_graphics::d3::Camera
-impl core::marker::Freeze for vmnl_graphics::d3::Camera
-impl core::marker::Send for vmnl_graphics::d3::Camera
-impl core::marker::Sync for vmnl_graphics::d3::Camera
-impl core::marker::Unpin for vmnl_graphics::d3::Camera
-impl core::marker::UnsafeUnpin for vmnl_graphics::d3::Camera
-impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::d3::Camera
-impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::d3::Camera
-pub struct vmnl_graphics::d3::Mesh
-impl vmnl_graphics::d3::Mesh
-pub fn vmnl_graphics::d3::Mesh::indexed<V, I>(V, I) -> vmnl_graphics::d3::MeshBuilder where V: core::convert::Into<alloc::vec::Vec<vmnl_graphics::d3::Vertex3D>>, I: core::convert::Into<alloc::vec::Vec<u32>>
-impl core::convert::AsRef<vmnl_graphics::d3::Mesh> for vmnl_graphics::d3::Mesh
-pub fn vmnl_graphics::d3::Mesh::as_ref(&self) -> &Self
-impl vmnl_graphics::d3::Drawable3D for vmnl_graphics::d3::Mesh
-pub fn vmnl_graphics::d3::Mesh::render_item_3d(&self) -> vmnl_graphics::d3::RenderItem3D
-impl core::marker::Freeze for vmnl_graphics::d3::Mesh
-impl core::marker::Send for vmnl_graphics::d3::Mesh
-impl core::marker::Sync for vmnl_graphics::d3::Mesh
-impl core::marker::Unpin for vmnl_graphics::d3::Mesh
-impl core::marker::UnsafeUnpin for vmnl_graphics::d3::Mesh
-impl !core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::d3::Mesh
-impl !core::panic::unwind_safe::UnwindSafe for vmnl_graphics::d3::Mesh
-pub struct vmnl_graphics::d3::MeshBuilder
-impl vmnl_graphics::d3::MeshBuilder
-pub fn vmnl_graphics::d3::MeshBuilder::buffer_memory_preference(self, vmnl_graphics::common::BufferMemoryPreference) -> Self
-pub fn vmnl_graphics::d3::MeshBuilder::build(self, &vmnl_graphics::Context) -> vmnl_graphics::VMNLResult<vmnl_graphics::d3::Mesh>
-impl core::marker::Freeze for vmnl_graphics::d3::MeshBuilder
-impl core::marker::Send for vmnl_graphics::d3::MeshBuilder
-impl core::marker::Sync for vmnl_graphics::d3::MeshBuilder
-impl core::marker::Unpin for vmnl_graphics::d3::MeshBuilder
-impl core::marker::UnsafeUnpin for vmnl_graphics::d3::MeshBuilder
-impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::d3::MeshBuilder
-impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::d3::MeshBuilder
-pub struct vmnl_graphics::d3::RenderItem3D
-impl core::clone::Clone for vmnl_graphics::d3::RenderItem3D
-pub fn vmnl_graphics::d3::RenderItem3D::clone(&self) -> vmnl_graphics::d3::RenderItem3D
-impl core::marker::Freeze for vmnl_graphics::d3::RenderItem3D
-impl core::marker::Send for vmnl_graphics::d3::RenderItem3D
-impl core::marker::Sync for vmnl_graphics::d3::RenderItem3D
-impl core::marker::Unpin for vmnl_graphics::d3::RenderItem3D
-impl core::marker::UnsafeUnpin for vmnl_graphics::d3::RenderItem3D
-impl !core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::d3::RenderItem3D
-impl !core::panic::unwind_safe::UnwindSafe for vmnl_graphics::d3::RenderItem3D
-#[repr(C)] pub struct vmnl_graphics::d3::Vector3f
-pub vmnl_graphics::d3::Vector3f::x: f32
-pub vmnl_graphics::d3::Vector3f::y: f32
-pub vmnl_graphics::d3::Vector3f::z: f32
-impl bytemuck::pod::Pod for vmnl_graphics::d3::Vector3f
-impl bytemuck::zeroable::Zeroable for vmnl_graphics::d3::Vector3f
-impl core::clone::Clone for vmnl_graphics::d3::Vector3f
-pub fn vmnl_graphics::d3::Vector3f::clone(&self) -> vmnl_graphics::d3::Vector3f
-impl core::cmp::PartialEq for vmnl_graphics::d3::Vector3f
-pub fn vmnl_graphics::d3::Vector3f::eq(&self, &vmnl_graphics::d3::Vector3f) -> bool
-impl core::default::Default for vmnl_graphics::d3::Vector3f
-pub fn vmnl_graphics::d3::Vector3f::default() -> vmnl_graphics::d3::Vector3f
-impl core::fmt::Debug for vmnl_graphics::d3::Vector3f
-pub fn vmnl_graphics::d3::Vector3f::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
-impl core::marker::Copy for vmnl_graphics::d3::Vector3f
-impl core::marker::StructuralPartialEq for vmnl_graphics::d3::Vector3f
-impl core::ops::arith::AddAssign for vmnl_graphics::d3::Vector3f
-pub fn vmnl_graphics::d3::Vector3f::add_assign(&mut self, Self)
-impl core::ops::arith::Mul<f32> for vmnl_graphics::d3::Vector3f
-pub type vmnl_graphics::d3::Vector3f::Output = vmnl_graphics::d3::Vector3f
-pub fn vmnl_graphics::d3::Vector3f::mul(self, f32) -> Self
-impl core::ops::arith::Sub for vmnl_graphics::d3::Vector3f
-pub type vmnl_graphics::d3::Vector3f::Output = vmnl_graphics::d3::Vector3f
-pub fn vmnl_graphics::d3::Vector3f::sub(self, Self) -> Self
-impl core::ops::arith::SubAssign for vmnl_graphics::d3::Vector3f
-pub fn vmnl_graphics::d3::Vector3f::sub_assign(&mut self, Self)
-impl core::marker::Freeze for vmnl_graphics::d3::Vector3f
-impl core::marker::Send for vmnl_graphics::d3::Vector3f
-impl core::marker::Sync for vmnl_graphics::d3::Vector3f
-impl core::marker::Unpin for vmnl_graphics::d3::Vector3f
-impl core::marker::UnsafeUnpin for vmnl_graphics::d3::Vector3f
-impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::d3::Vector3f
-impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::d3::Vector3f
-#[repr(C)] pub struct vmnl_graphics::d3::Vertex3D
-pub vmnl_graphics::d3::Vertex3D::color: vmnl_graphics::common::Rgba
-pub vmnl_graphics::d3::Vertex3D::position: vmnl_graphics::d3::Vector3f
-impl bytemuck::pod::Pod for vmnl_graphics::d3::Vertex3D
-impl bytemuck::zeroable::Zeroable for vmnl_graphics::d3::Vertex3D
-impl core::clone::Clone for vmnl_graphics::d3::Vertex3D
-pub fn vmnl_graphics::d3::Vertex3D::clone(&self) -> vmnl_graphics::d3::Vertex3D
-impl core::cmp::PartialEq for vmnl_graphics::d3::Vertex3D
-pub fn vmnl_graphics::d3::Vertex3D::eq(&self, &vmnl_graphics::d3::Vertex3D) -> bool
-impl core::default::Default for vmnl_graphics::d3::Vertex3D
-pub fn vmnl_graphics::d3::Vertex3D::default() -> vmnl_graphics::d3::Vertex3D
-impl core::fmt::Debug for vmnl_graphics::d3::Vertex3D
-pub fn vmnl_graphics::d3::Vertex3D::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
-impl core::marker::Copy for vmnl_graphics::d3::Vertex3D
-impl core::marker::StructuralPartialEq for vmnl_graphics::d3::Vertex3D
-impl core::marker::Freeze for vmnl_graphics::d3::Vertex3D
-impl core::marker::Send for vmnl_graphics::d3::Vertex3D
-impl core::marker::Sync for vmnl_graphics::d3::Vertex3D
-impl core::marker::Unpin for vmnl_graphics::d3::Vertex3D
-impl core::marker::UnsafeUnpin for vmnl_graphics::d3::Vertex3D
-impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::d3::Vertex3D
-impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::d3::Vertex3D
-pub trait vmnl_graphics::d3::Drawable3D
-pub fn vmnl_graphics::d3::Drawable3D::render_item_3d(&self) -> vmnl_graphics::d3::RenderItem3D
-impl vmnl_graphics::d3::Drawable3D for vmnl_graphics::d3::Mesh
-pub fn vmnl_graphics::d3::Mesh::render_item_3d(&self) -> vmnl_graphics::d3::RenderItem3D
 pub mod vmnl_graphics::raw
 pub use vmnl_graphics::raw::Pod
 pub use vmnl_graphics::raw::Vertex
@@ -1845,7 +1727,6 @@ impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::Event
 pub struct vmnl_graphics::FrameRenderer<'w, 'g>
 impl<'w, 'g> vmnl_graphics::FrameRenderer<'w, 'g>
 pub fn vmnl_graphics::FrameRenderer<'w, 'g>::draw2d<D, const N: usize>(self, [&'g D; N]) -> Self where D: vmnl_graphics::d2::Drawable2D + ?core::marker::Sized
-pub fn vmnl_graphics::FrameRenderer<'w, 'g>::draw3d<D, const N: usize>(self, &'g vmnl_graphics::d3::Camera, [&'g D; N]) -> Self where D: vmnl_graphics::d3::Drawable3D + ?core::marker::Sized
 pub fn vmnl_graphics::FrameRenderer<'w, 'g>::draw_raw_2d<TVertex, const N: usize>(self, &'g vmnl_graphics::raw::Pipeline<TVertex>, [&'g vmnl_graphics::raw::Geometry<TVertex>; N]) -> Self
 pub fn vmnl_graphics::FrameRenderer<'w, 'g>::draw_raw_2d_with<TVertex, const N: usize>(self, &'g vmnl_graphics::raw::Pipeline<TVertex>, &'g vmnl_graphics::raw::Resources, [&'g vmnl_graphics::raw::Geometry<TVertex>; N]) -> Self
 pub fn vmnl_graphics::FrameRenderer<'w, 'g>::mode(self, vmnl_graphics::RenderMode) -> Self

@@ -41,7 +41,7 @@ fn main() -> vmnl_graphics::VMNLResult<()> {
 }
 ```
 
-Each swapchain image receives a separate depth image/view, recreated at its actual framebuffer extent on resize. The depth attachment is cleared each frame and discarded afterwards; format and clear value stay fixed. This adds allocation cost at build/resize, with device memory preferred. High-level 2D always disables depth testing/writes; raw pipelines can opt in through `PipelineSpec::depth`. Reusing an image's depth attachment waits on its prior frame fence and may block the caller; no device-wide wait is added. `draw3d` remains unsupported. See [`RenderTargetConfig`](../reference/window/render_target_config.md) for errors and lifecycle.
+Each swapchain image receives a separate depth image/view, recreated at its actual framebuffer extent on resize. The depth attachment is cleared each frame and discarded afterwards; format and clear value stay fixed. This adds allocation cost at build/resize, with device memory preferred. High-level 2D always disables depth testing/writes; raw pipelines can opt in through `PipelineSpec::depth`. Reusing an image's depth attachment waits on its prior frame fence and may block the caller; no device-wide wait is added. See [`RenderTargetConfig`](../reference/window/render_target_config.md) for errors and lifecycle.
 
 ## Require optional device features
 

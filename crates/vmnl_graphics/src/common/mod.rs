@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Hugo Duda
 // SPDX-License-Identifier: MIT
 
-//! Shared graphics primitives used by 2D and 3D resources.
+//! Shared graphics primitives.
 
 mod buffer;
 mod color;

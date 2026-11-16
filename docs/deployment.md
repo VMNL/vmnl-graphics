@@ -35,7 +35,7 @@ analysis even when the Rust signature is unchanged.
 `0.1.0` is the current window/input, 2D shapes, and minimal public raw graphics baseline.
 Its documented contracts define the initial compatibility surface. The
 [feature status](api/appendices/feature_status.md), [architecture limits](architecture.md#current-implementation-boundaries),
-and [platform qualification](platform_support.md) remain applicable; 3D rendering is scaffolded.
+and [platform qualification](platform_support.md) remain applicable.
 Release review must cover its public API, defaults, tests, examples, and documentation, including
 the [stable contract requirements](architecture.md#stable-contract-requirements). The version
 number alone does not satisfy these release requirements.

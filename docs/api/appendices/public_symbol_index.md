@@ -71,13 +71,6 @@
 | struct | `vmnl_graphics::d2::TriangleBuilder` | [TriangleBuilder](../reference/d2/shapes/triangle_builder.md) | [Rustdoc](../../../target/doc/vmnl_graphics/d2/struct.TriangleBuilder.html) |
 | struct | `vmnl_graphics::d2::Vector2f` | [Vector2f](../reference/d2/vector_2f.md) | [Rustdoc](../../../target/doc/vmnl_graphics/d2/struct.Vector2f.html) |
 | struct | `vmnl_graphics::d2::Vertex2D` | [Vertex2D](../reference/d2/vertex_2d.md) | [Rustdoc](../../../target/doc/vmnl_graphics/d2/struct.Vertex2D.html) |
-| struct | `vmnl_graphics::d3::Camera` | [Camera](../reference/d3/camera.md) | [Rustdoc](../../../target/doc/vmnl_graphics/d3/struct.Camera.html) |
-| trait | `vmnl_graphics::d3::Drawable3D` | [Drawable3D](../reference/d3/drawable_3d.md) | [Rustdoc](../../../target/doc/vmnl_graphics/d3/trait.Drawable3D.html) |
-| struct | `vmnl_graphics::d3::Mesh` | [Mesh](../reference/d3/mesh/mesh.md) | [Rustdoc](../../../target/doc/vmnl_graphics/d3/struct.Mesh.html) |
-| struct | `vmnl_graphics::d3::MeshBuilder` | [MeshBuilder](../reference/d3/mesh/mesh_builder.md) | [Rustdoc](../../../target/doc/vmnl_graphics/d3/struct.MeshBuilder.html) |
-| struct | `vmnl_graphics::d3::RenderItem3D` | [RenderItem3D](../reference/d3/render_item_3d.md) | [Rustdoc](../../../target/doc/vmnl_graphics/d3/struct.RenderItem3D.html) |
-| struct | `vmnl_graphics::d3::Vector3f` | [Vector3f](../reference/d3/vector_3f.md) | [Rustdoc](../../../target/doc/vmnl_graphics/d3/struct.Vector3f.html) |
-| struct | `vmnl_graphics::d3::Vertex3D` | [Vertex3D](../reference/d3/vertex_3d.md) | [Rustdoc](../../../target/doc/vmnl_graphics/d3/struct.Vertex3D.html) |
 | enum | `vmnl_graphics::raw::BlendMode` | [BlendMode](../reference/raw/pipeline/blend_mode.md) | [Rustdoc](../../../target/doc/vmnl_graphics/raw/enum.BlendMode.html) |
 | trait | `vmnl_graphics::raw::BufferContents` | [BufferContents](../reference/raw/traits/buffer_contents.md) | [Rustdoc](../../../target/doc/vmnl_graphics/raw/trait.BufferContents.html) |
 | enum | `vmnl_graphics::raw::CompareOp` | [CompareOp](../reference/raw/pipeline/compare_op.md) | [Rustdoc](../../../target/doc/vmnl_graphics/raw/enum.CompareOp.html) |

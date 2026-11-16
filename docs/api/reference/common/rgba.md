@@ -48,4 +48,4 @@ let color = Rgba::rgb(20, 24, 32);
 assert_eq!(color, Rgba::new(20, 24, 32, 255));
 ```
 
-Related: [`Vertex2D`](../d2/vertex_2d.md), [`Vertex3D`](../d3/vertex_3d.md), and [`Window` configuration](../window/configuration.md).
+Related: [`Vertex2D`](../d2/vertex_2d.md) and [`Window` configuration](../window/configuration.md).

@@ -29,7 +29,6 @@ Initial release of VMNL Graphics for Vulkan rendering, windowing, and input.
 
 ### Known limitations
 
-- 3D types and resources are scaffolding; 3D frame rendering is unavailable.
 - Textures, text rendering, and optimized batching are unavailable.
 - Some raw traits remain coupled to Vulkano; this interoperability is unstable.
 - Native platform and physical-controller qualification remains incomplete.

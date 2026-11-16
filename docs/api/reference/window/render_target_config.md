@@ -34,7 +34,7 @@ Setters/getters and successful numeric validation allocate nothing and perform n
 
 ## Platform, Vulkan, and display constraints
 
-Headless configuration needs no Vulkan/display; building needs an operational graphics context/window. High-level 2D always disables depth testing/writes. Raw pipelines default to disabled and can opt in with [`DepthState`](../raw/pipeline/depth_state.md). This does not make high-level 3D rendering operational.
+Headless configuration needs no Vulkan/display; building needs an operational graphics context/window. High-level 2D always disables depth testing/writes. Raw pipelines default to disabled and can opt in with [`DepthState`](../raw/pipeline/depth_state.md).
 
 ## Example and related types
 
