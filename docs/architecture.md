@@ -26,6 +26,26 @@ remain implementation details.
 VMNL does not require ownership of the application loop. Clients can drive each subsystem
 directly; an optional high-level runner may provide a simpler path without removing manual control.
 
+### Explicit Client Control
+
+For supported graphics operations, the public API must let clients select every observable policy
+explicitly, through high-level configuration and full VMNL raw control as appropriate. High-level
+defaults remain inspectable and replaceable without requiring `raw`. Defaults apply to choices
+left unspecified; an explicitly selected automatic policy follows its documented resolution rules.
+
+An exact request must be honored or rejected with a structured error. VMNL must not silently drop
+requirements, rewrite independent settings, convert data, or substitute an execution strategy to
+make that request succeed. Hardware and platform restrictions constrain valid requests; they do
+not authorize a different choice on the client's behalf.
+
+Fallback behavior must belong to a named, documented, selectable policy. Expose its resolved result
+and whether a fallback was used; a fallback policy must never weaken an exact request. Keep the
+requested configuration distinguishable from its resolved values when resolution can change them.
+
+A supported operation whose observable policy is fixed by VMNL without an explicit client override
+has an API contract gap. Identify unsupported capabilities separately. Documenting an imposed choice
+does not satisfy the explicit-control requirement.
+
 ## Domain Scope
 
 This repository owns graphics only: Vulkan rendering, windows, events, input, monitors, 2D,
