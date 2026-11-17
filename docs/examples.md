@@ -33,9 +33,10 @@ just run raw_d2_composition
 just build raw_pipeline
 ```
 
-`d2_circles` demonstrates circles, ellipses, rings, filled sectors, and an outlined elliptical arc
-with round caps. The [circle builder contract](api/reference/d2/shapes/circle_builder.md) defines
-setter order, angles, widths, and the required sector/cap pair.
+`d2_circles` demonstrates circles, ellipses, rings, sectors, and an outlined elliptical arc
+with round caps. On the right, cyan filled circles and yellow outlined circles compare both
+orders of the fill and width setters. The [circle builder contract](api/reference/d2/shapes/circle_builder.md)
+defines fill and width configuration, angles, and the required sector/cap pair.
 
 Current limitation: `d2_shapes` configures a sector without `.cap(...)`, so its shape construction
 returns `InvalidState` before entering the render loop. Use `d2_circles` for the circle-family

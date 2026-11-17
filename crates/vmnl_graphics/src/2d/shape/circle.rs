@@ -59,18 +59,20 @@ struct CircleOptions {
 /// Builder for filled or outlined circles, ellipses, and sectors.
 ///
 /// Obtain it through [`Shape::circle`]; the builder currently has no public import path.
-/// That entry point starts filled, centered at `(0, 0)`, with equal required radii,
+/// That entry point starts unfilled, centered at `(0, 0)`, with equal required radii,
 /// opaque white color, 32 segments, inner/outer offsets of `0.5`, no sector or cap,
 /// and [`BufferMemoryPreference::Device`]. Setters only change CPU configuration.
 ///
 /// The boundary follows the ellipse normal at the configured radii, offset outward by
 /// the outer width, including for filled shapes. Outlines also have an inward-offset
-/// boundary. Thus a default filled circle of radius `r` has boundary radius `r + 0.5`.
-/// Use [`Self::outer`] followed by [`Self::filled`] to change that filled boundary offset.
+/// boundary. A filled circle of radius `r` with default offsets has boundary radius `r + 0.5`.
+/// Use [`Self::outer`] to change that filled boundary offset.
 ///
-/// Width setters disable filling; `filled(true)` preserves the stored widths and ignores
-/// only the inner width. A sector requires an explicit cap even when filled; cap geometry
-/// is applied only when unfilled. See [`Self::build`] for validation and GPU costs.
+/// Width setters preserve filling; `filled(true)` preserves the stored widths and ignores
+/// only the inner width. Inspect these settings with [`Self::is_filled`],
+/// [`Self::inner_width`] and [`Self::outer_width`]. A sector requires an explicit cap even
+/// when filled; cap geometry is applied only when unfilled. See [`Self::build`] for validation
+/// and GPU costs.
 pub struct CircleBuilder {
     /// Configuration options for the circle shape.
     options: CircleOptions,
@@ -136,14 +138,20 @@ impl CircleBuilder {
     /// - `filled`: boolean representing the filled state of the shape.
     ///
     /// Stored widths are preserved. Filling omits the inner boundary but still applies
-    /// the outer offset. Later calls to `width`, `inner`, or `outer` disable filling again.
+    /// the outer offset. Width setters preserve this fill selection.
     #[must_use]
     pub fn filled(mut self, filled: bool) -> Self {
         self.options.filled = filled;
         self
     }
 
-    /// Set the inward offset from the ellipse and disable filling.
+    /// Returns the selected fill mode without initializing GLFW or Vulkan.
+    #[must_use]
+    pub const fn is_filled(&self) -> bool {
+        self.options.filled
+    }
+
+    /// Set the inward offset from the ellipse, preserving the fill selection.
     ///
     /// # Arguments
     /// - `w`: Finite, strictly positive inward offset in pixel-like coordinates when unfilled.
@@ -153,11 +161,18 @@ impl CircleBuilder {
     #[must_use]
     pub fn inner(mut self, w: f32) -> Self {
         self.options.outline_width.inner = w;
-        self.options.filled = false;
         self
     }
 
-    /// Set the outward offset from the ellipse and disable filling.
+    /// Returns the stored inward offset in pixel-like coordinates.
+    ///
+    /// This value has not necessarily been validated by [`Self::build`].
+    #[must_use]
+    pub const fn inner_width(&self) -> f32 {
+        self.options.outline_width.inner
+    }
+
+    /// Set the outward offset from the ellipse, preserving the fill selection.
     ///
     /// # Arguments
     /// - `w`: Outward offset in pixel-like coordinates, finite and strictly positive when unfilled.
@@ -167,11 +182,18 @@ impl CircleBuilder {
     #[must_use]
     pub fn outer(mut self, w: f32) -> Self {
         self.options.outline_width.outer = w;
-        self.options.filled = false;
         self
     }
 
-    /// Set equal inner/outer offsets to half the total width and disable filling.
+    /// Returns the stored outward offset in pixel-like coordinates.
+    ///
+    /// This value has not necessarily been validated by [`Self::build`].
+    #[must_use]
+    pub const fn outer_width(&self) -> f32 {
+        self.options.outline_width.outer
+    }
+
+    /// Set equal inner/outer offsets to half the total width, preserving the fill selection.
     ///
     /// # Arguments
     /// - `width`: Total width in pixel-like coordinates. Both computed offsets must
@@ -184,7 +206,6 @@ impl CircleBuilder {
             inner: width / 2.0,
             outer: width / 2.0,
         };
-        self.options.filled = false;
         self
     }
 
@@ -748,6 +769,89 @@ mod tests {
 
         assert_eq!(options.segment_count, 32);
         assert_eq!(options.color, Rgba::WHITE);
+    }
+
+    fn assert_width_setter_preserves_fill(
+        set_width: fn(CircleBuilder) -> CircleBuilder,
+        expected_inner: f32,
+        expected_outer: f32,
+    ) {
+        for filled in [false, true] {
+            let fill_first = set_width(CircleBuilder::new(10.0).filled(filled)).options;
+            let width_first = set_width(CircleBuilder::new(10.0)).filled(filled).options;
+
+            for options in [fill_first, width_first] {
+                assert_eq!(options.filled, filled);
+                assert_eq!(
+                    options.outline_width.inner.to_bits(),
+                    expected_inner.to_bits()
+                );
+                assert_eq!(
+                    options.outline_width.outer.to_bits(),
+                    expected_outer.to_bits()
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn inner_preserves_explicit_fill() {
+        assert_width_setter_preserves_fill(|builder| builder.inner(2.0), 2.0, 0.5);
+    }
+
+    #[test]
+    fn outer_preserves_explicit_fill() {
+        assert_width_setter_preserves_fill(|builder| builder.outer(3.0), 0.5, 3.0);
+    }
+
+    #[test]
+    fn width_preserves_explicit_fill() {
+        assert_width_setter_preserves_fill(|builder| builder.width(8.0), 4.0, 4.0);
+    }
+
+    #[test]
+    fn fill_and_width_order_preserves_circle_family_geometry() {
+        type WidthSetter = fn(CircleBuilder) -> CircleBuilder;
+        let setters: [(WidthSetter, f32, f32); 3] = [
+            (|builder| builder.inner(2.0), 2.0, 0.5),
+            (|builder| builder.outer(3.0), 0.5, 3.0),
+            (|builder| builder.width(4.0), 2.0, 2.0),
+        ];
+        for filled in [false, true] {
+            for kind in 0..3 {
+                for (setter, inner, outer) in setters {
+                    let mut base_first = CircleBuilder::new(10.0).segments(8);
+                    let mut base_second = CircleBuilder::new(10.0).segments(8);
+                    if kind == 1 {
+                        base_first = base_first.ellipse(6.0);
+                        base_second = base_second.ellipse(6.0);
+                    } else if kind == 2 {
+                        base_first = base_first.sector(0.0, 90.0).cap(LineCap::Butt);
+                        base_second = base_second.sector(0.0, 90.0).cap(LineCap::Butt);
+                    }
+                    let fill_first = setter(base_first.filled(filled));
+                    let width_first = setter(base_second).filled(filled);
+                    assert!(CircleBuilder::validate_parameters(&fill_first.options).is_ok());
+                    assert!(CircleBuilder::validate_parameters(&width_first.options).is_ok());
+                    let (vertices, indices) = CircleBuilder::geometry(&fill_first.options);
+                    assert_eq!(
+                        (vertices.clone(), indices.clone()),
+                        CircleBuilder::geometry(&width_first.options)
+                    );
+                    let (expected_vertices, expected_indices, outer_index) =
+                        if filled { (10, 24, 1) } else { (18, 48, 0) };
+                    assert_eq!(vertices.len(), expected_vertices);
+                    assert_eq!(indices.len(), expected_indices);
+                    let radius_y = if kind == 1 { 6.0 } else { 10.0 };
+                    assert_close(vertices[outer_index].position.x, 0.0);
+                    assert_close(vertices[outer_index].position.y, -(radius_y + outer));
+                    if !filled {
+                        assert_close(vertices[1].position.y, -(radius_y - inner));
+                    }
+                    assert_valid_mesh(&vertices, &indices);
+                }
+            }
+        }
     }
 
     // ---------------------------------------------------------

@@ -33,6 +33,37 @@ fn empty_frame_submits_and_presents() -> VMNLResult<()> {
 
 #[test]
 #[ignore = "Requires Vulkan + GLFW display."]
+fn circle_family_fill_and_width_setters_submit() -> VMNLResult<()> {
+    let _guard = gpu_test_guard();
+    let context = Context::new()?;
+    let mut window = Window::new(&context)?;
+
+    for filled in [false, true] {
+        for kind in 0..3 {
+            for setter in 0..3 {
+                let builder = Shape::circle(40.0).position(100.0, 100.0).filled(filled);
+                let builder = match setter {
+                    0 => builder.inner(2.0),
+                    1 => builder.outer(3.0),
+                    _ => builder.width(8.0),
+                };
+                let builder = match kind {
+                    1 => builder.ellipse(25.0),
+                    2 => builder.sector(0.0, 90.0).cap(LineCap::Butt),
+                    _ => builder,
+                };
+                assert_eq!(builder.is_filled(), filled);
+                let shape = builder.build(&context)?;
+                window.render().draw2d([&shape]).submit()?;
+            }
+        }
+    }
+
+    Ok(())
+}
+
+#[test]
+#[ignore = "Requires Vulkan + GLFW display."]
 fn advanced_d2_geometry_submits_per_object_and_batched() -> VMNLResult<()> {
     let _guard = gpu_test_guard();
     let context = Context::new()?;

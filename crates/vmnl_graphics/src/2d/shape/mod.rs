@@ -116,7 +116,7 @@ impl Drawable2D for Shape {
 impl GraphicsResourceFactory for Shape {}
 
 impl Shape {
-    /// Create a filled circle builder with a required radius.
+    /// Create a circle builder with a required radius.
     ///
     /// The circle center defaults to `(0, 0)` and its color defaults to white.
     /// The returned builder is currently usable through type inference and has no public
@@ -128,8 +128,10 @@ impl Shape {
     /// so the default boundary radius is `radius + 0.5`.
     ///
     /// Configure an ellipse with `.ellipse(radius_y)`. `.width(w)` sets both offsets to
-    /// `w / 2`; `.inner(w)` and `.outer(w)` change one offset. Each width setter disables
+    /// `w / 2`; `.inner(w)` and `.outer(w)` change one offset. Width setters preserve
     /// filling. `.filled(true)` preserves offsets and ignores only the inner boundary.
+    /// Inspect these values using `.is_filled()`, `.inner_width()`, and `.outer_width()`;
+    /// getters return stored CPU configuration before build validation.
     /// `.segments(n)` sets subdivisions across the complete shape or requested sweep.
     ///
     /// `.sector(start, sweep)` uses degrees, zero at the top, positive clockwise in the

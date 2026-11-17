@@ -30,6 +30,11 @@ Fixing behavior that violates a documented contract restores compatibility. Chan
 documented contract, observable default, ownership rule, or error behavior requires compatibility
 analysis even when the Rust signature is unchanged.
 
+The approved exception for issue #129 changes circle-family width setters to preserve the
+selected fill mode. Call `.filled(false)` explicitly when an outline is intended after a
+previous `.filled(true)`. The `Shape::circle` default remains unfilled. This exception does
+not alter the compatibility policy for other behavior.
+
 ## Release milestones
 
 `0.1.0` is the current window/input, 2D shapes, and minimal public raw graphics baseline.

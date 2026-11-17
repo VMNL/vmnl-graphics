@@ -22,9 +22,12 @@ public `Default`, `Clone`, or `Copy` implementation.
 | `position(x, y)` | Set the center |
 | `ellipse(radius)` | Replace the vertical radius; preserve the horizontal radius |
 | `filled(bool)` | Select filled or outlined geometry; preserve stored widths |
-| `inner(w)` | Set the inward offset; disable filling; preserve the outer offset |
-| `outer(w)` | Set the outward offset; disable filling; preserve the inner offset |
-| `width(w)` | Set both offsets to `w / 2`; disable filling |
+| `is_filled()` | Inspect the selected fill mode |
+| `inner(w)` | Set the inward offset; preserve filling and the outer offset |
+| `inner_width()` | Inspect the stored inward offset |
+| `outer(w)` | Set the outward offset; preserve filling and the inner offset |
+| `outer_width()` | Inspect the stored outward offset |
+| `width(w)` | Set both offsets to `w / 2`; preserve filling |
 | `sector(start, sweep)` | Set the signed angular interval; preserve fill mode |
 | `cap(LineCap)` | Select sector endpoint geometry |
 | `segments(u16)` | Set subdivisions across the complete circle or requested sweep |
@@ -41,12 +44,18 @@ geometry, opaque white, 32 segments, inner and outer offsets of `0.5`, no sector
 `Shape::ellipse(rx, ry)` and the exported `EllipseBuilder` have been removed. Use
 `Shape::circle(rx).ellipse(ry)`; remove explicit `EllipseBuilder` type annotations.
 
-Setter order matters: `width`, `inner`, and `outer` switch to an outline; a later `filled(true)`
-restores filling without clearing either width. Filled geometry omits the inner boundary but
-still offsets the outer boundary. Consequently, a default filled circle with reference radius
+`width`, `inner`, and `outer` preserve the selected fill mode. The fill setter preserves both
+offsets, so its order relative to a width setter does not change the resulting configuration.
+`width` still replaces both offsets, so its order relative to `inner` or `outer` matters.
+The getters return stored values without validation or GLFW/Vulkan initialization.
+Filled geometry omits the inner boundary but
+still offsets the outer boundary. A filled circle with default offsets and reference radius
 `50.0` has boundary radius `50.5`. For a filled circle with boundary radius `50.0`, use
 `Shape::circle(50.0).outer(0.0).filled(true)`; zero outer width is accepted only in filled mode.
 For ellipses, the outer offset follows the unit normal and is not generally another exact ellipse.
+
+**Migration:** Width setters previously selected an outline even after `filled(true)`.
+Call `.filled(false)` explicitly when an outline is intended. The default remains unfilled.
 
 Validation occurs on `build`, before GPU allocation:
 
