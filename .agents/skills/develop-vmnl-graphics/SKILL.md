@@ -39,6 +39,9 @@ Treat `docs/` as the canonical home for stable architecture, contracts, and proc
 
 ## Preserve Graphics Contracts
 
+- For API design and audits, apply the [explicit client control contract](../../../docs/architecture.md#explicit-client-control)
+  and the policy inventory in [module design](../../references/module-design.md#evaluate-the-interface)
+  before accepting the proposed surface as complete.
 - Keep explicit low-level pipeline and geometry control in `raw`.
 - Keep every observable high-level default inspectable and replaceable without requiring the raw API.
 - Do not expose backend types as stable public contracts without an explicit raw-API decision.

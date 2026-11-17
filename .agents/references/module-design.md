@@ -61,6 +61,12 @@ Evaluate it with these checks:
 A small method count is not a goal by itself. Do not compress distinct ownership, lifecycle, or
 control decisions into opaque configuration solely to make an interface appear deeper.
 
+For an API design or audit, inventory each affected observable policy: documented default, explicit
+client override, resolved-value inspection, invalid/unsupported request behavior, and any selectable
+fallback. Apply the [explicit client control contract](../../docs/architecture.md#explicit-client-control)
+and report missing controls as API gaps. Distinguish capabilities outside the supported surface from
+policies VMNL already chooses for the client; a working default does not make its override optional.
+
 ## Place Seams Deliberately
 
 A seam is justified when it isolates at least one real concern:
