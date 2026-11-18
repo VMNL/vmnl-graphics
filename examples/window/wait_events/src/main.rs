@@ -4,7 +4,8 @@
 //! Event-driven redraw using an explicit blocking wait.
 
 use vmnl_graphics::{
-    common::Rgba, d2::Shape, Context, EventKind, Key, PresentMode, VMNLResult, Window,
+    common::Rgba, d2::Shape, Context, EventKind, Key, PresentMode, VMNLErrorKind, VMNLResult,
+    Window,
 };
 
 fn main() -> VMNLResult<()> {
@@ -31,6 +32,7 @@ fn main() -> VMNLResult<()> {
 
     let mut use_warm_shape = false;
     let mut redraw = true;
+    let mut retry_after_out_of_date = false;
     println!("Press Space to change the shape or Escape to close.");
 
     while window.is_open() {
@@ -40,11 +42,21 @@ fn main() -> VMNLResult<()> {
             } else {
                 &cool_shape
             };
-            window.render().draw2d([shape]).submit()?;
-            redraw = false;
+            match window.render().draw2d([shape]).submit() {
+                Ok(()) => redraw = false,
+                Err(error) if matches!(error.kind(), VMNLErrorKind::VulkanOutOfDate) => {
+                    retry_after_out_of_date = true;
+                }
+                Err(error) => return Err(error),
+            }
         }
 
-        window.wait_events();
+        if retry_after_out_of_date {
+            window.wait_events_timeout(0.05);
+            retry_after_out_of_date = false;
+        } else {
+            window.wait_events();
+        }
         for event in window.poll_events() {
             match event.kind() {
                 EventKind::Closed

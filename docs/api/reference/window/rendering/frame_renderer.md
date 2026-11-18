@@ -39,6 +39,12 @@ The builder mutably borrows `Window` and borrows draw resources for `'g`; those 
 
 `submit` can fail for incompatible devices/layouts/render passes, incompatible frame-uniform image counts, frame-uniform allocation/write/binding, zero-size/out-of-date swapchains, command recording, acquisition, device loss, queue submission, or presentation.
 
+`VulkanOutOfDate` can be returned when acquisition or presentation finds the swapchain out of date, or when the framebuffer has no renderable extent. A presentation-stage error may follow queue submission; it does not mean that no work was submitted or that its resources are idle. VMNL requests swapchain recreation and preserves the synchronization state needed to keep the same window usable after it becomes renderable. Continue processing events and retry with that window.
+
+With Vulkano 0.35.2, retiring a failed presentation future can wait for the presentation queue to become idle. This error path can block the thread calling `submit` while submitted resources are retired.
+
+Earlier `0.1.0` builds logged a presentation-stage out-of-date result and returned `Ok(())`. That result is now `Err(VulkanOutOfDate)`, matching the documented error contract. Callers that depended on the previous behavior must handle this transient error.
+
 Optional depth attachments are cleared with the window's immutable `RenderTargetConfig::clear_depth_value` each frame. High-level 2D disables depth testing/writes; each raw pipeline uses its own immutable `DepthState`. Depth values are shared between ordered raw draws in the frame, including across intervening 2D draws; 2D neither tests nor changes them. Resize allocates replacement depth images/views with the same count and extent as the new swapchain images; those allocation/format/extent errors propagate from submission.
 
 ## Allocation, transfers, synchronization, and GPU cost

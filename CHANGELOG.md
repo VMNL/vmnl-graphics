@@ -13,6 +13,11 @@ Notable user-facing changes are recorded here.
 
 - Circle builder getters expose the selected fill mode and stored inner/outer offsets.
 
+### Fixed
+
+- Frame submission returns `VulkanOutOfDate` for an out-of-date presentation instead of
+  logging the condition and reporting success.
+
 ## 0.1.0 - 2026-11-12
 
 Initial release of VMNL Graphics for Vulkan rendering, windowing, and input.

@@ -17,7 +17,7 @@ just build <example>
 | `joystick_runtime` | `just run joystick_runtime` | one-shot joystick/gamepad sampling through `InputRuntime` without a `Context`, Vulkan instance, or window; GLFW still requires a usable platform backend |
 | `window_events_input` | `just run window_events_input` | window builder/config, polling, keyboard names/scancodes/sticky modes, events, monitors, mouse, joystick/gamepad snapshots and stick processing, cursor resources/modes/raw motion, timers, lifecycle |
 | `window_custom_shaders` | `just run window_custom_shaders` | 2D custom shaders from files; set `VMNL_INLINE_SHADERS=1` for inline shader strings |
-| `window_wait_events` | `just run window_wait_events` | explicit blocking event wait and event-driven redraw |
+| `window_wait_events` | `just run window_wait_events` | explicit blocking event wait, event-driven redraw, and transient swapchain out-of-date recovery |
 | `raw_triangle` | `just run raw_triangle` | minimal raw pipeline triangle |
 | `raw_pipeline` | `just run raw_pipeline` | explicit `LargePoints` / `FillModeNonSolid` / `WideLines` requirements and line-width limits, raw shader paths, topology/blend variants, indexed/non-indexed geometry; `C` culling, `F` winding, `P` fill/wireframe, `W` line width |
 | `raw_uniform` | `just run raw_uniform` | animated raw pipeline resources backed by `FrameUniform` |
