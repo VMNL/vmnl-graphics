@@ -7,14 +7,14 @@
 //! and fence signaling for a rendered frame.
 
 use crate::window::runtime::FrameCompletion;
-use crate::{VMNLError, VMNLErrorKind, VMNLResult, window::inner::VMNLWindow};
+use crate::{window::inner::VMNLWindow, VMNLError, VMNLErrorKind, VMNLResult};
 use std::sync::Arc;
 use vulkano::{
-    Validated, VulkanError,
     command_buffer::PrimaryAutoCommandBuffer,
     device::Queue,
     swapchain::{Swapchain, SwapchainAcquireFuture, SwapchainPresentInfo},
     sync::GpuFuture,
+    Validated, VulkanError,
 };
 
 pub(super) enum FrameSyncResult<T> {
@@ -101,7 +101,7 @@ impl VMNLWindow {
 mod tests {
     #![allow(clippy::panic)]
 
-    use super::{FrameSyncResult, finalize_frame_sync};
+    use super::{finalize_frame_sync, FrameSyncResult};
     use crate::{VMNLError, VMNLErrorKind, VMNLResult};
     use std::sync::Arc;
 

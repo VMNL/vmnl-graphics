@@ -12,7 +12,7 @@ mod sync;
 
 use crate::d2::RenderItem2D;
 use crate::raw::{PendingFrameUniformWrite, RenderItemRaw};
-use crate::window::{RenderMode, inner::VMNLWindow};
+use crate::window::{inner::VMNLWindow, RenderMode};
 use crate::{VMNLError, VMNLErrorKind, VMNLResult};
 use std::sync::Arc;
 use vulkano::{
