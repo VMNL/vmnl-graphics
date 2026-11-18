@@ -180,7 +180,7 @@ mod tests {
             Ok(FrameSyncResult::SwapchainOutOfDate(None));
 
         let result = finalize_frame_sync(frame_sync, &mut recreation_requested, |completion| {
-            installed_ready_future = completion.is_none()
+            installed_ready_future = completion.is_none();
         });
 
         assert!(recreation_requested);
@@ -199,7 +199,7 @@ mod tests {
             Err(VMNLError::new(VMNLErrorKind::VulkanDeviceLost));
 
         let result = finalize_frame_sync(frame_sync, &mut recreation_requested, |_| {
-            retained_completion = true
+            retained_completion = true;
         });
 
         assert!(!recreation_requested);
