@@ -203,7 +203,8 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     ///
     /// # Returns
     /// Returns `Ok(())` when command recording, queue submission, presentation,
-    /// and optional event polling complete successfully.
+    /// and optional event polling complete without error. This does not guarantee
+    /// that the displayed frame was visible to the user.
     ///
     /// # Examples
     /// ```rust,no_run
@@ -228,7 +229,18 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     ///
     /// # Errors
     /// Returns an error if frame-uniform allocation/write/binding, frame acquisition,
-    /// command recording, submission, or presentation fails.
+    /// command recording, submission, or presentation fails. An out-of-date swapchain
+    /// during acquisition or presentation returns `VMNLErrorKind::VulkanOutOfDate`.
+    /// Presentation can report this after work has been submitted; the error does not
+    /// mean that no work was submitted or that its resources are idle. VMNL preserves
+    /// the required synchronization and requests swapchain recreation, so the same
+    /// window can be used again after its framebuffer is renderable.
+    /// With Vulkano 0.35.2, retiring a failed presentation future can wait for the
+    /// presentation queue to become idle; this error path can block the calling thread.
+    ///
+    /// Earlier `0.1.0` builds logged a presentation-stage out-of-date result and
+    /// returned `Ok(())`. Callers that relied on that behavior must now handle
+    /// `VulkanOutOfDate` as a transient submission error.
     pub fn submit(self) -> VMNLResult<()> {
         self.window
             .inner

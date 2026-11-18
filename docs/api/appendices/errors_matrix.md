@@ -20,7 +20,7 @@
 | Viewport/scissor policy resolution | `InvalidState` for invalid viewport numbers/ranges/full dimensions or signed scissor sum overflow | Correct framebuffer-pixel values; headless resolution does not validate device viewport limits |
 | Raw geometry/uniform build | invalid counts/indices or buffer allocation | Correct data/reduce allocation |
 | Raw resources build | context/device/layout/set/binding/type/array/duplicate/missing mismatch; descriptor allocation | Align shader and resource contract |
-| Frame submit | device/render-pass/resource mismatch; out-of-date/zero-size; record/submit/present/device errors | Retry transient resize; rebuild/terminate on hard device failure |
+| Frame submit | device/render-pass/resource mismatch; `VulkanOutOfDate` during acquisition, presentation, or zero-size recreation; record/submit/present/device errors | Keep processing events and retry with the same window after its framebuffer is renderable; rebuild/terminate on hard device failure |
 | GLFW callbacks/infallible setters | No typed result; routed through callback/default backend handling | Log/classify callback and reconcile observed state |
 
 `VMNLErrorKind` is non-exhaustive. This table groups public behavior; exact per-item variants remain in Rustdoc/reference pages.
