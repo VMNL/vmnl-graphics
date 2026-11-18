@@ -10,6 +10,7 @@ the texture resource foundation targets `0.2.0`. Versioning does not qualify a n
 | 2D predefined/indexed shapes | Operational in 0.1.0 | Unit/API checks plus GPU/examples for runtime visuals |
 | Custom 2D shaders | Operational in 0.1.0 | Shader compile and visual example |
 | Ordered 2D/raw frame composition | Operational in 0.1.0 | GPU/example behavior |
+| Owned elapsed-time clocks (`time::Clock`, `time::Duration`) | Accepted for 0.2.0, not in the 0.1.0 baseline | Headless unit/API/doctest evidence; no GPU, window, or display required |
 | Raw typed pipeline/geometry | Operational in 0.1.0 | Restricted public contract |
 | Raw uniform buffers/resources | Operational in 0.1.0 | Single uniform-buffer descriptors only |
 | Render-target inspection / preflight | Operational in 0.1.0 | Actual color/depth formats and samples; strict originating-window identity; resize preserves validity |

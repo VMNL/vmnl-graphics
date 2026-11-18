@@ -6,6 +6,7 @@
 | Input | [Joystick and gamepad samples](joystick_gamepad.md) |
 | Errors | [Errors](errors/README.md) |
 | Shared values | [Common](common/README.md) |
+| Time | [Time](time/README.md) |
 | Windowing | [Window](window/README.md) |
 | Rendering | [2D](d2/README.md), [raw](raw/README.md) |
 | Texture sources, GPU resources, and samplers | [Texture](texture/README.md) |

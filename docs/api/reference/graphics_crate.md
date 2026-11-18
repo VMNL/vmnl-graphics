@@ -6,7 +6,7 @@ Import path: `vmnl_graphics`. Status: 0.1.0 graphics API; all client-visible ite
 
 ## Purpose and use cases
 
-The graphics crate is the supported dependency boundary for VMNL clients. It hides the internal crate/module organization while grouping rendering primitives into `common`, `d2`, `raw`, and `texture`.
+The graphics crate is the supported dependency boundary for VMNL clients. It hides the internal crate/module organization while grouping rendering primitives into `common`, `d2`, `raw`, `texture`, and `time`.
 
 ## Public API
 
@@ -17,7 +17,7 @@ Root re-exports: `Context`, `ContextBuilder`, `DeviceConfig`, `DeviceFeature`, `
 `JoystickId`, `JoystickSample`, `JoystickButtonState`, `JoystickHatState`, `GamepadButton`,
 `GamepadAxis`, `GamepadState`, `ShaderSource`, `VMNLError`, `VMNLErrorKind`, `VMNLErrorLocation`,
 and `VMNLResult`. Modules:
-`common`, `d2`, `raw`, and `texture`.
+`common`, `d2`, `raw`, `texture`, and `time`.
 
 ## Construction, defaults, and validation
 
