@@ -105,6 +105,8 @@ This matrix has one row per distinct public type, trait, alias, or derive macro 
 It therefore has no standalone item in the extracted public inventory or generated Rustdoc.
 Its callable builder methods are documented on the [circle builder page](../reference/d2/shapes/circle_builder.md)
 and in source Rustdoc; CPU geometry/validation tests are in
-[`circle.rs`](../../../crates/vmnl_graphics/src/2d/shape/circle.rs).
+[`circle.rs`](../../../crates/vmnl_graphics/src/2d/shape/circle.rs), and headless public getter and
+setter tests are in [`d2_shapes.rs`](../../../tests/api/tests/d2_shapes.rs). GPU submission of the
+circle family is covered in [`frame_renderer.rs`](../../../tests/gpu/tests/frame_renderer.rs).
 
 Coverage is complete only when `tools/api_docs.py check` reports no missing, duplicate, stale, or unresolvable entry.

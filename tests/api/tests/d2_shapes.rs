@@ -25,6 +25,52 @@ fn build_indexed_shape(builder: IndexedShapeBuilder, context: &Context) -> VMNLR
 }
 
 #[test]
+fn circle_builder_exposes_defaults_and_independent_fill_and_widths() {
+    let defaults = Shape::circle(10.0);
+    assert!(!defaults.is_filled());
+    assert_eq!(defaults.inner_width().to_bits(), 0.5_f32.to_bits());
+    assert_eq!(defaults.outer_width().to_bits(), 0.5_f32.to_bits());
+
+    for filled in [false, true] {
+        let cases = [
+            (
+                Shape::circle(10.0).filled(filled).inner(2.0),
+                Shape::circle(10.0).inner(2.0).filled(filled),
+                2.0_f32,
+                0.5_f32,
+            ),
+            (
+                Shape::circle(10.0).filled(filled).outer(3.0),
+                Shape::circle(10.0).outer(3.0).filled(filled),
+                0.5,
+                3.0,
+            ),
+            (
+                Shape::circle(10.0).filled(filled).width(8.0),
+                Shape::circle(10.0).width(8.0).filled(filled),
+                4.0,
+                4.0,
+            ),
+        ];
+        for (fill_first, width_first, inner, outer) in cases {
+            for builder in [fill_first, width_first] {
+                assert_eq!(builder.is_filled(), filled);
+                assert_eq!(builder.inner_width().to_bits(), inner.to_bits());
+                assert_eq!(builder.outer_width().to_bits(), outer.to_bits());
+            }
+        }
+    }
+}
+
+#[test]
+fn circle_width_getters_preserve_values_before_build_validation() {
+    let builder = Shape::circle(10.0).inner(f32::NAN).outer(f32::INFINITY);
+    assert!(builder.inner_width().is_nan());
+    assert_eq!(builder.outer_width(), f32::INFINITY);
+    assert!(!builder.is_filled());
+}
+
+#[test]
 fn polyline_builder_and_line_join_are_exported_by_the_facade() {
     assert_eq!(LineJoin::default(), LineJoin::Bevel);
 

@@ -2,6 +2,17 @@
 
 Notable user-facing changes are recorded here.
 
+## Unreleased
+
+### Changed
+
+- Circle-family width setters now preserve the fill mode. Use `.filled(false)` explicitly
+  when an outline is intended after selecting a filled shape. The default remains unfilled.
+
+### Added
+
+- Circle builder getters expose the selected fill mode and stored inner/outer offsets.
+
 ## 0.1.0 - 2026-11-12
 
 Initial release of VMNL Graphics for Vulkan rendering, windowing, and input.

@@ -53,7 +53,33 @@ fn main() -> VMNLResult<()> {
         .color(Rgba::rgba(225, 123, 16, 255))
         .build(&context)?;
 
+    let filled_before_width = Shape::circle(24.0)
+        .filled(true)
+        .width(8.0)
+        .position(690.0, 110.0)
+        .color(Rgba::CYAN)
+        .build(&context)?;
+    let filled_after_width = Shape::circle(24.0)
+        .width(8.0)
+        .filled(true)
+        .position(780.0, 110.0)
+        .color(Rgba::CYAN)
+        .build(&context)?;
+    let outline_before_width = Shape::circle(24.0)
+        .filled(false)
+        .width(8.0)
+        .position(690.0, 200.0)
+        .color(Rgba::YELLOW)
+        .build(&context)?;
+    let outline_after_width = Shape::circle(24.0)
+        .width(8.0)
+        .filled(false)
+        .position(780.0, 200.0)
+        .color(Rgba::YELLOW)
+        .build(&context)?;
+
     println!("Press Escape to close.");
+    println!("Right: matching filled circles above matching outlined circles.");
     while window.is_open() {
         for _ in window.poll_events() {}
         if window.input().keyboard().is_pressed(Key::Escape) {
@@ -61,7 +87,17 @@ fn main() -> VMNLResult<()> {
         }
         window
             .render()
-            .draw2d([&circle, &ellipse, &arc, &ring, &sector])
+            .draw2d([
+                &circle,
+                &ellipse,
+                &arc,
+                &ring,
+                &sector,
+                &filled_before_width,
+                &filled_after_width,
+                &outline_before_width,
+                &outline_after_width,
+            ])
             .submit()?;
     }
 

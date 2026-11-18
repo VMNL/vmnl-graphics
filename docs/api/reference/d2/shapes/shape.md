@@ -12,7 +12,7 @@ Owns GPU-backed 2D geometry accepted by `FrameRenderer::draw2d`.
 
 Builder entry points: `circle(radius)`, `rect(w, h)`, `indexed(vertices, indices)`, `triangle(a, b, c)`, `triangle_from_vertices([Vertex2D; 3])`, `polygon(points)`, `polygon_from_vertices(vertices)`, `line(from, to)`, and `polyline(points)`. Implements `Drawable2D` and `AsRef<Shape>`; fields and direct construction are private.
 
-`circle` returns the inferred [`CircleBuilder`](circle_builder.md), with filled geometry by default.
+`circle` returns the inferred [`CircleBuilder`](circle_builder.md), with outlined geometry by default.
 Use `.ellipse(radius_y)` for a second radius, `.width(w)` for a ring, and
 `.sector(start, sweep).cap(LineCap::...)` for a sector or arc. `Shape::ellipse` and `EllipseBuilder`
 have been removed; the replacement builder currently has no public import path.
@@ -28,7 +28,7 @@ is a non-indexed primitive builder and additionally requires distinct positions 
 finite signed area. See the [indexed](indexed_shape_builder.md) and
 [triangle](triangle_builder.md) builder contracts.
 
-Circle-family width setters disable filling. A later `.filled(true)` preserves widths, and the
+Circle-family width setters preserve filling. `.filled(true)` preserves widths, and the
 outer offset still affects the filled boundary. See the [circle builder contract](circle_builder.md)
 for defaults, setter order, sector/cap validation, and numeric limitations.
 
