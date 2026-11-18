@@ -12,10 +12,12 @@ mod sync;
 
 use crate::d2::RenderItem2D;
 use crate::raw::{PendingFrameUniformWrite, RenderItemRaw};
-use crate::window::{inner::VMNLWindow, RenderMode};
+use crate::window::{RenderMode, inner::VMNLWindow};
 use crate::{VMNLError, VMNLErrorKind, VMNLResult};
 use std::sync::Arc;
-use vulkano::{command_buffer::PrimaryAutoCommandBuffer, swapchain::SwapchainAcquireFuture};
+use vulkano::{
+    command_buffer::PrimaryAutoCommandBuffer, swapchain::SwapchainAcquireFuture, sync::GpuFuture,
+};
 
 pub(crate) enum RenderPassCommand {
     D2 { items: Vec<RenderItem2D> },
@@ -89,20 +91,24 @@ impl VMNLWindow {
             image_index,
             self.handle.vmnl_instance.graphics_queue.clone(),
             self.handle.swapchain.clone(),
+        );
+        let device = self.handle.vmnl_instance.device.clone();
+        let handle = &mut self.handle;
+        sync::finalize_frame_sync(
+            frame_sync,
+            &mut self.state.swapchain_recreation_requested,
+            |completion| {
+                if let Some(completion) = completion {
+                    handle.previous_frame_end = Some(completion.clone().boxed_send_sync());
+                    if let Some(slot) = handle.depth_frame_completions.get_mut(framebuffer_index) {
+                        *slot = Some(completion);
+                    }
+                } else {
+                    handle.previous_frame_end =
+                        Some(vulkano::sync::now(device.clone()).boxed_send_sync());
+                }
+            },
         )?;
-        if let sync::FrameSyncResult::Submitted(completion) = &frame_sync {
-            if let Some(slot) = self
-                .handle
-                .depth_frame_completions
-                .get_mut(framebuffer_index)
-            {
-                *slot = Some(completion.clone());
-            }
-        }
-        let (previous_frame_end, swapchain_recreation_requested) =
-            Self::update_previous_frame_end(frame_sync, self.handle.vmnl_instance.device.clone());
-        self.handle.previous_frame_end = Some(previous_frame_end);
-        self.state.swapchain_recreation_requested |= swapchain_recreation_requested;
         Ok(())
     }
 }
