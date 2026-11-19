@@ -29,15 +29,19 @@ use vulkano::{
     format::{Format, FormatFeatures},
     image::{
         sampler::{
-            BorderColor, Filter as VulkanFilter, Sampler as VulkanSampler, SamplerAddressMode,
-            SamplerCreateInfo, SamplerMipmapMode, LOD_CLAMP_NONE,
+            BorderColor, ComponentMapping as VulkanComponentMapping,
+            ComponentSwizzle as VulkanComponentSwizzle, Filter as VulkanFilter,
+            Sampler as VulkanSampler, SamplerAddressMode, SamplerCreateInfo, SamplerMipmapMode,
+            LOD_CLAMP_NONE,
         },
-        view::ImageView,
-        Image, ImageCreateInfo, ImageLayout, ImageUsage,
+        view::{ImageView, ImageViewCreateInfo},
+        Image, ImageCreateFlags, ImageCreateInfo, ImageFormatInfo, ImageLayout, ImageTiling,
+        ImageUsage,
     },
     memory::allocator::{AllocationCreateInfo, MemoryTypeFilter},
     sync::future::{FenceSignalFuture, GpuFuture},
     sync::now,
+    Version,
 };
 
 const UPLOAD_POLL_INTERVAL: Duration = Duration::from_millis(1);
@@ -82,6 +86,7 @@ pub struct Texture2DBuilder<'a> {
     source: TextureSource<'a>,
     png_options: PngDecodeOptions,
     usage_override: Option<TextureUsageRequest>,
+    mutable_format_views: bool,
     retirement_policy: TextureRetirementPolicy,
 }
 
@@ -94,6 +99,7 @@ impl<'a> Texture2DBuilder<'a> {
             source: TextureSource::Pixels(source),
             png_options: PngDecodeOptions::default(),
             usage_override: None,
+            mutable_format_views: false,
             retirement_policy: TextureRetirementPolicy::Wait,
         }
     }
@@ -106,6 +112,7 @@ impl<'a> Texture2DBuilder<'a> {
             source: TextureSource::Png(bytes),
             png_options: PngDecodeOptions::default(),
             usage_override: None,
+            mutable_format_views: false,
             retirement_policy: TextureRetirementPolicy::Wait,
         }
     }
@@ -118,6 +125,7 @@ impl<'a> Texture2DBuilder<'a> {
             source: TextureSource::File(path.into()),
             png_options: PngDecodeOptions::default(),
             usage_override: None,
+            mutable_format_views: false,
             retirement_policy: TextureRetirementPolicy::Wait,
         }
     }
@@ -137,6 +145,28 @@ impl<'a> Texture2DBuilder<'a> {
     pub const fn with_usage(mut self, usage: TextureUsageRequest) -> Self {
         self.usage_override = Some(usage);
         self
+    }
+
+    /// Requests mutable-compatible image views at image creation.
+    ///
+    /// When enabled, this RGBA8 image may be viewed as either RGBA8 UNORM or RGBA8 sRGB.
+    /// The request is exact: unsupported mutable-image or sampled-format combinations return an
+    /// error from [`prepare`](Self::prepare) instead of silently creating a fixed-format image.
+    /// The default is `false`.
+    ///
+    /// # Errors
+    /// `prepare` returns `InvalidState` when the requested image configuration is unsupported, or
+    /// `VulkanValidationFailed` when the device capability query fails.
+    #[must_use]
+    pub const fn with_mutable_format_views(mut self, enabled: bool) -> Self {
+        self.mutable_format_views = enabled;
+        self
+    }
+
+    /// Returns the mutable-format-view request configured on this builder.
+    #[must_use]
+    pub const fn mutable_format_views_requested(&self) -> bool {
+        self.mutable_format_views
     }
 
     /// Selects how the final texture owner retires its image resources.
@@ -170,10 +200,43 @@ impl<'a> Texture2DBuilder<'a> {
 
         let format = vulkan_format(pixels.format());
         let image_usage = vulkan_image_usage(usage);
+        if self.mutable_format_views {
+            validate_mutable_view_format_support(
+                &self.context,
+                format,
+                pixels.format(),
+                pixels.extent(),
+                usage,
+                image_usage,
+            )?;
+        }
+        let flags = if self.mutable_format_views {
+            ImageCreateFlags::MUTABLE_FORMAT
+        } else {
+            ImageCreateFlags::empty()
+        };
+        let view_formats = if self.mutable_format_views
+            && (self.context.inner.device.api_version() >= Version::V1_2
+                || self
+                    .context
+                    .inner
+                    .device
+                    .enabled_extensions()
+                    .khr_image_format_list)
+        {
+            vec![
+                format,
+                vulkan_format(compatible_view_format(pixels.format())),
+            ]
+        } else {
+            Vec::new()
+        };
         let image = Image::new(
             self.context.inner.memory_allocator.clone(),
             ImageCreateInfo {
+                flags,
                 format,
+                view_formats,
                 extent: [pixels.extent()[0], pixels.extent()[1], 1],
                 usage: image_usage,
                 initial_layout: ImageLayout::Undefined,
@@ -214,6 +277,7 @@ impl<'a> Texture2DBuilder<'a> {
             encoding: pixels.encoding(),
             alpha_mode: pixels.alpha_mode(),
             usage,
+            mutable_format_views: self.mutable_format_views,
             retirement_policy: self.retirement_policy,
         })
     }
@@ -286,6 +350,7 @@ struct TextureStorage {
     encoding: ColorEncoding,
     alpha_mode: AlphaMode,
     usage: TextureUsage,
+    mutable_format_views: bool,
     retirement_policy: TextureRetirementPolicy,
 }
 
@@ -373,12 +438,38 @@ impl Texture2D {
         self.storage.usage.contains(TextureUsage::SAMPLED)
     }
 
+    /// Returns whether image creation enabled compatible mutable-format views.
+    #[must_use]
+    pub fn mutable_format_views_enabled(&self) -> bool {
+        self.storage.mutable_format_views
+    }
+
+    /// Returns whether this texture can create a view with `format`.
+    ///
+    /// The base format is always supported. The current RGBA8 surface additionally supports its
+    /// UNORM/sRGB counterpart when [`Texture2DBuilder::with_mutable_format_views`] was requested.
+    #[must_use]
+    pub fn supports_view_format(&self, format: TextureFormat) -> bool {
+        format == self.storage.format
+            || (self.storage.mutable_format_views
+                && format == compatible_view_format(self.storage.format))
+    }
+
     /// Returns a handle to the default full-range view of the same image storage.
     #[must_use]
     pub fn view(&self) -> TextureView2D {
         TextureView2D {
             texture: self.clone(),
             inner: self.storage.default_view.clone(),
+            requested_format: None,
+            effective_format: self.storage.format,
+            requested_component_mapping: None,
+            effective_component_mapping: TextureComponentMapping::identity(),
+            requested_interpretation: None,
+            sampled_interpretation: Some(TextureViewInterpretation::new(
+                self.storage.encoding,
+                self.storage.alpha_mode,
+            )),
         }
     }
 
@@ -397,29 +488,11 @@ impl Texture2D {
     }
 
     pub(crate) fn sampled_binding(&self, sampler: &Sampler) -> SampledTextureBinding {
-        let view = self.view();
-        let validation_error =
-            view.validate_sampler(sampler)
-                .err()
-                .map(|error| match error.kind() {
-                    VMNLErrorKind::InvalidState(message) => message.clone(),
-                    _ => error.to_string(),
-                });
-
-        SampledTextureBinding {
-            image: self.sampled_image_binding(),
-            sampler: sampler.sampled_binding(),
-            validation_error,
-        }
+        self.view().sampled_binding(sampler)
     }
 
     pub(crate) fn sampled_image_binding(&self) -> SampledImageBinding {
-        SampledImageBinding {
-            image_view: self.storage.default_view.clone(),
-            device: self.storage.context.inner.device.clone(),
-            upload_dependency: self.storage.upload_dependency.clone(),
-            sampled_usage: self.is_sampleable(),
-        }
+        self.view().sampled_image_binding()
     }
 }
 
@@ -428,9 +501,258 @@ impl Texture2D {
 pub struct TextureView2D {
     texture: Texture2D,
     inner: Arc<ImageView>,
+    requested_format: Option<TextureFormat>,
+    effective_format: TextureFormat,
+    requested_component_mapping: Option<TextureComponentMapping>,
+    effective_component_mapping: TextureComponentMapping,
+    requested_interpretation: Option<TextureViewInterpretation>,
+    sampled_interpretation: Option<TextureViewInterpretation>,
+}
+
+/// A source component used for one output channel of a texture view.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum TextureComponent {
+    /// Read the source red channel.
+    Red,
+    /// Read the source green channel.
+    Green,
+    /// Read the source blue channel.
+    Blue,
+    /// Read the source alpha channel.
+    Alpha,
+    /// Return zero for this output channel.
+    Zero,
+    /// Return one for this output channel.
+    One,
+}
+
+impl TextureComponent {
+    fn to_vulkan(self) -> VulkanComponentSwizzle {
+        match self {
+            Self::Red => VulkanComponentSwizzle::Red,
+            Self::Green => VulkanComponentSwizzle::Green,
+            Self::Blue => VulkanComponentSwizzle::Blue,
+            Self::Alpha => VulkanComponentSwizzle::Alpha,
+            Self::Zero => VulkanComponentSwizzle::Zero,
+            Self::One => VulkanComponentSwizzle::One,
+        }
+    }
+}
+
+/// Editable mapping from stored RGBA channels to sampled RGBA channels.
+///
+/// The identity mapping is the default. Mapping changes affect sampled values only; the texture's
+/// stored bytes and source declarations are unchanged.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TextureComponentMapping {
+    red: TextureComponent,
+    green: TextureComponent,
+    blue: TextureComponent,
+    alpha: TextureComponent,
+}
+
+impl TextureComponentMapping {
+    /// Creates a mapping for the sampled red, green, blue and alpha outputs.
+    #[must_use]
+    pub const fn new(
+        red: TextureComponent,
+        green: TextureComponent,
+        blue: TextureComponent,
+        alpha: TextureComponent,
+    ) -> Self {
+        Self {
+            red,
+            green,
+            blue,
+            alpha,
+        }
+    }
+
+    /// Returns the identity mapping, which preserves the stored RGBA channels.
+    #[must_use]
+    pub const fn identity() -> Self {
+        Self::new(
+            TextureComponent::Red,
+            TextureComponent::Green,
+            TextureComponent::Blue,
+            TextureComponent::Alpha,
+        )
+    }
+
+    /// Returns the source selected for sampled red.
+    #[must_use]
+    pub const fn red(self) -> TextureComponent {
+        self.red
+    }
+
+    /// Returns the source selected for sampled green.
+    #[must_use]
+    pub const fn green(self) -> TextureComponent {
+        self.green
+    }
+
+    /// Returns the source selected for sampled blue.
+    #[must_use]
+    pub const fn blue(self) -> TextureComponent {
+        self.blue
+    }
+
+    /// Returns the source selected for sampled alpha.
+    #[must_use]
+    pub const fn alpha(self) -> TextureComponent {
+        self.alpha
+    }
+
+    /// Returns whether this mapping preserves all four channels.
+    #[must_use]
+    pub const fn is_identity(self) -> bool {
+        matches!(self.red, TextureComponent::Red)
+            && matches!(self.green, TextureComponent::Green)
+            && matches!(self.blue, TextureComponent::Blue)
+            && matches!(self.alpha, TextureComponent::Alpha)
+    }
+
+    fn to_vulkan(self) -> VulkanComponentMapping {
+        VulkanComponentMapping {
+            r: self.red.to_vulkan(),
+            g: self.green.to_vulkan(),
+            b: self.blue.to_vulkan(),
+            a: self.alpha.to_vulkan(),
+        }
+    }
+}
+
+/// Color and alpha declarations for the RGBA values returned by a texture view.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TextureViewInterpretation {
+    encoding: ColorEncoding,
+    alpha_mode: AlphaMode,
+}
+
+impl TextureViewInterpretation {
+    /// Creates an interpretation declaration without transforming sampled values.
+    #[must_use]
+    pub const fn new(encoding: ColorEncoding, alpha_mode: AlphaMode) -> Self {
+        Self {
+            encoding,
+            alpha_mode,
+        }
+    }
+
+    /// Returns the declared color encoding of sampled RGB values.
+    #[must_use]
+    pub const fn encoding(self) -> ColorEncoding {
+        self.encoding
+    }
+
+    /// Returns the declared alpha representation of sampled values.
+    #[must_use]
+    pub const fn alpha_mode(self) -> AlphaMode {
+        self.alpha_mode
+    }
+}
+
+/// Builder for another view of a texture's existing image storage.
+pub struct TextureView2DBuilder {
+    texture: Texture2D,
+    format: Option<TextureFormat>,
+    component_mapping: Option<TextureComponentMapping>,
+    interpretation: Option<TextureViewInterpretation>,
+}
+
+impl TextureView2DBuilder {
+    /// Requests an exact view format. The image must have enabled mutable-format views if this
+    /// differs from its storage format.
+    #[must_use]
+    pub const fn format(mut self, format: TextureFormat) -> Self {
+        self.format = Some(format);
+        self
+    }
+
+    /// Requests an exact sampled-component mapping. The identity mapping is the default.
+    #[must_use]
+    pub const fn component_mapping(mut self, mapping: TextureComponentMapping) -> Self {
+        self.component_mapping = Some(mapping);
+        self
+    }
+
+    /// Declares the sampled color and alpha interpretation for managed-color consumers.
+    ///
+    /// A non-identity mapping or changed view format has no inherited interpretation unless this
+    /// method is called. Raw shaders may still sample such a view because their values remain
+    /// shader-owned data.
+    #[must_use]
+    pub const fn interpretation(mut self, interpretation: TextureViewInterpretation) -> Self {
+        self.interpretation = Some(interpretation);
+        self
+    }
+
+    /// Creates the requested view while retaining the same texture storage.
+    ///
+    /// An unchanged identity view reuses the texture's existing default Vulkan view. A changed
+    /// mapping or format creates one additional Vulkan image-view object and no image allocation.
+    ///
+    /// # Errors
+    /// Returns `InvalidState` when the format, format features, image-creation request, or enabled
+    /// portability-subset features do not support this view; `VulkanValidationFailed` when a
+    /// device format-property query fails; or `VulkanImageViewCreationFailed` when Vulkan rejects
+    /// view creation.
+    pub fn build(self) -> VMNLResult<TextureView2D> {
+        let effective_format = self.format.unwrap_or(self.texture.format());
+        let effective_component_mapping = self
+            .component_mapping
+            .unwrap_or_else(TextureComponentMapping::identity);
+        validate_texture_view_request(
+            &self.texture,
+            effective_format,
+            effective_component_mapping,
+        )?;
+
+        let view_format_changed = effective_format != self.texture.format();
+        let interpretation_required =
+            view_format_changed || !effective_component_mapping.is_identity();
+        let sampled_interpretation = self.interpretation.or_else(|| {
+            (!interpretation_required).then(|| {
+                TextureViewInterpretation::new(self.texture.encoding(), self.texture.alpha_mode())
+            })
+        });
+
+        let inner = if interpretation_required {
+            let mut create_info = ImageViewCreateInfo::from_image(&self.texture.storage.image);
+            create_info.format = vulkan_format(effective_format);
+            create_info.component_mapping = effective_component_mapping.to_vulkan();
+            ImageView::new(self.texture.storage.image.clone(), create_info)
+                .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanImageViewCreationFailed))?
+        } else {
+            self.texture.storage.default_view.clone()
+        };
+
+        Ok(TextureView2D {
+            texture: self.texture,
+            inner,
+            requested_format: self.format,
+            effective_format,
+            requested_component_mapping: self.component_mapping,
+            effective_component_mapping,
+            requested_interpretation: self.interpretation,
+            sampled_interpretation,
+        })
+    }
 }
 
 impl TextureView2D {
+    /// Starts a builder for another view of `texture`'s existing image storage.
+    #[must_use]
+    pub fn builder(texture: &Texture2D) -> TextureView2DBuilder {
+        TextureView2DBuilder {
+            texture: texture.clone(),
+            format: None,
+            component_mapping: None,
+            interpretation: None,
+        }
+    }
+
     /// Returns the texture that owns this view's image storage.
     #[must_use]
     pub const fn texture(&self) -> &Texture2D {
@@ -452,13 +774,54 @@ impl TextureView2D {
     /// Returns the view's format.
     #[must_use]
     pub fn format(&self) -> TextureFormat {
-        self.texture.format()
+        self.effective_format
+    }
+
+    /// Returns the exact view-format request, or `None` when it inherited the image format.
+    #[must_use]
+    pub const fn requested_format(&self) -> Option<TextureFormat> {
+        self.requested_format
+    }
+
+    /// Returns the view format selected by a successful build.
+    #[must_use]
+    pub const fn effective_format(&self) -> TextureFormat {
+        self.effective_format
+    }
+
+    /// Returns the exact component-mapping request, or `None` when identity was inherited.
+    #[must_use]
+    pub const fn requested_component_mapping(&self) -> Option<TextureComponentMapping> {
+        self.requested_component_mapping
+    }
+
+    /// Returns the component mapping applied to sampled values.
+    #[must_use]
+    pub const fn effective_component_mapping(&self) -> TextureComponentMapping {
+        self.effective_component_mapping
+    }
+
+    /// Returns the explicit sampled interpretation request, if supplied.
+    #[must_use]
+    pub const fn requested_interpretation(&self) -> Option<TextureViewInterpretation> {
+        self.requested_interpretation
+    }
+
+    /// Returns the effective sampled interpretation, if it is known.
+    ///
+    /// The identity view in the texture's storage format inherits the texture declarations.
+    /// A changed format or non-identity mapping returns `None` unless the builder supplied an
+    /// explicit interpretation.
+    #[must_use]
+    pub const fn sampled_interpretation(&self) -> Option<TextureViewInterpretation> {
+        self.sampled_interpretation
     }
 
     /// Checks whether this view can be paired with a sampler on the same context.
     ///
-    /// This validates sampled usage, context identity, linear-filter support, and the border
-    /// color's numeric class. It does not inspect shader instructions; raw
+    /// This validates sampled usage, context identity, linear-filter support, border-color
+    /// numeric class, and opaque-black border compatibility with component swizzles. It does not
+    /// inspect shader instructions; raw
     /// [`ResourcesBuilder`](crate::raw::ResourcesBuilder) checks those when resources are built.
     ///
     /// # Errors
@@ -471,6 +834,31 @@ impl TextureView2D {
             &sampler.context.inner.device,
             sampler.config(),
         )
+    }
+
+    pub(crate) fn sampled_binding(&self, sampler: &Sampler) -> SampledTextureBinding {
+        let validation_error =
+            self.validate_sampler(sampler)
+                .err()
+                .map(|error| match error.kind() {
+                    VMNLErrorKind::InvalidState(message) => message.clone(),
+                    _ => error.to_string(),
+                });
+
+        SampledTextureBinding {
+            image: self.sampled_image_binding(),
+            sampler: sampler.sampled_binding(),
+            validation_error,
+        }
+    }
+
+    pub(crate) fn sampled_image_binding(&self) -> SampledImageBinding {
+        SampledImageBinding {
+            image_view: self.inner.clone(),
+            device: self.texture.storage.context.inner.device.clone(),
+            upload_dependency: self.texture.storage.upload_dependency.clone(),
+            sampled_usage: self.texture.is_sampleable(),
+        }
     }
 }
 
@@ -523,6 +911,140 @@ pub(crate) fn validate_sampled_image_sampler(
         ));
     }
 
+    if uses_border
+        && !image_view.component_mapping().is_identity()
+        && matches!(
+            config.border_color(),
+            super::SamplerBorderColor::FloatOpaqueBlack | super::SamplerBorderColor::IntOpaqueBlack
+        )
+    {
+        return Err(invalid_state(
+            "opaque-black border sampling with a non-identity texture view mapping is unsupported",
+        ));
+    }
+
+    Ok(())
+}
+
+fn validate_texture_view_request(
+    texture: &Texture2D,
+    view_format: TextureFormat,
+    component_mapping: TextureComponentMapping,
+) -> VMNLResult<()> {
+    if !texture.supports_view_format(view_format) {
+        return Err(invalid_state(format!(
+            "texture view format {view_format:?} was not enabled when the image was created"
+        )));
+    }
+
+    let image_format = texture.storage.image.format();
+    let view_vk_format = vulkan_format(view_format);
+    if image_format.compatibility() != view_vk_format.compatibility() {
+        return Err(invalid_state(
+            "texture view format is not compatible with the image format",
+        ));
+    }
+
+    let physical_device = &texture.storage.context.inner.physical_device;
+    let format_properties = physical_device
+        .format_properties(view_vk_format)
+        .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanValidationFailed))?;
+    if texture.is_sampleable()
+        && !format_properties
+            .optimal_tiling_features
+            .contains(FormatFeatures::SAMPLED_IMAGE)
+    {
+        return Err(invalid_state(
+            "texture view format does not support sampled-image usage",
+        ));
+    }
+
+    let device = &texture.storage.context.inner.device;
+    if device.enabled_extensions().khr_portability_subset {
+        if !component_mapping.is_identity()
+            && !texture
+                .storage
+                .context
+                .is_device_feature_enabled(DeviceFeature::ImageViewFormatSwizzle)
+        {
+            return Err(invalid_state(
+                "non-identity texture view mapping requires enabled ImageViewFormatSwizzle on portability-subset devices",
+            ));
+        }
+
+        if view_vk_format.components() != image_format.components()
+            && !texture
+                .storage
+                .context
+                .is_device_feature_enabled(DeviceFeature::ImageViewFormatReinterpretation)
+        {
+            return Err(invalid_state(
+                "texture view format requires enabled ImageViewFormatReinterpretation on portability-subset devices",
+            ));
+        }
+    }
+
+    Ok(())
+}
+
+fn validate_mutable_view_format_support(
+    context: &Context,
+    image_format: Format,
+    texture_format: TextureFormat,
+    extent: [u32; 2],
+    usage: TextureUsage,
+    image_usage: ImageUsage,
+) -> VMNLResult<()> {
+    let alternate_format = vulkan_format(compatible_view_format(texture_format));
+    if image_format.compatibility() != alternate_format.compatibility() {
+        return Err(invalid_state(
+            "the requested RGBA8 view formats are not in the same compatibility class",
+        ));
+    }
+
+    let alternate_features = context
+        .inner
+        .physical_device
+        .format_properties(alternate_format)
+        .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanValidationFailed))?
+        .optimal_tiling_features;
+    if usage.contains(TextureUsage::SAMPLED)
+        && !alternate_features.contains(FormatFeatures::SAMPLED_IMAGE)
+    {
+        return Err(invalid_state(
+            "the alternate RGBA8 view format does not support sampled-image usage",
+        ));
+    }
+
+    let device = &context.inner.device;
+    let view_formats = if device.api_version() >= Version::V1_2
+        || device.enabled_extensions().khr_image_format_list
+    {
+        vec![image_format, alternate_format]
+    } else {
+        Vec::new()
+    };
+    let properties = context
+        .inner
+        .physical_device
+        .image_format_properties(ImageFormatInfo {
+            flags: ImageCreateFlags::MUTABLE_FORMAT,
+            format: image_format,
+            view_formats,
+            tiling: ImageTiling::Optimal,
+            usage: image_usage,
+            ..Default::default()
+        })
+        .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanValidationFailed))?
+        .ok_or_else(|| {
+            invalid_state("the device does not support this mutable RGBA8 image format and usage")
+        })?;
+    if extent[0] > properties.max_extent[0] || extent[1] > properties.max_extent[1] {
+        return Err(invalid_state(
+            "texture extent exceeds the mutable RGBA8 image format limit",
+        ));
+    }
+
     Ok(())
 }
 
@@ -550,6 +1072,7 @@ pub struct PreparedTexture2D {
     encoding: ColorEncoding,
     alpha_mode: AlphaMode,
     usage: TextureUsage,
+    mutable_format_views: bool,
     retirement_policy: TextureRetirementPolicy,
 }
 
@@ -558,6 +1081,12 @@ impl PreparedTexture2D {
     #[must_use]
     pub const fn extent(&self) -> [u32; 2] {
         self.extent
+    }
+
+    /// Returns whether the prepared image creation enabled compatible mutable-format views.
+    #[must_use]
+    pub const fn mutable_format_views_enabled(&self) -> bool {
+        self.mutable_format_views
     }
 
     /// Submits the prepared upload and returns a texture with a reusable completion ticket.
@@ -597,6 +1126,7 @@ impl PreparedTexture2D {
                 encoding: self.encoding,
                 alpha_mode: self.alpha_mode,
                 usage: self.usage,
+                mutable_format_views: self.mutable_format_views,
                 retirement_policy: self.retirement_policy,
             }),
         })
@@ -985,6 +1515,13 @@ fn vulkan_format(format: TextureFormat) -> Format {
     }
 }
 
+const fn compatible_view_format(format: TextureFormat) -> TextureFormat {
+    match format {
+        TextureFormat::Rgba8Unorm => TextureFormat::Rgba8Srgb,
+        TextureFormat::Rgba8Srgb => TextureFormat::Rgba8Unorm,
+    }
+}
+
 fn vulkan_image_usage(usage: TextureUsage) -> ImageUsage {
     let mut flags = ImageUsage::empty();
     if usage.contains(TextureUsage::SAMPLED) {
@@ -1180,6 +1717,7 @@ mod tests {
                 encoding: ColorEncoding::Linear,
                 alpha_mode: AlphaMode::Opaque,
                 usage: TextureUsage::TRANSFER_DESTINATION,
+                mutable_format_views: false,
                 retirement_policy: TextureRetirementPolicy::Wait,
             }),
         };

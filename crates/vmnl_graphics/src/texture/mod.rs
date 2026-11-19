@@ -13,8 +13,9 @@ pub(crate) use gpu::{
     SampledTextureBinding, TextureRetirementRegistry, TextureUploadDependency,
 };
 pub use gpu::{
-    PreparedTexture2D, Sampler, SamplerBuilder, Texture2D, Texture2DBuilder,
-    TextureRetirementPolicy, TextureView2D, UploadTicket, UploadWaitOutcome,
+    PreparedTexture2D, Sampler, SamplerBuilder, Texture2D, Texture2DBuilder, TextureComponent,
+    TextureComponentMapping, TextureRetirementPolicy, TextureView2D, TextureView2DBuilder,
+    TextureViewInterpretation, UploadTicket, UploadWaitOutcome,
 };
 pub use pixel::{
     AlphaMode, ColorEncoding, PixelLayout, PixelOrigin, PixelRect, PixelSource, PreparedPixelData,
