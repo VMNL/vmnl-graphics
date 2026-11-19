@@ -60,7 +60,7 @@ use crate::common::{
 use crate::exception::{VMNLError, VMNLErrorKind, VMNLResult};
 use crate::texture::{
     validate_sampled_image_sampler, SampledImageBinding, SampledSamplerBinding,
-    SampledTextureBinding, Sampler, Texture2D, TextureUploadDependency,
+    SampledTextureBinding, Sampler, Texture2D, TextureUploadDependency, TextureView2D,
 };
 use crate::{Context, DeviceFeature, LineWidthLimits, RenderTargetInfo, Window};
 use shader_compat::{BindingPoint, SamplerOperation, ShaderContract, ShaderStageContract};
@@ -1131,6 +1131,34 @@ impl ResourcesBuilder {
         self
     }
 
+    /// Binds an explicit texture view and sampler to a combined image-sampler descriptor.
+    ///
+    /// Use [`Texture2D::view`] through [`Self::sampled_texture`] to select the default identity
+    /// view. An explicit view keeps the same image storage and upload dependency. The view, sampler,
+    /// and pipeline must belong to the same `Context`.
+    ///
+    /// # Errors
+    /// [`Self::build`] returns `InvalidState` with set/binding detail for a context,
+    /// descriptor-type, sampled-usage, shader/view, or sampler-compatibility mismatch, or when a
+    /// required descriptor is missing or duplicated.
+    #[must_use]
+    pub fn sampled_texture_view(
+        mut self,
+        set: u32,
+        binding: u32,
+        view: &TextureView2D,
+        sampler: &Sampler,
+    ) -> Self {
+        let old = self.bindings.entry(set).or_default().insert(
+            binding,
+            ResourceBinding::SampledTexture(view.sampled_binding(sampler)),
+        );
+        if old.is_some() && self.duplicate_binding.is_none() {
+            self.duplicate_binding = Some((set, binding));
+        }
+        self
+    }
+
     /// Binds a texture's default view to a scalar sampled-image descriptor.
     ///
     /// Pair the image with [`Self::sampler`] at the bindings selected by the shader.
@@ -1147,6 +1175,28 @@ impl ResourcesBuilder {
         let old = self.bindings.entry(set).or_default().insert(
             binding,
             ResourceBinding::SampledImage(texture.sampled_image_binding()),
+        );
+        if old.is_some() && self.duplicate_binding.is_none() {
+            self.duplicate_binding = Some((set, binding));
+        }
+        self
+    }
+
+    /// Binds an explicit texture view to a scalar sampled-image descriptor.
+    ///
+    /// Pair the image with [`Self::sampler`] at the bindings selected by the shader. The view's
+    /// image must include sampled usage, and the view and pipeline must belong to the same
+    /// `Context`. A pending initial upload is joined into each consuming frame without a host wait.
+    ///
+    /// # Errors
+    /// [`Self::build`] returns `InvalidState` with set/binding detail for a context,
+    /// descriptor-type, image-view/shader compatibility, or sampled-usage mismatch, or when a
+    /// required descriptor is missing or duplicated.
+    #[must_use]
+    pub fn texture_view(mut self, set: u32, binding: u32, view: &TextureView2D) -> Self {
+        let old = self.bindings.entry(set).or_default().insert(
+            binding,
+            ResourceBinding::SampledImage(view.sampled_image_binding()),
         );
         if old.is_some() && self.duplicate_binding.is_none() {
             self.duplicate_binding = Some((set, binding));

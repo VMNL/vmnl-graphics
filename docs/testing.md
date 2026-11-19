@@ -1058,11 +1058,14 @@ cloned tickets keep returning the same `TextureUploadFailed`; it also verifies t
 polling until completion. No GPU test holds actual queue work pending through final-owner drop.
 Private ignored renderer GPU tests in `crates/vmnl_graphics/src/window/render/mod.rs` sample
 combined and separate raw image/sampler bindings into an RGBA8 readback target, verify nearest and
-linear filtering plus texel LOD zero, and exercise a confirmed pending upload shared by two windows
+linear filtering plus texel LOD zero. They also sample explicit component-swizzled views through
+combined and separate bindings, reject opaque-black border sampling with a non-identity mapping,
+and verify RGBA8 UNORM/sRGB reinterpretation on devices that support it. They exercise a confirmed
+pending upload shared by two windows
 from the same `Context`. The latter uses a separate raw pipeline and `FrameUniform`-plus-texture
 resources for each window, submits both frames before readback, and checks their independently
-tinted pixels. These tests do not qualify custom views, inject Vulkan upload/device-loss failures,
-or prove behavior on unavailable GPUs and display servers. A separate fixture exercises the
+tinted pixels. These tests do not inject Vulkan upload/device-loss failures or prove behavior on
+unavailable GPUs and display servers. A separate fixture exercises the
 context-shutdown drain. `just test-gpu` and
 `just test-gpu-compile` include both the private library fixtures and `tests/gpu` integration tests.
 

@@ -130,19 +130,21 @@ mod tests {
     use crate::common::{ColorBlendConfig, ColorBlendFactor, ColorBlendOperation};
     use crate::raw::{self, Scissor, ScissorPolicy, Viewport, ViewportPolicy};
     use crate::texture::{
-        PixelSource, Sampler, SamplerConfig, SamplerCoordinateMode, SamplerLodLimit, Texture2D,
-        TextureFormat, UploadWaitOutcome,
+        AddressMode, AlphaMode, ColorEncoding, PixelSource, Sampler, SamplerBorderColor,
+        SamplerConfig, SamplerCoordinateMode, SamplerLodLimit, Texture2D, TextureComponent,
+        TextureComponentMapping, TextureFormat, TextureView2D, TextureViewInterpretation,
+        UploadWaitOutcome,
     };
-    use crate::{Context, VMNLError, VMNLErrorKind, VMNLResult, Window};
+    use crate::{Context, DeviceFeature, VMNLError, VMNLErrorKind, VMNLResult, Window};
     use std::sync::Arc;
     use std::time::Duration;
     use vulkano::{
         buffer::{Buffer, BufferCreateInfo, BufferUsage},
         command_buffer::{AutoCommandBufferBuilder, CommandBufferUsage, CopyImageToBufferInfo},
-        format::Format,
+        format::{Format, FormatFeatures},
         image::{
-            view::ImageView, Image, ImageCreateInfo, ImageFormatInfo, ImageLayout, ImageUsage,
-            SampleCounts,
+            view::ImageView, Image, ImageCreateFlags, ImageCreateInfo, ImageFormatInfo,
+            ImageLayout, ImageTiling, ImageUsage, SampleCounts,
         },
         memory::allocator::{AllocationCreateInfo, MemoryTypeFilter},
         render_pass::{Framebuffer, FramebufferCreateInfo},
@@ -390,17 +392,26 @@ mod tests {
         window: &Window,
         fragment_shader: &str,
     ) -> VMNLResult<raw::Pipeline<TexturedVertex>> {
+        raw_texture_pipeline_at(window, fragment_shader, [0.0, 0.0], [0, 0])
+    }
+
+    fn raw_texture_pipeline_at(
+        window: &Window,
+        fragment_shader: &str,
+        viewport_offset: [f32; 2],
+        scissor_offset: [u32; 2],
+    ) -> VMNLResult<raw::Pipeline<TexturedVertex>> {
         raw::Pipeline::<TexturedVertex>::builder()
             .vertex_shader(raw::ShaderSource::Src(TEXTURED_VERTEX_SHADER.into()))
             .fragment_shader(raw::ShaderSource::Src(fragment_shader.into()))
             .topology(raw::PrimitiveTopology::TriangleList)
             .viewport(ViewportPolicy::Fixed(Viewport {
-                offset: [0.0, 0.0],
+                offset: viewport_offset,
                 extent: [2.0, 2.0],
                 depth_range: [0.0, 1.0],
             }))
             .scissor(ScissorPolicy::Fixed(Scissor {
-                offset: [0, 0],
+                offset: scissor_offset,
                 extent: [2, 2],
             }))
             .build(window)
@@ -605,6 +616,41 @@ mod tests {
             crate::RenderTargetInfo::from_render_pass(&render_pass)
                 .expect("readback render target properties should resolve");
         Some(image)
+    }
+
+    fn supports_mutable_rgba8_srgb_view(context: &Context) -> bool {
+        let device = &context.inner.device;
+        let unorm = Format::R8G8B8A8_UNORM;
+        let srgb = Format::R8G8B8A8_SRGB;
+        let view_formats = if device.api_version() >= vulkano::Version::V1_2
+            || device.enabled_extensions().khr_image_format_list
+        {
+            vec![unorm, srgb]
+        } else {
+            Vec::new()
+        };
+        let Ok(srgb_properties) = context.inner.physical_device.format_properties(srgb) else {
+            return false;
+        };
+        if !srgb_properties
+            .optimal_tiling_features
+            .contains(FormatFeatures::SAMPLED_IMAGE)
+        {
+            return false;
+        }
+
+        context
+            .inner
+            .physical_device
+            .image_format_properties(ImageFormatInfo {
+                flags: ImageCreateFlags::MUTABLE_FORMAT,
+                format: unorm,
+                view_formats,
+                tiling: ImageTiling::Optimal,
+                usage: ImageUsage::SAMPLED | ImageUsage::TRANSFER_DST,
+                ..Default::default()
+            })
+            .is_ok_and(|properties| properties.is_some())
     }
 
     fn install_rgba8_blend_target(window: &mut Window) -> VMNLResult<Option<Arc<Image>>> {
@@ -822,6 +868,231 @@ mod tests {
             // Nearest therefore returns red; Linear would blend the two texels.
             assert_eq!(&readback[8..12], &[255, 0, 0, 255]);
         }
+
+        Ok(())
+    }
+
+    fn explicit_swizzled_view(
+        context: &Context,
+        texture: &Texture2D,
+    ) -> VMNLResult<Option<TextureView2D>> {
+        let swizzle = TextureComponentMapping::new(
+            TextureComponent::Blue,
+            TextureComponent::Green,
+            TextureComponent::Red,
+            TextureComponent::Alpha,
+        );
+        if context
+            .inner
+            .device
+            .enabled_extensions()
+            .khr_portability_subset
+            && !context.is_device_feature_enabled(DeviceFeature::ImageViewFormatSwizzle)
+        {
+            assert_invalid_state_contains(
+                TextureView2D::builder(texture)
+                    .component_mapping(swizzle)
+                    .build(),
+                "requires enabled ImageViewFormatSwizzle",
+            );
+            return Ok(None);
+        }
+
+        let view = TextureView2D::builder(texture)
+            .component_mapping(swizzle)
+            .build()?;
+        assert!(view.shares_storage_with(texture));
+        assert_eq!(view.requested_component_mapping(), Some(swizzle));
+        assert_eq!(view.effective_component_mapping(), swizzle);
+        assert_eq!(view.sampled_interpretation(), None);
+
+        let opaque_border_sampler = Sampler::builder(context)
+            .config(
+                SamplerConfig::nearest()
+                    .with_address_u(AddressMode::ClampToBorder)
+                    .with_border_color(SamplerBorderColor::FloatOpaqueBlack),
+            )
+            .build()?;
+        assert_invalid_state_contains(
+            view.validate_sampler(&opaque_border_sampler),
+            "opaque-black border sampling with a non-identity texture view mapping is unsupported",
+        );
+        assert_invalid_state_contains(
+            TextureView2D::builder(texture)
+                .format(TextureFormat::Rgba8Srgb)
+                .build(),
+            "was not enabled when the image was created",
+        );
+
+        Ok(Some(view))
+    }
+
+    #[test]
+    #[ignore = "Requires Vulkan + GLFW display."]
+    fn raw_explicit_texture_views_apply_component_swizzles() -> VMNLResult<()> {
+        let _guard = crate::test_support::gpu_test_guard();
+        let context = Context::new()?;
+        let mut window = Window::builder().size(640, 480).build(&context)?;
+        let Some(target) = install_rgba8_readback_target(&mut window) else {
+            log::info!("R8G8B8A8_UNORM color+transfer target is unsupported; skipped");
+            return Ok(());
+        };
+        let [target_width, target_height] = window.inner.handle.swapchain.image_extent();
+        if target_width < 4 || target_height < 4 {
+            log::info!("readback target is smaller than the view test layout; skipped");
+            return Ok(());
+        }
+
+        let texture = raw_test_texture(&context)?;
+        let default_view = texture.view();
+        assert_eq!(default_view.effective_format(), TextureFormat::Rgba8Unorm);
+        assert_eq!(
+            default_view.sampled_interpretation(),
+            Some(TextureViewInterpretation::new(
+                texture.encoding(),
+                texture.alpha_mode(),
+            ))
+        );
+
+        let Some(swizzled_view) = explicit_swizzled_view(&context, &texture)? else {
+            return Ok(());
+        };
+
+        let sampler = Sampler::builder(&context)
+            .config(SamplerConfig::nearest())
+            .build()?;
+        let default_pipeline =
+            raw_texture_pipeline_at(&window, TEXTURED_FRAGMENT_SHADER, [0.0, 0.0], [0, 0])?;
+        let combined_view_pipeline =
+            raw_texture_pipeline_at(&window, TEXTURED_FRAGMENT_SHADER, [2.0, 0.0], [2, 0])?;
+        let separate_view_pipeline =
+            raw_texture_pipeline_at(&window, SEPARATE_TEXEL_FRAGMENT_SHADER, [0.0, 2.0], [0, 2])?;
+        assert_invalid_state_contains(
+            raw::Resources::builder(&combined_view_pipeline)
+                .sampled_texture_view(0, 0, &swizzled_view, &sampler)
+                .sampled_texture_view(0, 0, &swizzled_view, &sampler)
+                .build(&context),
+            "duplicate binding set 0 binding 0",
+        );
+        let default_resources = raw::Resources::builder(&default_pipeline)
+            .sampled_texture(0, 0, &texture, &sampler)
+            .build(&context)?;
+        let combined_view_resources = raw::Resources::builder(&combined_view_pipeline)
+            .sampled_texture_view(0, 0, &swizzled_view, &sampler)
+            .build(&context)?;
+        let separate_view_resources = raw::Resources::builder(&separate_view_pipeline)
+            .texture_view(0, 0, &swizzled_view)
+            .sampler(1, 0, &sampler)
+            .build(&context)?;
+        let geometry = raw::Geometry::builder(textured_quad()).build(&context)?;
+
+        window
+            .render()
+            .draw_raw_2d_with(&default_pipeline, &default_resources, [&geometry])
+            .draw_raw_2d_with(
+                &combined_view_pipeline,
+                &combined_view_resources,
+                [&geometry],
+            )
+            .draw_raw_2d_with(
+                &separate_view_pipeline,
+                &separate_view_resources,
+                [&geometry],
+            )
+            .submit()?;
+
+        let readback = readback_first_2x2(&mut window, target);
+        let row_stride = usize::try_from(target_width)
+            .expect("target width fits usize")
+            .checked_mul(4)
+            .expect("row stride fits usize");
+        let bottom_left_pixel = row_stride * 2;
+        assert_eq!(&readback[0..4], &[255, 0, 0, 255]);
+        assert_eq!(&readback[8..12], &[0, 0, 255, 255]);
+        assert_eq!(
+            &readback[bottom_left_pixel..bottom_left_pixel + 4],
+            &[0, 0, 255, 255]
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    #[ignore = "Requires Vulkan + GLFW display."]
+    fn mutable_srgb_view_reinterprets_the_same_rgba8_storage() -> VMNLResult<()> {
+        let _guard = crate::test_support::gpu_test_guard();
+        let context = Context::new()?;
+        if !supports_mutable_rgba8_srgb_view(&context) {
+            log::info!("mutable RGBA8 UNORM/sRGB sampled views are unsupported; skipped");
+            return Ok(());
+        }
+
+        let mut window = Window::builder().size(640, 480).build(&context)?;
+        let Some(target) = install_rgba8_readback_target(&mut window) else {
+            log::info!("R8G8B8A8_UNORM color+transfer target is unsupported; skipped");
+            return Ok(());
+        };
+        let [target_width, target_height] = window.inner.handle.swapchain.image_extent();
+        if target_width < 4 || target_height < 2 {
+            log::info!("readback target is smaller than the format-view layout; skipped");
+            return Ok(());
+        }
+
+        let pixels = [128, 0, 0, 255];
+        let builder = Texture2D::from_pixels(
+            &context,
+            PixelSource::new(1, 1, TextureFormat::Rgba8Unorm, &pixels)?,
+        );
+        assert!(!builder.mutable_format_views_requested());
+        let builder = builder.with_mutable_format_views(true);
+        assert!(builder.mutable_format_views_requested());
+        let prepared = builder.prepare()?;
+        assert!(prepared.mutable_format_views_enabled());
+        let texture = prepared.submit()?;
+        assert!(texture.mutable_format_views_enabled());
+        assert!(texture.supports_view_format(TextureFormat::Rgba8Unorm));
+        assert!(texture.supports_view_format(TextureFormat::Rgba8Srgb));
+
+        let interpretation = TextureViewInterpretation::new(ColorEncoding::Srgb, AlphaMode::Opaque);
+        let view = TextureView2D::builder(&texture)
+            .format(TextureFormat::Rgba8Srgb)
+            .interpretation(interpretation)
+            .build()?;
+        assert!(view.shares_storage_with(&texture));
+        assert_eq!(view.requested_format(), Some(TextureFormat::Rgba8Srgb));
+        assert_eq!(view.effective_format(), TextureFormat::Rgba8Srgb);
+        assert_eq!(view.requested_interpretation(), Some(interpretation));
+        assert_eq!(view.sampled_interpretation(), Some(interpretation));
+
+        let sampler = Sampler::builder(&context)
+            .config(SamplerConfig::nearest())
+            .build()?;
+        let unorm_pipeline =
+            raw_texture_pipeline_at(&window, TEXTURED_FRAGMENT_SHADER, [0.0, 0.0], [0, 0])?;
+        let srgb_pipeline =
+            raw_texture_pipeline_at(&window, TEXTURED_FRAGMENT_SHADER, [2.0, 0.0], [2, 0])?;
+        let unorm_resources = raw::Resources::builder(&unorm_pipeline)
+            .sampled_texture(0, 0, &texture, &sampler)
+            .build(&context)?;
+        let srgb_resources = raw::Resources::builder(&srgb_pipeline)
+            .sampled_texture_view(0, 0, &view, &sampler)
+            .build(&context)?;
+        let geometry = raw::Geometry::builder(textured_quad()).build(&context)?;
+
+        window
+            .render()
+            .draw_raw_2d_with(&unorm_pipeline, &unorm_resources, [&geometry])
+            .draw_raw_2d_with(&srgb_pipeline, &srgb_resources, [&geometry])
+            .submit()?;
+
+        let readback = readback_first_2x2(&mut window, target);
+        assert_eq!(&readback[0..4], &[128, 0, 0, 255]);
+        let srgb_red = readback[8];
+        assert!(
+            (54..=56).contains(&srgb_red),
+            "unexpected sRGB sample: {srgb_red}"
+        );
+        assert_eq!(&readback[9..12], &[0, 0, 255]);
 
         Ok(())
     }

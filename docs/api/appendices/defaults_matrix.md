@@ -33,6 +33,8 @@
 | `PixelSource` | tightly packed top-left rows; encoding follows `TextureFormat`; straight alpha; automatic usage; no explicit range, so the supplied length must equal the required end |
 | automatic texture usage | sampled plus transfer destination; no implicit transfer source |
 | `Texture2DBuilder` / image allocation | optimal tiling; one mip level; device-preferred image memory; `General` layout; `Wait` retirement for pending upload |
+| `Texture2DBuilder::with_mutable_format_views` | disabled; image supports only its requested RGBA8 format |
+| `TextureView2DBuilder` | source format, identity RGBA mapping, inherited source color/alpha declarations only for an unchanged view; changed format/mapping has no sampled interpretation unless explicit |
 | `PngDecodeOptions::decode_png` | untagged input defaults to sRGB; PNG alpha or `tRNS` defaults to straight alpha; otherwise opaque alpha |
 | `SamplerConfig` / `.linear()` | linear min/mag/mipmap filters; U/V clamp-to-edge; transparent float border; min LOD 0; unbounded max LOD; bias 0; anisotropy 1 (disabled); normalized coordinates |
 | `SamplerConfig::nearest()` | nearest min/mag/mipmap filters; all other settings match the linear preset |

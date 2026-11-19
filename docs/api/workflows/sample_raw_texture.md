@@ -1,10 +1,11 @@
 # Sample a texture in a raw pipeline
 
 Use `ResourcesBuilder::sampled_texture` for a scalar combined image-sampler
-descriptor. It binds the `Texture2D` default view and a `Sampler` to the same
-shader binding. To choose image and sampler bindings independently, declare a
-GLSL `texture2D` and one or more `sampler` descriptors and bind them with
-`ResourcesBuilder::texture` and `ResourcesBuilder::sampler`.
+descriptor with the texture's default view. Use `sampled_texture_view` when the
+shader should sample an explicit view of the same storage. To choose image and
+sampler bindings independently, declare a GLSL `texture2D` and one or more
+`sampler` descriptors; bind the default or explicit view with `texture` or
+`texture_view`, then bind samplers with `sampler`.
 
 ```rust,no_run
 # extern crate vmnl_graphics;
@@ -95,6 +96,15 @@ let resources = raw::Resources::builder(pipeline)
 The matching shader declarations are `layout(set = 0, binding = 1) uniform
 texture2D image;` and `layout(set = 2, binding = 0) uniform sampler state;`;
 sampling combines them with `sampler2D(image, state)`.
+
+An explicit view can remap sampled channels or select the compatible RGBA8
+UNORM/sRGB format if mutable-format views were requested when the image was
+created. A non-identity mapping or changed view format has no inherited color
+and alpha interpretation for managed-color consumers unless the view builder
+declares one. Raw shader values remain shader-owned; sRGB view sampling still
+performs Vulkan's format-defined RGB decode. Explicit views retain the same
+image storage and upload dependency. They cover the full single-mip image; mip
+range selection is outside this workflow.
 
 `Texture2D::build` submits the initial upload without waiting. Frame submission
 joins that upload dependency before the sampling draw; callers do not need to
