@@ -130,10 +130,11 @@ mod tests {
     use crate::raw::{self, Scissor, ScissorPolicy, Viewport, ViewportPolicy};
     use crate::texture::{
         PixelSource, Sampler, SamplerConfig, SamplerCoordinateMode, SamplerLodLimit, Texture2D,
-        TextureFormat,
+        TextureFormat, UploadWaitOutcome,
     };
     use crate::{Context, VMNLErrorKind, VMNLResult, Window};
     use std::sync::Arc;
+    use std::time::Duration;
     use vulkano::{
         buffer::{Buffer, BufferCreateInfo, BufferUsage},
         command_buffer::{AutoCommandBufferBuilder, CommandBufferUsage, CopyImageToBufferInfo},
@@ -146,6 +147,8 @@ mod tests {
         render_pass::{Framebuffer, FramebufferCreateInfo},
         sync::{self, GpuFuture},
     };
+
+    const PENDING_UPLOAD_EXTENT: u32 = 2048;
 
     const TEXTURED_VERTEX_SHADER: &str = r"
         #version 450
@@ -165,6 +168,17 @@ mod tests {
         layout(location = 0) out vec4 out_color;
         void main() {
             out_color = texture(color_image, texture_uv);
+        }
+    ";
+
+    const TEXTURED_FRAME_UNIFORM_FRAGMENT_SHADER: &str = r"
+        #version 450
+        layout(set = 0, binding = 0) uniform sampler2D color_image;
+        layout(set = 0, binding = 1) uniform Tint { vec4 tint; };
+        layout(location = 0) in vec2 texture_uv;
+        layout(location = 0) out vec4 out_color;
+        void main() {
+            out_color = texture(color_image, texture_uv) * tint;
         }
     ";
 
@@ -259,6 +273,12 @@ mod tests {
         position: [f32; 2],
         #[format(R32G32_SFLOAT)]
         uv: [f32; 2],
+    }
+
+    #[repr(C)]
+    #[derive(Clone, Copy, raw::Pod, raw::Zeroable)]
+    struct TextureTint {
+        tint: [f32; 4],
     }
 
     fn textured_quad() -> [TexturedVertex; 6] {
@@ -525,6 +545,18 @@ mod tests {
         );
     }
 
+    fn assert_first_2x2_color(readback: &[u8], row_stride: usize, expected: [u8; 4]) {
+        let observed = [
+            &readback[0..4],
+            &readback[4..8],
+            &readback[row_stride..row_stride + 4],
+            &readback[row_stride + 4..row_stride + 8],
+        ];
+        for pixel in observed {
+            assert_eq!(pixel, expected);
+        }
+    }
+
     #[test]
     #[ignore = "Requires Vulkan + GLFW display."]
     fn raw_sampled_texture_joins_upload_and_reads_rgba8_texels() -> VMNLResult<()> {
@@ -750,6 +782,108 @@ mod tests {
             .submit()?;
         let readback = readback_first_2x2(&mut window, target);
         assert_eq!(&readback[0..4], &[255, 0, 0, 255]);
+
+        Ok(())
+    }
+
+    #[test]
+    #[ignore = "Requires Vulkan + GLFW display."]
+    fn raw_frame_uniform_texture_upload_is_shared_by_two_windows() -> VMNLResult<()> {
+        let _guard = crate::test_support::gpu_test_guard();
+        let context = Context::new()?;
+        let mut first_window = Window::builder().build(&context)?;
+        let mut second_window = Window::builder().build(&context)?;
+        let Some(first_target) = install_rgba8_readback_target(&mut first_window) else {
+            log::info!("R8G8B8A8_UNORM color+transfer target is unsupported; skipped");
+            return Ok(());
+        };
+        let Some(second_target) = install_rgba8_readback_target(&mut second_window) else {
+            log::info!("R8G8B8A8_UNORM color+transfer target is unsupported; skipped");
+            return Ok(());
+        };
+
+        let first_pipeline =
+            raw_texture_pipeline(&first_window, TEXTURED_FRAME_UNIFORM_FRAGMENT_SHADER)?;
+        let second_pipeline =
+            raw_texture_pipeline(&second_window, TEXTURED_FRAME_UNIFORM_FRAGMENT_SHADER)?;
+        let mut first_uniform =
+            raw::FrameUniform::builder(TextureTint { tint: [1.0; 4] }).build(&first_window)?;
+        let mut second_uniform =
+            raw::FrameUniform::builder(TextureTint { tint: [1.0; 4] }).build(&second_window)?;
+
+        // Keep the transfer observable as pending while both consumers are prepared.
+        let texel_count = usize::try_from(PENDING_UPLOAD_EXTENT)
+            .expect("upload extent should fit usize")
+            .checked_mul(
+                usize::try_from(PENDING_UPLOAD_EXTENT).expect("upload extent should fit usize"),
+            )
+            .expect("upload texel count should fit usize");
+        let pixels = [255_u8, 0, 0, 255].repeat(texel_count);
+        let texture = Texture2D::from_pixels(
+            &context,
+            PixelSource::new(
+                PENDING_UPLOAD_EXTENT,
+                PENDING_UPLOAD_EXTENT,
+                TextureFormat::Rgba8Unorm,
+                &pixels,
+            )?,
+        )
+        .prepare()?
+        .submit()?;
+        let sampler = Sampler::builder(&context)
+            .config(SamplerConfig::nearest())
+            .build()?;
+        let first_resources = raw::Resources::builder(&first_pipeline)
+            .sampled_texture(0, 0, &texture, &sampler)
+            .frame_uniform(0, 1, &first_uniform)
+            .build(&context)?;
+        let second_resources = raw::Resources::builder(&second_pipeline)
+            .sampled_texture(0, 0, &texture, &sampler)
+            .frame_uniform(0, 1, &second_uniform)
+            .build(&context)?;
+        assert_eq!(
+            texture.initial_upload().wait(Some(Duration::ZERO))?,
+            UploadWaitOutcome::TimedOut,
+            "the two-window scenario requires an upload confirmed pending before submission",
+        );
+
+        let geometry = raw::Geometry::builder(textured_quad_at_uv([0.5, 0.5])).build(&context)?;
+        first_window
+            .render()
+            .write_frame_uniform(
+                &mut first_uniform,
+                TextureTint {
+                    tint: [0.5, 1.0, 1.0, 1.0],
+                },
+            )
+            .draw_raw_2d_with(&first_pipeline, &first_resources, [&geometry])
+            .submit()?;
+        second_window
+            .render()
+            .write_frame_uniform(
+                &mut second_uniform,
+                TextureTint {
+                    tint: [0.25, 1.0, 1.0, 1.0],
+                },
+            )
+            .draw_raw_2d_with(&second_pipeline, &second_resources, [&geometry])
+            .submit()?;
+
+        // Both frames are submitted before either readback waits for completion.
+        let first_readback = readback_first_2x2(&mut first_window, first_target);
+        let second_readback = readback_first_2x2(&mut second_window, second_target);
+        let first_row_stride =
+            usize::try_from(first_window.inner.handle.swapchain.image_extent()[0])
+                .expect("target width should fit usize")
+                .checked_mul(4)
+                .expect("row stride should fit usize");
+        let second_row_stride =
+            usize::try_from(second_window.inner.handle.swapchain.image_extent()[0])
+                .expect("target width should fit usize")
+                .checked_mul(4)
+                .expect("row stride should fit usize");
+        assert_first_2x2_color(&first_readback, first_row_stride, [128, 0, 0, 255]);
+        assert_first_2x2_color(&second_readback, second_row_stride, [64, 0, 0, 255]);
 
         Ok(())
     }
