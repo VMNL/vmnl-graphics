@@ -11,6 +11,7 @@ the texture resource foundation targets `0.2.0`. Versioning does not qualify a n
 | Custom 2D shaders | Operational in 0.1.0 | Shader compile and visual example |
 | Ordered 2D/raw frame composition | Operational in 0.1.0 | GPU/example behavior |
 | Raw typed pipeline/geometry | Operational in 0.1.0 | Restricted public contract |
+| Raw configurable color blending | Partial 0.2.0 | Legacy exhaustive `BlendMode` preserved; editable RGB/alpha factors and operations, three presets, constants and effective pipeline inspection; dual-source factors unavailable |
 | Raw uniform buffers/resources | Operational in 0.1.0 | Scalar uniform-buffer descriptors |
 | Raw texture sampling | Partial 0.2.0 | Scalar combined or separate image/sampler descriptors; default `Texture2D` view only; shader/sampler compatibility is checked |
 | Raw depth-comparison sampling and samplerless `texelFetch` | Unsupported | Outside the raw texture-sampling contract |

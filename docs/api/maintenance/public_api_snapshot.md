@@ -29,6 +29,60 @@ impl core::marker::Unpin for vmnl_graphics::common::BufferMemoryPreference
 impl core::marker::UnsafeUnpin for vmnl_graphics::common::BufferMemoryPreference
 impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::common::BufferMemoryPreference
 impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::common::BufferMemoryPreference
+#[non_exhaustive] pub enum vmnl_graphics::common::ColorBlendFactor
+pub vmnl_graphics::common::ColorBlendFactor::ConstantAlpha
+pub vmnl_graphics::common::ColorBlendFactor::ConstantColor
+pub vmnl_graphics::common::ColorBlendFactor::DestinationAlpha
+pub vmnl_graphics::common::ColorBlendFactor::DestinationColor
+pub vmnl_graphics::common::ColorBlendFactor::One
+pub vmnl_graphics::common::ColorBlendFactor::OneMinusConstantAlpha
+pub vmnl_graphics::common::ColorBlendFactor::OneMinusConstantColor
+pub vmnl_graphics::common::ColorBlendFactor::OneMinusDestinationAlpha
+pub vmnl_graphics::common::ColorBlendFactor::OneMinusDestinationColor
+pub vmnl_graphics::common::ColorBlendFactor::OneMinusSourceAlpha
+pub vmnl_graphics::common::ColorBlendFactor::OneMinusSourceColor
+pub vmnl_graphics::common::ColorBlendFactor::SourceAlpha
+pub vmnl_graphics::common::ColorBlendFactor::SourceAlphaSaturate
+pub vmnl_graphics::common::ColorBlendFactor::SourceColor
+pub vmnl_graphics::common::ColorBlendFactor::Zero
+impl core::clone::Clone for vmnl_graphics::common::ColorBlendFactor
+pub fn vmnl_graphics::common::ColorBlendFactor::clone(&self) -> vmnl_graphics::common::ColorBlendFactor
+impl core::cmp::Eq for vmnl_graphics::common::ColorBlendFactor
+impl core::cmp::PartialEq for vmnl_graphics::common::ColorBlendFactor
+pub fn vmnl_graphics::common::ColorBlendFactor::eq(&self, &vmnl_graphics::common::ColorBlendFactor) -> bool
+impl core::fmt::Debug for vmnl_graphics::common::ColorBlendFactor
+pub fn vmnl_graphics::common::ColorBlendFactor::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::common::ColorBlendFactor
+impl core::marker::StructuralPartialEq for vmnl_graphics::common::ColorBlendFactor
+impl core::marker::Freeze for vmnl_graphics::common::ColorBlendFactor
+impl core::marker::Send for vmnl_graphics::common::ColorBlendFactor
+impl core::marker::Sync for vmnl_graphics::common::ColorBlendFactor
+impl core::marker::Unpin for vmnl_graphics::common::ColorBlendFactor
+impl core::marker::UnsafeUnpin for vmnl_graphics::common::ColorBlendFactor
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::common::ColorBlendFactor
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::common::ColorBlendFactor
+#[non_exhaustive] pub enum vmnl_graphics::common::ColorBlendOperation
+pub vmnl_graphics::common::ColorBlendOperation::Add
+pub vmnl_graphics::common::ColorBlendOperation::Max
+pub vmnl_graphics::common::ColorBlendOperation::Min
+pub vmnl_graphics::common::ColorBlendOperation::ReverseSubtract
+pub vmnl_graphics::common::ColorBlendOperation::Subtract
+impl core::clone::Clone for vmnl_graphics::common::ColorBlendOperation
+pub fn vmnl_graphics::common::ColorBlendOperation::clone(&self) -> vmnl_graphics::common::ColorBlendOperation
+impl core::cmp::Eq for vmnl_graphics::common::ColorBlendOperation
+impl core::cmp::PartialEq for vmnl_graphics::common::ColorBlendOperation
+pub fn vmnl_graphics::common::ColorBlendOperation::eq(&self, &vmnl_graphics::common::ColorBlendOperation) -> bool
+impl core::fmt::Debug for vmnl_graphics::common::ColorBlendOperation
+pub fn vmnl_graphics::common::ColorBlendOperation::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::common::ColorBlendOperation
+impl core::marker::StructuralPartialEq for vmnl_graphics::common::ColorBlendOperation
+impl core::marker::Freeze for vmnl_graphics::common::ColorBlendOperation
+impl core::marker::Send for vmnl_graphics::common::ColorBlendOperation
+impl core::marker::Sync for vmnl_graphics::common::ColorBlendOperation
+impl core::marker::Unpin for vmnl_graphics::common::ColorBlendOperation
+impl core::marker::UnsafeUnpin for vmnl_graphics::common::ColorBlendOperation
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::common::ColorBlendOperation
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::common::ColorBlendOperation
 pub enum vmnl_graphics::common::ShaderSource
 pub vmnl_graphics::common::ShaderSource::Path(std::path::PathBuf)
 pub vmnl_graphics::common::ShaderSource::Src(alloc::string::String)
@@ -53,6 +107,40 @@ impl core::marker::Unpin for vmnl_graphics::ShaderSource
 impl core::marker::UnsafeUnpin for vmnl_graphics::ShaderSource
 impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::ShaderSource
 impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::ShaderSource
+pub struct vmnl_graphics::common::ColorBlendConfig
+impl vmnl_graphics::common::ColorBlendConfig
+pub const fn vmnl_graphics::common::ColorBlendConfig::alpha_destination_factor(self) -> vmnl_graphics::common::ColorBlendFactor
+pub const fn vmnl_graphics::common::ColorBlendConfig::alpha_operation(self) -> vmnl_graphics::common::ColorBlendOperation
+pub const fn vmnl_graphics::common::ColorBlendConfig::alpha_source_factor(self) -> vmnl_graphics::common::ColorBlendFactor
+pub const fn vmnl_graphics::common::ColorBlendConfig::blend_constants(self) -> [f32; 4]
+pub const fn vmnl_graphics::common::ColorBlendConfig::blend_enabled(self) -> bool
+pub const fn vmnl_graphics::common::ColorBlendConfig::color_destination_factor(self) -> vmnl_graphics::common::ColorBlendFactor
+pub const fn vmnl_graphics::common::ColorBlendConfig::color_operation(self) -> vmnl_graphics::common::ColorBlendOperation
+pub const fn vmnl_graphics::common::ColorBlendConfig::color_source_factor(self) -> vmnl_graphics::common::ColorBlendFactor
+pub const fn vmnl_graphics::common::ColorBlendConfig::opaque() -> Self
+pub const fn vmnl_graphics::common::ColorBlendConfig::premultiplied_alpha() -> Self
+pub const fn vmnl_graphics::common::ColorBlendConfig::straight_alpha() -> Self
+pub const fn vmnl_graphics::common::ColorBlendConfig::with_alpha_blend(self, vmnl_graphics::common::ColorBlendFactor, vmnl_graphics::common::ColorBlendFactor, vmnl_graphics::common::ColorBlendOperation) -> Self
+pub const fn vmnl_graphics::common::ColorBlendConfig::with_blend_constants(self, [f32; 4]) -> Self
+pub const fn vmnl_graphics::common::ColorBlendConfig::with_blend_enabled(self, bool) -> Self
+pub const fn vmnl_graphics::common::ColorBlendConfig::with_color_blend(self, vmnl_graphics::common::ColorBlendFactor, vmnl_graphics::common::ColorBlendFactor, vmnl_graphics::common::ColorBlendOperation) -> Self
+impl core::clone::Clone for vmnl_graphics::common::ColorBlendConfig
+pub fn vmnl_graphics::common::ColorBlendConfig::clone(&self) -> vmnl_graphics::common::ColorBlendConfig
+impl core::cmp::PartialEq for vmnl_graphics::common::ColorBlendConfig
+pub fn vmnl_graphics::common::ColorBlendConfig::eq(&self, &vmnl_graphics::common::ColorBlendConfig) -> bool
+impl core::default::Default for vmnl_graphics::common::ColorBlendConfig
+pub fn vmnl_graphics::common::ColorBlendConfig::default() -> Self
+impl core::fmt::Debug for vmnl_graphics::common::ColorBlendConfig
+pub fn vmnl_graphics::common::ColorBlendConfig::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::common::ColorBlendConfig
+impl core::marker::StructuralPartialEq for vmnl_graphics::common::ColorBlendConfig
+impl core::marker::Freeze for vmnl_graphics::common::ColorBlendConfig
+impl core::marker::Send for vmnl_graphics::common::ColorBlendConfig
+impl core::marker::Sync for vmnl_graphics::common::ColorBlendConfig
+impl core::marker::Unpin for vmnl_graphics::common::ColorBlendConfig
+impl core::marker::UnsafeUnpin for vmnl_graphics::common::ColorBlendConfig
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::common::ColorBlendConfig
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::common::ColorBlendConfig
 #[repr(C)] pub struct vmnl_graphics::common::Rgba
 pub vmnl_graphics::common::Rgba::a: u8
 pub vmnl_graphics::common::Rgba::b: u8
@@ -826,6 +914,7 @@ impl<TVertex> core::panic::unwind_safe::UnwindSafe for vmnl_graphics::raw::Geome
 pub struct vmnl_graphics::raw::Pipeline<TVertex>
 impl<TVertex> vmnl_graphics::raw::Pipeline<TVertex>
 pub fn vmnl_graphics::raw::Pipeline<TVertex>::builder() -> vmnl_graphics::raw::PipelineSpec<TVertex>
+pub const fn vmnl_graphics::raw::Pipeline<TVertex>::color_blend_config_value(&self) -> vmnl_graphics::common::ColorBlendConfig
 pub const fn vmnl_graphics::raw::Pipeline<TVertex>::depth_value(&self) -> vmnl_graphics::raw::DepthState
 pub const fn vmnl_graphics::raw::Pipeline<TVertex>::line_width_value(&self) -> f32
 pub const fn vmnl_graphics::raw::Pipeline<TVertex>::polygon_mode_value(&self) -> vmnl_graphics::raw::PolygonMode
@@ -845,6 +934,8 @@ impl<TVertex> vmnl_graphics::raw::PipelineSpec<TVertex>
 pub fn vmnl_graphics::raw::PipelineSpec<TVertex>::blend_mode(self, vmnl_graphics::raw::BlendMode) -> Self
 pub const fn vmnl_graphics::raw::PipelineSpec<TVertex>::blend_mode_value(&self) -> vmnl_graphics::raw::BlendMode
 pub fn vmnl_graphics::raw::PipelineSpec<TVertex>::build(self, &vmnl_graphics::Window) -> vmnl_graphics::VMNLResult<vmnl_graphics::raw::Pipeline<TVertex>> where TVertex: vmnl_graphics::raw::BufferContents + vmnl_graphics::raw::Vertex + 'static
+pub fn vmnl_graphics::raw::PipelineSpec<TVertex>::color_blend(self, vmnl_graphics::common::ColorBlendConfig) -> Self
+pub const fn vmnl_graphics::raw::PipelineSpec<TVertex>::color_blend_config_value(&self) -> vmnl_graphics::common::ColorBlendConfig
 pub fn vmnl_graphics::raw::PipelineSpec<TVertex>::cull_mode(self, vmnl_graphics::raw::CullMode) -> Self
 pub const fn vmnl_graphics::raw::PipelineSpec<TVertex>::cull_mode_value(&self) -> vmnl_graphics::raw::CullMode
 pub fn vmnl_graphics::raw::PipelineSpec<TVertex>::depth(self, vmnl_graphics::raw::DepthState) -> Self
