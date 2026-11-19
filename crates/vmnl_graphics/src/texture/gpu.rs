@@ -41,7 +41,7 @@ use vulkano::{
 
 const UPLOAD_POLL_INTERVAL: Duration = Duration::from_millis(1);
 
-type UploadFuture = FenceSignalFuture<Box<dyn GpuFuture + Send + Sync>>;
+type UploadFuture = Arc<FenceSignalFuture<Box<dyn GpuFuture + Send + Sync>>>;
 
 enum TextureSource<'a> {
     Pixels(PixelSource<'a>),
@@ -498,15 +498,17 @@ impl PreparedTexture2D {
     /// # Errors
     /// Returns `TextureUploadFailed` if command execution or queue submission fails.
     pub fn submit(self) -> VMNLResult<Texture2D> {
-        let future = now(self.context.inner.device.clone())
-            .then_execute(
-                self.context.inner.graphics_queue.clone(),
-                self.command_buffer,
-            )
-            .map_err(|error| upload_error(error.to_string()))?
-            .boxed_send_sync()
-            .then_signal_fence_and_flush()
-            .map_err(|error| upload_error(error.to_string()))?;
+        let future = Arc::new(
+            now(self.context.inner.device.clone())
+                .then_execute(
+                    self.context.inner.graphics_queue.clone(),
+                    self.command_buffer,
+                )
+                .map_err(|error| upload_error(error.to_string()))?
+                .boxed_send_sync()
+                .then_signal_fence_and_flush()
+                .map_err(|error| upload_error(error.to_string()))?,
+        );
         let upload = Rc::new(UploadState {
             progress: RefCell::new(UploadProgress::Pending(PendingUpload::Vulkan {
                 future,
@@ -977,6 +979,13 @@ mod tests {
     };
 
     static GPU_TEST_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+
+    #[test]
+    fn upload_future_can_be_shared_with_raw_resources() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<UploadFuture>();
+    }
 
     fn simulated_upload(
         polls_until_signal: usize,

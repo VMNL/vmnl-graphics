@@ -20,6 +20,13 @@ struct PublicRawUniform {
 
 fn assert_vertex<T: raw::Vertex + raw::Pod + raw::Zeroable>() {}
 fn assert_uniform<T: raw::Pod + raw::Zeroable>() {}
+fn assert_send_sync<T: Send + Sync>() {}
+
+#[test]
+fn raw_resources_are_send_sync_for_external_clients() {
+    assert_send_sync::<raw::Resources>();
+    assert_send_sync::<raw::ResourcesBuilder>();
+}
 
 #[test]
 fn raw_derive_traits_are_usable_from_vmnl() -> VMNLResult<()> {

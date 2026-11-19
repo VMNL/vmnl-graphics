@@ -953,6 +953,10 @@ impl<TData> FrameUniformBuilder<TData> {
 impl<TData> GraphicsResourceFactory for FrameUniformBuilder<TData> {}
 
 /// Descriptor resources bound by a raw draw call.
+///
+/// This handle implements `Send + Sync` and may be moved or shared between Rust threads. This
+/// does not make [`Context`] or [`Window`] thread-safe; operations that use them remain subject to
+/// their thread-affinity requirements.
 pub struct Resources {
     device: Arc<Device>,
     pipeline_layout: Arc<PipelineLayout>,
@@ -981,6 +985,10 @@ impl Resources {
 }
 
 /// Builder for raw descriptor resources.
+///
+/// This handle implements `Send + Sync` and may be moved or shared between Rust threads. This
+/// does not make [`Context`] or [`Window`] thread-safe; building or using resources still requires
+/// the owning context and window on their permitted threads.
 pub struct ResourcesBuilder {
     pipeline_device: Arc<Device>,
     pipeline_layout: Arc<PipelineLayout>,
