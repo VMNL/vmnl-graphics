@@ -10,7 +10,7 @@ Names optional Vulkan device capabilities that VMNL can require and inspect with
 
 ## Public API
 
-Variants: `FillModeNonSolid`, `WideLines`, and `LargePoints`. Derives `Clone`, `Copy`, `Debug`, `PartialEq`, `Eq`. No default or public methods. External exhaustive matches need a wildcard arm.
+Variants: `FillModeNonSolid`, `WideLines`, `LargePoints`, `SamplerAnisotropy`, `SamplerMipLodBias`, `ImageViewFormatSwizzle`, and `ImageViewFormatReinterpretation`. Derives `Clone`, `Copy`, `Debug`, `PartialEq`, `Eq`. No default or public methods. External exhaustive matches need a wildcard arm.
 
 ## Construction, defaults, and validation
 
@@ -18,7 +18,7 @@ Variants are values used by `DeviceConfig`, `Context::is_device_feature_supporte
 
 ## Units, coordinates, and valid ranges
 
-`FillModeNonSolid` permits line/point polygon fill modes. `WideLines` permits line widths other than `1.0`. `LargePoints` permits point sizes greater than `1.0`. Actual sizes remain subject to device limits. `PipelineSpec::polygon_mode` and `line_width` use the first two capabilities. `LargePoints` permits larger shader-defined `gl_PointSize`; there is no pipeline point-size setter. Portability-subset point polygons additionally need `pointPolygons`, which VMNL cannot currently request; that combination is rejected explicitly.
+`FillModeNonSolid` permits line/point polygon fill modes. `WideLines` permits line widths other than `1.0`. `LargePoints` permits point sizes greater than `1.0`. `SamplerAnisotropy` enables anisotropic filtering, bounded by the device's maximum anisotropy. `SamplerMipLodBias` enables nonzero LOD bias on portability-subset devices. `ImageViewFormatSwizzle` and `ImageViewFormatReinterpretation` expose the corresponding portability-subset requirements for configurable views. Actual sizes and sampler values remain subject to device limits. `PipelineSpec::polygon_mode` and `line_width` use the first two capabilities. `LargePoints` permits larger shader-defined `gl_PointSize`; there is no pipeline point-size setter. Portability-subset point polygons additionally need `pointPolygons`, which VMNL cannot currently request; that combination is rejected explicitly.
 
 ## Ownership, lifecycle, and threading
 

@@ -126,13 +126,13 @@ _test-report suite:
             suite_name='GPU'
             suite_scope='Vulkan + GLFW display required'
             suite_kind='tests'
-            test_command=(cargo "${color_args[@]}" test -p vmnl-gpu-tests -- --ignored --skip vmnl_public_native_keyboard_and_mouse_events_update_input --skip vmnl_public_native_focus_preparation --skip public_windows_observe_virtual_joystick --skip public_windows_observe_physical_joystick)
+            test_command=(cargo "${color_args[@]}" test -p vmnl_graphics -p vmnl-gpu-tests -- --ignored --skip vmnl_public_native_keyboard_and_mouse_events_update_input --skip vmnl_public_native_focus_preparation --skip public_windows_observe_virtual_joystick --skip public_windows_observe_physical_joystick)
             ;;
         gpu-compile)
             suite_name='GPU'
             suite_scope='compile only; no Vulkan frame is executed'
             suite_kind='compile'
-            test_command=(cargo "${color_args[@]}" test -p vmnl-gpu-tests --no-run)
+            test_command=(cargo "${color_args[@]}" test -p vmnl_graphics -p vmnl-gpu-tests --no-run)
             ;;
         platform)
             suite_name='PLATFORM'

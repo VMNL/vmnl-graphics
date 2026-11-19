@@ -29,3 +29,9 @@
 | `PipelineSpec` | shaders missing, `TriangleList`, `Opaque`, `CullMode::None`, `FrontFace::CounterClockwise`, `PolygonMode::Fill`, line width `1.0`, viewport/scissor `FullFramebuffer`, depth `Disabled` |
 | `ViewportPolicy` / `ScissorPolicy` | `FullFramebuffer`, resolved against the acquired image extent on each raw draw |
 | `GeometryBuilder` | no indices |
+| `PixelSource` | tightly packed top-left rows; encoding follows `TextureFormat`; straight alpha; automatic usage; no explicit range, so the supplied length must equal the required end |
+| automatic texture usage | sampled plus transfer destination; no implicit transfer source |
+| `Texture2DBuilder` / image allocation | optimal tiling; one mip level; device-preferred image memory; `General` layout; `Wait` retirement for pending upload |
+| `PngDecodeOptions::decode_png` | untagged input defaults to sRGB; PNG alpha or `tRNS` defaults to straight alpha; otherwise opaque alpha |
+| `SamplerConfig` / `.linear()` | linear min/mag/mipmap filters; U/V clamp-to-edge; transparent float border; min LOD 0; unbounded max LOD; bias 0; anisotropy 1 (disabled); normalized coordinates |
+| `SamplerConfig::nearest()` | nearest min/mag/mipmap filters; all other settings match the linear preset |

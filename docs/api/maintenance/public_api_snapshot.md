@@ -966,6 +966,546 @@ pub trait vmnl_graphics::raw::Vertex: vulkano::pipeline::graphics::vertex_input:
 impl<T> vmnl_graphics::raw::Vertex for T where T: vulkano::pipeline::graphics::vertex_input::vertex::Vertex
 pub trait vmnl_graphics::raw::Zeroable: bytemuck::zeroable::Zeroable
 impl<T> vmnl_graphics::raw::Zeroable for T where T: bytemuck::zeroable::Zeroable
+pub mod vmnl_graphics::texture
+pub enum vmnl_graphics::texture::AddressMode
+pub vmnl_graphics::texture::AddressMode::ClampToBorder
+pub vmnl_graphics::texture::AddressMode::ClampToEdge
+pub vmnl_graphics::texture::AddressMode::MirroredRepeat
+pub vmnl_graphics::texture::AddressMode::Repeat
+impl core::clone::Clone for vmnl_graphics::texture::AddressMode
+pub fn vmnl_graphics::texture::AddressMode::clone(&self) -> vmnl_graphics::texture::AddressMode
+impl core::cmp::Eq for vmnl_graphics::texture::AddressMode
+impl core::cmp::PartialEq for vmnl_graphics::texture::AddressMode
+pub fn vmnl_graphics::texture::AddressMode::eq(&self, &vmnl_graphics::texture::AddressMode) -> bool
+impl core::fmt::Debug for vmnl_graphics::texture::AddressMode
+pub fn vmnl_graphics::texture::AddressMode::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::texture::AddressMode
+impl core::marker::StructuralPartialEq for vmnl_graphics::texture::AddressMode
+impl core::marker::Freeze for vmnl_graphics::texture::AddressMode
+impl core::marker::Send for vmnl_graphics::texture::AddressMode
+impl core::marker::Sync for vmnl_graphics::texture::AddressMode
+impl core::marker::Unpin for vmnl_graphics::texture::AddressMode
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::AddressMode
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::AddressMode
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::AddressMode
+pub enum vmnl_graphics::texture::AlphaMode
+pub vmnl_graphics::texture::AlphaMode::Opaque
+pub vmnl_graphics::texture::AlphaMode::Premultiplied
+pub vmnl_graphics::texture::AlphaMode::Straight
+impl core::clone::Clone for vmnl_graphics::texture::AlphaMode
+pub fn vmnl_graphics::texture::AlphaMode::clone(&self) -> vmnl_graphics::texture::AlphaMode
+impl core::cmp::Eq for vmnl_graphics::texture::AlphaMode
+impl core::cmp::PartialEq for vmnl_graphics::texture::AlphaMode
+pub fn vmnl_graphics::texture::AlphaMode::eq(&self, &vmnl_graphics::texture::AlphaMode) -> bool
+impl core::fmt::Debug for vmnl_graphics::texture::AlphaMode
+pub fn vmnl_graphics::texture::AlphaMode::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::texture::AlphaMode
+impl core::marker::StructuralPartialEq for vmnl_graphics::texture::AlphaMode
+impl core::marker::Freeze for vmnl_graphics::texture::AlphaMode
+impl core::marker::Send for vmnl_graphics::texture::AlphaMode
+impl core::marker::Sync for vmnl_graphics::texture::AlphaMode
+impl core::marker::Unpin for vmnl_graphics::texture::AlphaMode
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::AlphaMode
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::AlphaMode
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::AlphaMode
+pub enum vmnl_graphics::texture::ColorEncoding
+pub vmnl_graphics::texture::ColorEncoding::Linear
+pub vmnl_graphics::texture::ColorEncoding::Srgb
+impl core::clone::Clone for vmnl_graphics::texture::ColorEncoding
+pub fn vmnl_graphics::texture::ColorEncoding::clone(&self) -> vmnl_graphics::texture::ColorEncoding
+impl core::cmp::Eq for vmnl_graphics::texture::ColorEncoding
+impl core::cmp::PartialEq for vmnl_graphics::texture::ColorEncoding
+pub fn vmnl_graphics::texture::ColorEncoding::eq(&self, &vmnl_graphics::texture::ColorEncoding) -> bool
+impl core::fmt::Debug for vmnl_graphics::texture::ColorEncoding
+pub fn vmnl_graphics::texture::ColorEncoding::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::texture::ColorEncoding
+impl core::marker::StructuralPartialEq for vmnl_graphics::texture::ColorEncoding
+impl core::marker::Freeze for vmnl_graphics::texture::ColorEncoding
+impl core::marker::Send for vmnl_graphics::texture::ColorEncoding
+impl core::marker::Sync for vmnl_graphics::texture::ColorEncoding
+impl core::marker::Unpin for vmnl_graphics::texture::ColorEncoding
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::ColorEncoding
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::ColorEncoding
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::ColorEncoding
+pub enum vmnl_graphics::texture::Filter
+pub vmnl_graphics::texture::Filter::Linear
+pub vmnl_graphics::texture::Filter::Nearest
+impl core::clone::Clone for vmnl_graphics::texture::Filter
+pub fn vmnl_graphics::texture::Filter::clone(&self) -> vmnl_graphics::texture::Filter
+impl core::cmp::Eq for vmnl_graphics::texture::Filter
+impl core::cmp::PartialEq for vmnl_graphics::texture::Filter
+pub fn vmnl_graphics::texture::Filter::eq(&self, &vmnl_graphics::texture::Filter) -> bool
+impl core::fmt::Debug for vmnl_graphics::texture::Filter
+pub fn vmnl_graphics::texture::Filter::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::texture::Filter
+impl core::marker::StructuralPartialEq for vmnl_graphics::texture::Filter
+impl core::marker::Freeze for vmnl_graphics::texture::Filter
+impl core::marker::Send for vmnl_graphics::texture::Filter
+impl core::marker::Sync for vmnl_graphics::texture::Filter
+impl core::marker::Unpin for vmnl_graphics::texture::Filter
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::Filter
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::Filter
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::Filter
+pub enum vmnl_graphics::texture::PixelOrigin
+pub vmnl_graphics::texture::PixelOrigin::BottomLeft
+pub vmnl_graphics::texture::PixelOrigin::TopLeft
+impl core::clone::Clone for vmnl_graphics::texture::PixelOrigin
+pub fn vmnl_graphics::texture::PixelOrigin::clone(&self) -> vmnl_graphics::texture::PixelOrigin
+impl core::cmp::Eq for vmnl_graphics::texture::PixelOrigin
+impl core::cmp::PartialEq for vmnl_graphics::texture::PixelOrigin
+pub fn vmnl_graphics::texture::PixelOrigin::eq(&self, &vmnl_graphics::texture::PixelOrigin) -> bool
+impl core::default::Default for vmnl_graphics::texture::PixelOrigin
+pub fn vmnl_graphics::texture::PixelOrigin::default() -> vmnl_graphics::texture::PixelOrigin
+impl core::fmt::Debug for vmnl_graphics::texture::PixelOrigin
+pub fn vmnl_graphics::texture::PixelOrigin::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::texture::PixelOrigin
+impl core::marker::StructuralPartialEq for vmnl_graphics::texture::PixelOrigin
+impl core::marker::Freeze for vmnl_graphics::texture::PixelOrigin
+impl core::marker::Send for vmnl_graphics::texture::PixelOrigin
+impl core::marker::Sync for vmnl_graphics::texture::PixelOrigin
+impl core::marker::Unpin for vmnl_graphics::texture::PixelOrigin
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::PixelOrigin
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::PixelOrigin
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::PixelOrigin
+pub enum vmnl_graphics::texture::SamplerBorderColor
+pub vmnl_graphics::texture::SamplerBorderColor::FloatOpaqueBlack
+pub vmnl_graphics::texture::SamplerBorderColor::FloatOpaqueWhite
+pub vmnl_graphics::texture::SamplerBorderColor::FloatTransparentBlack
+pub vmnl_graphics::texture::SamplerBorderColor::IntOpaqueBlack
+pub vmnl_graphics::texture::SamplerBorderColor::IntOpaqueWhite
+pub vmnl_graphics::texture::SamplerBorderColor::IntTransparentBlack
+impl core::clone::Clone for vmnl_graphics::texture::SamplerBorderColor
+pub fn vmnl_graphics::texture::SamplerBorderColor::clone(&self) -> vmnl_graphics::texture::SamplerBorderColor
+impl core::cmp::Eq for vmnl_graphics::texture::SamplerBorderColor
+impl core::cmp::PartialEq for vmnl_graphics::texture::SamplerBorderColor
+pub fn vmnl_graphics::texture::SamplerBorderColor::eq(&self, &vmnl_graphics::texture::SamplerBorderColor) -> bool
+impl core::default::Default for vmnl_graphics::texture::SamplerBorderColor
+pub fn vmnl_graphics::texture::SamplerBorderColor::default() -> vmnl_graphics::texture::SamplerBorderColor
+impl core::fmt::Debug for vmnl_graphics::texture::SamplerBorderColor
+pub fn vmnl_graphics::texture::SamplerBorderColor::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::texture::SamplerBorderColor
+impl core::marker::StructuralPartialEq for vmnl_graphics::texture::SamplerBorderColor
+impl core::marker::Freeze for vmnl_graphics::texture::SamplerBorderColor
+impl core::marker::Send for vmnl_graphics::texture::SamplerBorderColor
+impl core::marker::Sync for vmnl_graphics::texture::SamplerBorderColor
+impl core::marker::Unpin for vmnl_graphics::texture::SamplerBorderColor
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::SamplerBorderColor
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::SamplerBorderColor
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::SamplerBorderColor
+pub enum vmnl_graphics::texture::SamplerCoordinateMode
+pub vmnl_graphics::texture::SamplerCoordinateMode::Normalized
+pub vmnl_graphics::texture::SamplerCoordinateMode::Texel
+impl core::clone::Clone for vmnl_graphics::texture::SamplerCoordinateMode
+pub fn vmnl_graphics::texture::SamplerCoordinateMode::clone(&self) -> vmnl_graphics::texture::SamplerCoordinateMode
+impl core::cmp::Eq for vmnl_graphics::texture::SamplerCoordinateMode
+impl core::cmp::PartialEq for vmnl_graphics::texture::SamplerCoordinateMode
+pub fn vmnl_graphics::texture::SamplerCoordinateMode::eq(&self, &vmnl_graphics::texture::SamplerCoordinateMode) -> bool
+impl core::default::Default for vmnl_graphics::texture::SamplerCoordinateMode
+pub fn vmnl_graphics::texture::SamplerCoordinateMode::default() -> vmnl_graphics::texture::SamplerCoordinateMode
+impl core::fmt::Debug for vmnl_graphics::texture::SamplerCoordinateMode
+pub fn vmnl_graphics::texture::SamplerCoordinateMode::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::texture::SamplerCoordinateMode
+impl core::marker::StructuralPartialEq for vmnl_graphics::texture::SamplerCoordinateMode
+impl core::marker::Freeze for vmnl_graphics::texture::SamplerCoordinateMode
+impl core::marker::Send for vmnl_graphics::texture::SamplerCoordinateMode
+impl core::marker::Sync for vmnl_graphics::texture::SamplerCoordinateMode
+impl core::marker::Unpin for vmnl_graphics::texture::SamplerCoordinateMode
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::SamplerCoordinateMode
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::SamplerCoordinateMode
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::SamplerCoordinateMode
+pub enum vmnl_graphics::texture::SamplerLodLimit
+pub vmnl_graphics::texture::SamplerLodLimit::Unbounded
+pub vmnl_graphics::texture::SamplerLodLimit::Value(f32)
+impl core::clone::Clone for vmnl_graphics::texture::SamplerLodLimit
+pub fn vmnl_graphics::texture::SamplerLodLimit::clone(&self) -> vmnl_graphics::texture::SamplerLodLimit
+impl core::cmp::PartialEq for vmnl_graphics::texture::SamplerLodLimit
+pub fn vmnl_graphics::texture::SamplerLodLimit::eq(&self, &vmnl_graphics::texture::SamplerLodLimit) -> bool
+impl core::default::Default for vmnl_graphics::texture::SamplerLodLimit
+pub fn vmnl_graphics::texture::SamplerLodLimit::default() -> vmnl_graphics::texture::SamplerLodLimit
+impl core::fmt::Debug for vmnl_graphics::texture::SamplerLodLimit
+pub fn vmnl_graphics::texture::SamplerLodLimit::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::texture::SamplerLodLimit
+impl core::marker::StructuralPartialEq for vmnl_graphics::texture::SamplerLodLimit
+impl core::marker::Freeze for vmnl_graphics::texture::SamplerLodLimit
+impl core::marker::Send for vmnl_graphics::texture::SamplerLodLimit
+impl core::marker::Sync for vmnl_graphics::texture::SamplerLodLimit
+impl core::marker::Unpin for vmnl_graphics::texture::SamplerLodLimit
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::SamplerLodLimit
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::SamplerLodLimit
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::SamplerLodLimit
+pub enum vmnl_graphics::texture::TextureFormat
+pub vmnl_graphics::texture::TextureFormat::Rgba8Srgb
+pub vmnl_graphics::texture::TextureFormat::Rgba8Unorm
+impl core::clone::Clone for vmnl_graphics::texture::TextureFormat
+pub fn vmnl_graphics::texture::TextureFormat::clone(&self) -> vmnl_graphics::texture::TextureFormat
+impl core::cmp::Eq for vmnl_graphics::texture::TextureFormat
+impl core::cmp::PartialEq for vmnl_graphics::texture::TextureFormat
+pub fn vmnl_graphics::texture::TextureFormat::eq(&self, &vmnl_graphics::texture::TextureFormat) -> bool
+impl core::fmt::Debug for vmnl_graphics::texture::TextureFormat
+pub fn vmnl_graphics::texture::TextureFormat::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::texture::TextureFormat
+impl core::marker::StructuralPartialEq for vmnl_graphics::texture::TextureFormat
+impl core::marker::Freeze for vmnl_graphics::texture::TextureFormat
+impl core::marker::Send for vmnl_graphics::texture::TextureFormat
+impl core::marker::Sync for vmnl_graphics::texture::TextureFormat
+impl core::marker::Unpin for vmnl_graphics::texture::TextureFormat
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::TextureFormat
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::TextureFormat
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::TextureFormat
+pub enum vmnl_graphics::texture::TextureRetirementPolicy
+pub vmnl_graphics::texture::TextureRetirementPolicy::DeferToContext
+pub vmnl_graphics::texture::TextureRetirementPolicy::Wait
+impl core::clone::Clone for vmnl_graphics::texture::TextureRetirementPolicy
+pub fn vmnl_graphics::texture::TextureRetirementPolicy::clone(&self) -> vmnl_graphics::texture::TextureRetirementPolicy
+impl core::cmp::Eq for vmnl_graphics::texture::TextureRetirementPolicy
+impl core::cmp::PartialEq for vmnl_graphics::texture::TextureRetirementPolicy
+pub fn vmnl_graphics::texture::TextureRetirementPolicy::eq(&self, &vmnl_graphics::texture::TextureRetirementPolicy) -> bool
+impl core::default::Default for vmnl_graphics::texture::TextureRetirementPolicy
+pub fn vmnl_graphics::texture::TextureRetirementPolicy::default() -> vmnl_graphics::texture::TextureRetirementPolicy
+impl core::fmt::Debug for vmnl_graphics::texture::TextureRetirementPolicy
+pub fn vmnl_graphics::texture::TextureRetirementPolicy::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::texture::TextureRetirementPolicy
+impl core::marker::StructuralPartialEq for vmnl_graphics::texture::TextureRetirementPolicy
+impl core::marker::Freeze for vmnl_graphics::texture::TextureRetirementPolicy
+impl core::marker::Send for vmnl_graphics::texture::TextureRetirementPolicy
+impl core::marker::Sync for vmnl_graphics::texture::TextureRetirementPolicy
+impl core::marker::Unpin for vmnl_graphics::texture::TextureRetirementPolicy
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::TextureRetirementPolicy
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::TextureRetirementPolicy
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::TextureRetirementPolicy
+pub enum vmnl_graphics::texture::TextureUsageRequest
+pub vmnl_graphics::texture::TextureUsageRequest::Automatic
+pub vmnl_graphics::texture::TextureUsageRequest::Exact(vmnl_graphics::texture::TextureUsage)
+impl core::clone::Clone for vmnl_graphics::texture::TextureUsageRequest
+pub fn vmnl_graphics::texture::TextureUsageRequest::clone(&self) -> vmnl_graphics::texture::TextureUsageRequest
+impl core::cmp::Eq for vmnl_graphics::texture::TextureUsageRequest
+impl core::cmp::PartialEq for vmnl_graphics::texture::TextureUsageRequest
+pub fn vmnl_graphics::texture::TextureUsageRequest::eq(&self, &vmnl_graphics::texture::TextureUsageRequest) -> bool
+impl core::default::Default for vmnl_graphics::texture::TextureUsageRequest
+pub fn vmnl_graphics::texture::TextureUsageRequest::default() -> vmnl_graphics::texture::TextureUsageRequest
+impl core::fmt::Debug for vmnl_graphics::texture::TextureUsageRequest
+pub fn vmnl_graphics::texture::TextureUsageRequest::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::texture::TextureUsageRequest
+impl core::marker::StructuralPartialEq for vmnl_graphics::texture::TextureUsageRequest
+impl core::marker::Freeze for vmnl_graphics::texture::TextureUsageRequest
+impl core::marker::Send for vmnl_graphics::texture::TextureUsageRequest
+impl core::marker::Sync for vmnl_graphics::texture::TextureUsageRequest
+impl core::marker::Unpin for vmnl_graphics::texture::TextureUsageRequest
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::TextureUsageRequest
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::TextureUsageRequest
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::TextureUsageRequest
+pub enum vmnl_graphics::texture::UploadWaitOutcome
+pub vmnl_graphics::texture::UploadWaitOutcome::Complete
+pub vmnl_graphics::texture::UploadWaitOutcome::TimedOut
+impl core::clone::Clone for vmnl_graphics::texture::UploadWaitOutcome
+pub fn vmnl_graphics::texture::UploadWaitOutcome::clone(&self) -> vmnl_graphics::texture::UploadWaitOutcome
+impl core::cmp::Eq for vmnl_graphics::texture::UploadWaitOutcome
+impl core::cmp::PartialEq for vmnl_graphics::texture::UploadWaitOutcome
+pub fn vmnl_graphics::texture::UploadWaitOutcome::eq(&self, &vmnl_graphics::texture::UploadWaitOutcome) -> bool
+impl core::fmt::Debug for vmnl_graphics::texture::UploadWaitOutcome
+pub fn vmnl_graphics::texture::UploadWaitOutcome::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::texture::UploadWaitOutcome
+impl core::marker::StructuralPartialEq for vmnl_graphics::texture::UploadWaitOutcome
+impl core::marker::Freeze for vmnl_graphics::texture::UploadWaitOutcome
+impl core::marker::Send for vmnl_graphics::texture::UploadWaitOutcome
+impl core::marker::Sync for vmnl_graphics::texture::UploadWaitOutcome
+impl core::marker::Unpin for vmnl_graphics::texture::UploadWaitOutcome
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::UploadWaitOutcome
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::UploadWaitOutcome
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::UploadWaitOutcome
+pub struct vmnl_graphics::texture::PixelLayout
+impl vmnl_graphics::texture::PixelLayout
+pub const fn vmnl_graphics::texture::PixelLayout::new(usize, usize, vmnl_graphics::texture::PixelOrigin) -> Self
+pub const fn vmnl_graphics::texture::PixelLayout::offset(self) -> usize
+pub const fn vmnl_graphics::texture::PixelLayout::origin(self) -> vmnl_graphics::texture::PixelOrigin
+pub const fn vmnl_graphics::texture::PixelLayout::row_stride(self) -> usize
+impl core::clone::Clone for vmnl_graphics::texture::PixelLayout
+pub fn vmnl_graphics::texture::PixelLayout::clone(&self) -> vmnl_graphics::texture::PixelLayout
+impl core::cmp::Eq for vmnl_graphics::texture::PixelLayout
+impl core::cmp::PartialEq for vmnl_graphics::texture::PixelLayout
+pub fn vmnl_graphics::texture::PixelLayout::eq(&self, &vmnl_graphics::texture::PixelLayout) -> bool
+impl core::fmt::Debug for vmnl_graphics::texture::PixelLayout
+pub fn vmnl_graphics::texture::PixelLayout::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::texture::PixelLayout
+impl core::marker::StructuralPartialEq for vmnl_graphics::texture::PixelLayout
+impl core::marker::Freeze for vmnl_graphics::texture::PixelLayout
+impl core::marker::Send for vmnl_graphics::texture::PixelLayout
+impl core::marker::Sync for vmnl_graphics::texture::PixelLayout
+impl core::marker::Unpin for vmnl_graphics::texture::PixelLayout
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::PixelLayout
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::PixelLayout
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::PixelLayout
+pub struct vmnl_graphics::texture::PixelRect
+impl vmnl_graphics::texture::PixelRect
+pub const fn vmnl_graphics::texture::PixelRect::height(self) -> u32
+pub fn vmnl_graphics::texture::PixelRect::new(u32, u32, u32, u32) -> vmnl_graphics::VMNLResult<Self>
+pub fn vmnl_graphics::texture::PixelRect::validate_within(self, u32, u32) -> vmnl_graphics::VMNLResult<()>
+pub const fn vmnl_graphics::texture::PixelRect::width(self) -> u32
+pub const fn vmnl_graphics::texture::PixelRect::x(self) -> u32
+pub const fn vmnl_graphics::texture::PixelRect::y(self) -> u32
+impl core::clone::Clone for vmnl_graphics::texture::PixelRect
+pub fn vmnl_graphics::texture::PixelRect::clone(&self) -> vmnl_graphics::texture::PixelRect
+impl core::cmp::Eq for vmnl_graphics::texture::PixelRect
+impl core::cmp::PartialEq for vmnl_graphics::texture::PixelRect
+pub fn vmnl_graphics::texture::PixelRect::eq(&self, &vmnl_graphics::texture::PixelRect) -> bool
+impl core::fmt::Debug for vmnl_graphics::texture::PixelRect
+pub fn vmnl_graphics::texture::PixelRect::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::texture::PixelRect
+impl core::marker::StructuralPartialEq for vmnl_graphics::texture::PixelRect
+impl core::marker::Freeze for vmnl_graphics::texture::PixelRect
+impl core::marker::Send for vmnl_graphics::texture::PixelRect
+impl core::marker::Sync for vmnl_graphics::texture::PixelRect
+impl core::marker::Unpin for vmnl_graphics::texture::PixelRect
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::PixelRect
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::PixelRect
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::PixelRect
+pub struct vmnl_graphics::texture::PixelSource<'a>
+impl<'a> vmnl_graphics::texture::PixelSource<'a>
+pub const fn vmnl_graphics::texture::PixelSource<'a>::alpha_mode(&self) -> vmnl_graphics::texture::AlphaMode
+pub fn vmnl_graphics::texture::PixelSource<'a>::byte_range(&self) -> core::option::Option<core::ops::range::Range<usize>>
+pub const fn vmnl_graphics::texture::PixelSource<'a>::encoding(&self) -> vmnl_graphics::texture::ColorEncoding
+pub const fn vmnl_graphics::texture::PixelSource<'a>::extent(&self) -> [u32; 2]
+pub const fn vmnl_graphics::texture::PixelSource<'a>::format(&self) -> vmnl_graphics::texture::TextureFormat
+pub const fn vmnl_graphics::texture::PixelSource<'a>::layout(&self) -> vmnl_graphics::texture::PixelLayout
+pub fn vmnl_graphics::texture::PixelSource<'a>::new(u32, u32, vmnl_graphics::texture::TextureFormat, &'a [u8]) -> vmnl_graphics::VMNLResult<Self>
+pub fn vmnl_graphics::texture::PixelSource<'a>::prepare(&self) -> vmnl_graphics::VMNLResult<vmnl_graphics::texture::PreparedPixelData>
+pub const fn vmnl_graphics::texture::PixelSource<'a>::usage(&self) -> vmnl_graphics::texture::TextureUsageRequest
+pub fn vmnl_graphics::texture::PixelSource<'a>::validate(&self) -> vmnl_graphics::VMNLResult<()>
+pub const fn vmnl_graphics::texture::PixelSource<'a>::with_alpha_mode(self, vmnl_graphics::texture::AlphaMode) -> Self
+pub fn vmnl_graphics::texture::PixelSource<'a>::with_byte_range(self, core::ops::range::Range<usize>) -> Self
+pub const fn vmnl_graphics::texture::PixelSource<'a>::with_encoding(self, vmnl_graphics::texture::ColorEncoding) -> Self
+pub const fn vmnl_graphics::texture::PixelSource<'a>::with_layout(self, vmnl_graphics::texture::PixelLayout) -> Self
+pub const fn vmnl_graphics::texture::PixelSource<'a>::with_usage(self, vmnl_graphics::texture::TextureUsageRequest) -> Self
+impl<'a> core::fmt::Debug for vmnl_graphics::texture::PixelSource<'a>
+pub fn vmnl_graphics::texture::PixelSource<'a>::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl<'a> core::marker::Freeze for vmnl_graphics::texture::PixelSource<'a>
+impl<'a> core::marker::Send for vmnl_graphics::texture::PixelSource<'a>
+impl<'a> core::marker::Sync for vmnl_graphics::texture::PixelSource<'a>
+impl<'a> core::marker::Unpin for vmnl_graphics::texture::PixelSource<'a>
+impl<'a> core::marker::UnsafeUnpin for vmnl_graphics::texture::PixelSource<'a>
+impl<'a> core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::PixelSource<'a>
+impl<'a> core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::PixelSource<'a>
+pub struct vmnl_graphics::texture::PngDecodeOptions
+impl vmnl_graphics::texture::PngDecodeOptions
+pub const fn vmnl_graphics::texture::PngDecodeOptions::alpha_mode(self) -> core::option::Option<vmnl_graphics::texture::AlphaMode>
+pub fn vmnl_graphics::texture::PngDecodeOptions::decode_png(self, &[u8]) -> vmnl_graphics::VMNLResult<vmnl_graphics::texture::PreparedPixelData>
+pub const fn vmnl_graphics::texture::PngDecodeOptions::encoding(self) -> core::option::Option<vmnl_graphics::texture::ColorEncoding>
+pub const fn vmnl_graphics::texture::PngDecodeOptions::with_alpha_mode(self, vmnl_graphics::texture::AlphaMode) -> Self
+pub const fn vmnl_graphics::texture::PngDecodeOptions::with_encoding(self, vmnl_graphics::texture::ColorEncoding) -> Self
+impl core::clone::Clone for vmnl_graphics::texture::PngDecodeOptions
+pub fn vmnl_graphics::texture::PngDecodeOptions::clone(&self) -> vmnl_graphics::texture::PngDecodeOptions
+impl core::cmp::Eq for vmnl_graphics::texture::PngDecodeOptions
+impl core::cmp::PartialEq for vmnl_graphics::texture::PngDecodeOptions
+pub fn vmnl_graphics::texture::PngDecodeOptions::eq(&self, &vmnl_graphics::texture::PngDecodeOptions) -> bool
+impl core::default::Default for vmnl_graphics::texture::PngDecodeOptions
+pub fn vmnl_graphics::texture::PngDecodeOptions::default() -> vmnl_graphics::texture::PngDecodeOptions
+impl core::fmt::Debug for vmnl_graphics::texture::PngDecodeOptions
+pub fn vmnl_graphics::texture::PngDecodeOptions::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::texture::PngDecodeOptions
+impl core::marker::StructuralPartialEq for vmnl_graphics::texture::PngDecodeOptions
+impl core::marker::Freeze for vmnl_graphics::texture::PngDecodeOptions
+impl core::marker::Send for vmnl_graphics::texture::PngDecodeOptions
+impl core::marker::Sync for vmnl_graphics::texture::PngDecodeOptions
+impl core::marker::Unpin for vmnl_graphics::texture::PngDecodeOptions
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::PngDecodeOptions
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::PngDecodeOptions
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::PngDecodeOptions
+pub struct vmnl_graphics::texture::PreparedPixelData
+impl vmnl_graphics::texture::PreparedPixelData
+pub const fn vmnl_graphics::texture::PreparedPixelData::alpha_mode(&self) -> vmnl_graphics::texture::AlphaMode
+pub fn vmnl_graphics::texture::PreparedPixelData::bytes(&self) -> &[u8]
+pub const fn vmnl_graphics::texture::PreparedPixelData::encoding(&self) -> vmnl_graphics::texture::ColorEncoding
+pub const fn vmnl_graphics::texture::PreparedPixelData::extent(&self) -> [u32; 2]
+pub const fn vmnl_graphics::texture::PreparedPixelData::format(&self) -> vmnl_graphics::texture::TextureFormat
+pub fn vmnl_graphics::texture::PreparedPixelData::into_bytes(self) -> alloc::vec::Vec<u8>
+impl core::cmp::Eq for vmnl_graphics::texture::PreparedPixelData
+impl core::cmp::PartialEq for vmnl_graphics::texture::PreparedPixelData
+pub fn vmnl_graphics::texture::PreparedPixelData::eq(&self, &vmnl_graphics::texture::PreparedPixelData) -> bool
+impl core::fmt::Debug for vmnl_graphics::texture::PreparedPixelData
+pub fn vmnl_graphics::texture::PreparedPixelData::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::StructuralPartialEq for vmnl_graphics::texture::PreparedPixelData
+impl core::marker::Freeze for vmnl_graphics::texture::PreparedPixelData
+impl core::marker::Send for vmnl_graphics::texture::PreparedPixelData
+impl core::marker::Sync for vmnl_graphics::texture::PreparedPixelData
+impl core::marker::Unpin for vmnl_graphics::texture::PreparedPixelData
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::PreparedPixelData
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::PreparedPixelData
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::PreparedPixelData
+pub struct vmnl_graphics::texture::PreparedTexture2D
+impl vmnl_graphics::texture::PreparedTexture2D
+pub const fn vmnl_graphics::texture::PreparedTexture2D::extent(&self) -> [u32; 2]
+pub fn vmnl_graphics::texture::PreparedTexture2D::submit(self) -> vmnl_graphics::VMNLResult<vmnl_graphics::texture::Texture2D>
+impl core::marker::Freeze for vmnl_graphics::texture::PreparedTexture2D
+impl !core::marker::Send for vmnl_graphics::texture::PreparedTexture2D
+impl !core::marker::Sync for vmnl_graphics::texture::PreparedTexture2D
+impl core::marker::Unpin for vmnl_graphics::texture::PreparedTexture2D
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::PreparedTexture2D
+impl !core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::PreparedTexture2D
+impl !core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::PreparedTexture2D
+pub struct vmnl_graphics::texture::Sampler
+impl vmnl_graphics::texture::Sampler
+pub fn vmnl_graphics::texture::Sampler::builder(&vmnl_graphics::Context) -> vmnl_graphics::texture::SamplerBuilder
+pub const fn vmnl_graphics::texture::Sampler::config(&self) -> vmnl_graphics::texture::SamplerConfig
+impl core::clone::Clone for vmnl_graphics::texture::Sampler
+pub fn vmnl_graphics::texture::Sampler::clone(&self) -> vmnl_graphics::texture::Sampler
+impl core::marker::Freeze for vmnl_graphics::texture::Sampler
+impl !core::marker::Send for vmnl_graphics::texture::Sampler
+impl !core::marker::Sync for vmnl_graphics::texture::Sampler
+impl core::marker::Unpin for vmnl_graphics::texture::Sampler
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::Sampler
+impl !core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::Sampler
+impl !core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::Sampler
+pub struct vmnl_graphics::texture::SamplerBuilder
+impl vmnl_graphics::texture::SamplerBuilder
+pub fn vmnl_graphics::texture::SamplerBuilder::build(self) -> vmnl_graphics::VMNLResult<vmnl_graphics::texture::Sampler>
+pub const fn vmnl_graphics::texture::SamplerBuilder::config(self, vmnl_graphics::texture::SamplerConfig) -> Self
+impl core::marker::Freeze for vmnl_graphics::texture::SamplerBuilder
+impl !core::marker::Send for vmnl_graphics::texture::SamplerBuilder
+impl !core::marker::Sync for vmnl_graphics::texture::SamplerBuilder
+impl core::marker::Unpin for vmnl_graphics::texture::SamplerBuilder
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::SamplerBuilder
+impl !core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::SamplerBuilder
+impl !core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::SamplerBuilder
+pub struct vmnl_graphics::texture::SamplerConfig
+impl vmnl_graphics::texture::SamplerConfig
+pub const fn vmnl_graphics::texture::SamplerConfig::address_u(self) -> vmnl_graphics::texture::AddressMode
+pub const fn vmnl_graphics::texture::SamplerConfig::address_v(self) -> vmnl_graphics::texture::AddressMode
+pub const fn vmnl_graphics::texture::SamplerConfig::anisotropy(self) -> f32
+pub const fn vmnl_graphics::texture::SamplerConfig::border_color(self) -> vmnl_graphics::texture::SamplerBorderColor
+pub const fn vmnl_graphics::texture::SamplerConfig::coordinate_mode(self) -> vmnl_graphics::texture::SamplerCoordinateMode
+pub const fn vmnl_graphics::texture::SamplerConfig::linear() -> Self
+pub const fn vmnl_graphics::texture::SamplerConfig::lod_bias(self) -> f32
+pub const fn vmnl_graphics::texture::SamplerConfig::mag_filter(self) -> vmnl_graphics::texture::Filter
+pub const fn vmnl_graphics::texture::SamplerConfig::max_lod(self) -> vmnl_graphics::texture::SamplerLodLimit
+pub const fn vmnl_graphics::texture::SamplerConfig::min_filter(self) -> vmnl_graphics::texture::Filter
+pub const fn vmnl_graphics::texture::SamplerConfig::min_lod(self) -> f32
+pub const fn vmnl_graphics::texture::SamplerConfig::mipmap_filter(self) -> vmnl_graphics::texture::Filter
+pub const fn vmnl_graphics::texture::SamplerConfig::nearest() -> Self
+pub fn vmnl_graphics::texture::SamplerConfig::validate(self) -> vmnl_graphics::VMNLResult<()>
+pub const fn vmnl_graphics::texture::SamplerConfig::with_address_u(self, vmnl_graphics::texture::AddressMode) -> Self
+pub const fn vmnl_graphics::texture::SamplerConfig::with_address_v(self, vmnl_graphics::texture::AddressMode) -> Self
+pub const fn vmnl_graphics::texture::SamplerConfig::with_anisotropy(self, f32) -> Self
+pub const fn vmnl_graphics::texture::SamplerConfig::with_border_color(self, vmnl_graphics::texture::SamplerBorderColor) -> Self
+pub const fn vmnl_graphics::texture::SamplerConfig::with_coordinate_mode(self, vmnl_graphics::texture::SamplerCoordinateMode) -> Self
+pub const fn vmnl_graphics::texture::SamplerConfig::with_lod_bias(self, f32) -> Self
+pub const fn vmnl_graphics::texture::SamplerConfig::with_mag_filter(self, vmnl_graphics::texture::Filter) -> Self
+pub const fn vmnl_graphics::texture::SamplerConfig::with_max_lod(self, vmnl_graphics::texture::SamplerLodLimit) -> Self
+pub const fn vmnl_graphics::texture::SamplerConfig::with_min_filter(self, vmnl_graphics::texture::Filter) -> Self
+pub const fn vmnl_graphics::texture::SamplerConfig::with_min_lod(self, f32) -> Self
+pub const fn vmnl_graphics::texture::SamplerConfig::with_mipmap_filter(self, vmnl_graphics::texture::Filter) -> Self
+impl core::clone::Clone for vmnl_graphics::texture::SamplerConfig
+pub fn vmnl_graphics::texture::SamplerConfig::clone(&self) -> vmnl_graphics::texture::SamplerConfig
+impl core::cmp::PartialEq for vmnl_graphics::texture::SamplerConfig
+pub fn vmnl_graphics::texture::SamplerConfig::eq(&self, &vmnl_graphics::texture::SamplerConfig) -> bool
+impl core::default::Default for vmnl_graphics::texture::SamplerConfig
+pub fn vmnl_graphics::texture::SamplerConfig::default() -> Self
+impl core::fmt::Debug for vmnl_graphics::texture::SamplerConfig
+pub fn vmnl_graphics::texture::SamplerConfig::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::texture::SamplerConfig
+impl core::marker::StructuralPartialEq for vmnl_graphics::texture::SamplerConfig
+impl core::marker::Freeze for vmnl_graphics::texture::SamplerConfig
+impl core::marker::Send for vmnl_graphics::texture::SamplerConfig
+impl core::marker::Sync for vmnl_graphics::texture::SamplerConfig
+impl core::marker::Unpin for vmnl_graphics::texture::SamplerConfig
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::SamplerConfig
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::SamplerConfig
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::SamplerConfig
+pub struct vmnl_graphics::texture::Texture2D
+impl vmnl_graphics::texture::Texture2D
+pub fn vmnl_graphics::texture::Texture2D::alpha_mode(&self) -> vmnl_graphics::texture::AlphaMode
+pub fn vmnl_graphics::texture::Texture2D::encoding(&self) -> vmnl_graphics::texture::ColorEncoding
+pub fn vmnl_graphics::texture::Texture2D::extent(&self) -> [u32; 2]
+pub fn vmnl_graphics::texture::Texture2D::format(&self) -> vmnl_graphics::texture::TextureFormat
+pub fn vmnl_graphics::texture::Texture2D::from_file(&vmnl_graphics::Context, impl core::convert::Into<std::path::PathBuf>) -> vmnl_graphics::texture::Texture2DBuilder<'static>
+pub fn vmnl_graphics::texture::Texture2D::from_pixels<'a>(&vmnl_graphics::Context, vmnl_graphics::texture::PixelSource<'a>) -> vmnl_graphics::texture::Texture2DBuilder<'a>
+pub fn vmnl_graphics::texture::Texture2D::from_png<'a>(&vmnl_graphics::Context, &'a [u8]) -> vmnl_graphics::texture::Texture2DBuilder<'a>
+pub fn vmnl_graphics::texture::Texture2D::initial_upload(&self) -> vmnl_graphics::texture::UploadTicket
+pub fn vmnl_graphics::texture::Texture2D::is_sampleable(&self) -> bool
+pub fn vmnl_graphics::texture::Texture2D::shares_storage_with(&self, &Self) -> bool
+pub fn vmnl_graphics::texture::Texture2D::usage(&self) -> vmnl_graphics::texture::TextureUsage
+pub fn vmnl_graphics::texture::Texture2D::view(&self) -> vmnl_graphics::texture::TextureView2D
+impl core::clone::Clone for vmnl_graphics::texture::Texture2D
+pub fn vmnl_graphics::texture::Texture2D::clone(&self) -> vmnl_graphics::texture::Texture2D
+impl core::marker::Freeze for vmnl_graphics::texture::Texture2D
+impl !core::marker::Send for vmnl_graphics::texture::Texture2D
+impl !core::marker::Sync for vmnl_graphics::texture::Texture2D
+impl core::marker::Unpin for vmnl_graphics::texture::Texture2D
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::Texture2D
+impl !core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::Texture2D
+impl !core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::Texture2D
+pub struct vmnl_graphics::texture::Texture2DBuilder<'a>
+impl<'a> vmnl_graphics::texture::Texture2DBuilder<'a>
+pub fn vmnl_graphics::texture::Texture2DBuilder<'a>::build(self) -> vmnl_graphics::VMNLResult<vmnl_graphics::texture::Texture2D>
+pub fn vmnl_graphics::texture::Texture2DBuilder<'a>::from_file(&vmnl_graphics::Context, impl core::convert::Into<std::path::PathBuf>) -> Self
+pub fn vmnl_graphics::texture::Texture2DBuilder<'a>::from_pixels(&vmnl_graphics::Context, vmnl_graphics::texture::PixelSource<'a>) -> Self
+pub fn vmnl_graphics::texture::Texture2DBuilder<'a>::from_png(&vmnl_graphics::Context, &'a [u8]) -> Self
+pub fn vmnl_graphics::texture::Texture2DBuilder<'a>::prepare(self) -> vmnl_graphics::VMNLResult<vmnl_graphics::texture::PreparedTexture2D>
+pub const fn vmnl_graphics::texture::Texture2DBuilder<'a>::retirement_policy(self, vmnl_graphics::texture::TextureRetirementPolicy) -> Self
+pub const fn vmnl_graphics::texture::Texture2DBuilder<'a>::with_png_options(self, vmnl_graphics::texture::PngDecodeOptions) -> Self
+pub const fn vmnl_graphics::texture::Texture2DBuilder<'a>::with_usage(self, vmnl_graphics::texture::TextureUsageRequest) -> Self
+impl<'a> core::marker::Freeze for vmnl_graphics::texture::Texture2DBuilder<'a>
+impl<'a> !core::marker::Send for vmnl_graphics::texture::Texture2DBuilder<'a>
+impl<'a> !core::marker::Sync for vmnl_graphics::texture::Texture2DBuilder<'a>
+impl<'a> core::marker::Unpin for vmnl_graphics::texture::Texture2DBuilder<'a>
+impl<'a> core::marker::UnsafeUnpin for vmnl_graphics::texture::Texture2DBuilder<'a>
+impl<'a> !core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::Texture2DBuilder<'a>
+impl<'a> !core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::Texture2DBuilder<'a>
+pub struct vmnl_graphics::texture::TextureUsage(_)
+impl vmnl_graphics::texture::TextureUsage
+pub const vmnl_graphics::texture::TextureUsage::INITIAL_UPLOAD: Self
+pub const vmnl_graphics::texture::TextureUsage::SAMPLED: Self
+pub const vmnl_graphics::texture::TextureUsage::TRANSFER_DESTINATION: Self
+pub const vmnl_graphics::texture::TextureUsage::TRANSFER_SOURCE: Self
+pub const fn vmnl_graphics::texture::TextureUsage::contains(self, Self) -> bool
+pub const fn vmnl_graphics::texture::TextureUsage::is_empty(self) -> bool
+pub const fn vmnl_graphics::texture::TextureUsage::union(self, Self) -> Self
+impl core::clone::Clone for vmnl_graphics::texture::TextureUsage
+pub fn vmnl_graphics::texture::TextureUsage::clone(&self) -> vmnl_graphics::texture::TextureUsage
+impl core::cmp::Eq for vmnl_graphics::texture::TextureUsage
+impl core::cmp::PartialEq for vmnl_graphics::texture::TextureUsage
+pub fn vmnl_graphics::texture::TextureUsage::eq(&self, &vmnl_graphics::texture::TextureUsage) -> bool
+impl core::default::Default for vmnl_graphics::texture::TextureUsage
+pub fn vmnl_graphics::texture::TextureUsage::default() -> vmnl_graphics::texture::TextureUsage
+impl core::fmt::Debug for vmnl_graphics::texture::TextureUsage
+pub fn vmnl_graphics::texture::TextureUsage::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::texture::TextureUsage
+impl core::marker::StructuralPartialEq for vmnl_graphics::texture::TextureUsage
+impl core::marker::Freeze for vmnl_graphics::texture::TextureUsage
+impl core::marker::Send for vmnl_graphics::texture::TextureUsage
+impl core::marker::Sync for vmnl_graphics::texture::TextureUsage
+impl core::marker::Unpin for vmnl_graphics::texture::TextureUsage
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::TextureUsage
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::TextureUsage
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::TextureUsage
+pub struct vmnl_graphics::texture::TextureView2D
+impl vmnl_graphics::texture::TextureView2D
+pub fn vmnl_graphics::texture::TextureView2D::extent(&self) -> [u32; 2]
+pub fn vmnl_graphics::texture::TextureView2D::format(&self) -> vmnl_graphics::texture::TextureFormat
+pub fn vmnl_graphics::texture::TextureView2D::shares_storage_with(&self, &vmnl_graphics::texture::Texture2D) -> bool
+pub const fn vmnl_graphics::texture::TextureView2D::texture(&self) -> &vmnl_graphics::texture::Texture2D
+pub fn vmnl_graphics::texture::TextureView2D::validate_sampler(&self, &vmnl_graphics::texture::Sampler) -> vmnl_graphics::VMNLResult<()>
+impl core::clone::Clone for vmnl_graphics::texture::TextureView2D
+pub fn vmnl_graphics::texture::TextureView2D::clone(&self) -> vmnl_graphics::texture::TextureView2D
+impl core::marker::Freeze for vmnl_graphics::texture::TextureView2D
+impl !core::marker::Send for vmnl_graphics::texture::TextureView2D
+impl !core::marker::Sync for vmnl_graphics::texture::TextureView2D
+impl core::marker::Unpin for vmnl_graphics::texture::TextureView2D
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::TextureView2D
+impl !core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::TextureView2D
+impl !core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::TextureView2D
+pub struct vmnl_graphics::texture::UploadTicket
+impl vmnl_graphics::texture::UploadTicket
+pub fn vmnl_graphics::texture::UploadTicket::is_complete(&self) -> vmnl_graphics::VMNLResult<bool>
+pub fn vmnl_graphics::texture::UploadTicket::wait(&self, core::option::Option<core::time::Duration>) -> vmnl_graphics::VMNLResult<vmnl_graphics::texture::UploadWaitOutcome>
+impl core::clone::Clone for vmnl_graphics::texture::UploadTicket
+pub fn vmnl_graphics::texture::UploadTicket::clone(&self) -> vmnl_graphics::texture::UploadTicket
+impl core::marker::Freeze for vmnl_graphics::texture::UploadTicket
+impl !core::marker::Send for vmnl_graphics::texture::UploadTicket
+impl !core::marker::Sync for vmnl_graphics::texture::UploadTicket
+impl core::marker::Unpin for vmnl_graphics::texture::UploadTicket
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::UploadTicket
+impl !core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::UploadTicket
+impl !core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::UploadTicket
 pub enum vmnl_graphics::CursorMode
 pub vmnl_graphics::CursorMode::Captured
 pub vmnl_graphics::CursorMode::Disabled
@@ -1012,7 +1552,11 @@ impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::DepthFormat
 impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::DepthFormat
 #[non_exhaustive] pub enum vmnl_graphics::DeviceFeature
 pub vmnl_graphics::DeviceFeature::FillModeNonSolid
+pub vmnl_graphics::DeviceFeature::ImageViewFormatReinterpretation
+pub vmnl_graphics::DeviceFeature::ImageViewFormatSwizzle
 pub vmnl_graphics::DeviceFeature::LargePoints
+pub vmnl_graphics::DeviceFeature::SamplerAnisotropy
+pub vmnl_graphics::DeviceFeature::SamplerMipLodBias
 pub vmnl_graphics::DeviceFeature::WideLines
 impl core::clone::Clone for vmnl_graphics::DeviceFeature
 pub fn vmnl_graphics::DeviceFeature::clone(&self) -> vmnl_graphics::DeviceFeature
@@ -1550,6 +2094,11 @@ pub vmnl_graphics::VMNLErrorKind::InvalidLineWidth::min: f32
 pub vmnl_graphics::VMNLErrorKind::InvalidLineWidth::value: f32
 pub vmnl_graphics::VMNLErrorKind::InvalidState(alloc::string::String)
 pub vmnl_graphics::VMNLErrorKind::InvalidWindowSize
+pub vmnl_graphics::VMNLErrorKind::TextureCpuAllocationFailed(alloc::string::String)
+pub vmnl_graphics::VMNLErrorKind::TextureDecodeFailed(alloc::string::String)
+pub vmnl_graphics::VMNLErrorKind::TextureSourceReadFailed(alloc::string::String)
+pub vmnl_graphics::VMNLErrorKind::TextureUploadFailed(alloc::string::String)
+pub vmnl_graphics::VMNLErrorKind::UnsupportedTextureSource(alloc::string::String)
 pub vmnl_graphics::VMNLErrorKind::VulkanCommandBufferCreationFailed
 pub vmnl_graphics::VMNLErrorKind::VulkanDescriptorPoolCreationFailed
 pub vmnl_graphics::VMNLErrorKind::VulkanDescriptorSetCreationFailed
@@ -1621,6 +2170,7 @@ impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::ColorFormat
 pub struct vmnl_graphics::Context
 impl vmnl_graphics::Context
 pub fn vmnl_graphics::Context::builder() -> vmnl_graphics::ContextBuilder
+pub fn vmnl_graphics::Context::collect_texture_retirements(&self) -> vmnl_graphics::VMNLResult<usize>
 pub fn vmnl_graphics::Context::device_name(&self) -> &str
 pub fn vmnl_graphics::Context::get_key_name(&self, vmnl_graphics::Key) -> core::option::Option<alloc::string::String>
 pub fn vmnl_graphics::Context::get_key_scancode(&self, vmnl_graphics::Key) -> core::option::Option<vmnl_graphics::Scancode>

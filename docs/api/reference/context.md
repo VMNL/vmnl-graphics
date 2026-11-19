@@ -21,6 +21,7 @@ keyboard metadata queries.
 | `Context::device_name()` | Borrow the selected GPU's diagnostic name, without allocation. |
 | `Context::is_device_feature_supported(DeviceFeature)` | Read feature support on the selected physical device. |
 | `Context::is_device_feature_enabled(DeviceFeature)` | Read activation on the context's logical device. |
+| `Context::collect_texture_retirements()` | Poll and release completed `DeferToContext` texture resources; return the collected count or an observed upload error. |
 | `Context::get_key_name(Key)` | Allocate the current-layout name of a printable named key, or return `None`. |
 | `Context::get_scancode_name(Scancode)` | Allocate the current-layout name of a printable scancode, or return `None`. |
 | `Context::get_key_scancode(Key)` | Return the active platform mapping for a named key, or `None`. |
@@ -54,7 +55,7 @@ Line widths use framebuffer units, independently of application geometry coordin
 
 ## Ownership, lifecycle, and threading
 
-The context owns internal state through `Rc`; clones share that state. Consequently `Context` is single-threaded (`!Send`/`!Sync`) and resources created from it belong to the same logical Vulkan device. Contexts, windows, cursors, and standalone `InputRuntime` handles share one GLFW runtime until the last owner drops.
+The context owns internal state through `Rc`; clones share that state and its deferred texture-retirement registry. Consequently `Context` is single-threaded (`!Send`/`!Sync`) and resources created from it belong to the same logical Vulkan device. Contexts, windows, cursors, and standalone `InputRuntime` handles share one GLFW runtime until the last owner drops. Deferred texture resources not collected earlier are drained during context shutdown.
 
 ## Errors, panics, and failure conditions
 
@@ -77,6 +78,10 @@ specified. Successful name queries allocate one owned `String`; scancode queries
 `get_scancode_name` may query up to 120 key-to-scancode mappings on Wayland; the other backends
 keep the direct scancode lookup.
 No keyboard query performs GPU work, transfer, synchronization, or waiting.
+
+`collect_texture_retirements` polls texture upload fences and may release completed image/view and
+staging resources. It does not wait for pending uploads; backend error cleanup can wait to retire a
+failed submission safely.
 
 The builder prepares CPU configuration without initializing GLFW/Vulkan. Device name and feature
 inspection borrow immutable backend metadata without allocation, GPU submission or waiting.

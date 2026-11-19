@@ -94,6 +94,22 @@ impl Context {
         feature.is_set_in(self.inner.device.enabled_features())
     }
 
+    /// Collects deferred texture resources whose initial uploads have completed.
+    ///
+    /// This polls only uploads attached to textures configured with
+    /// [`TextureRetirementPolicy::DeferToContext`](crate::texture::TextureRetirementPolicy).
+    /// It does not wait for pending uploads. A backend error may require a blocking cleanup wait
+    /// before its resources can be safely retired. Observed upload failures are returned after
+    /// cleanup.
+    ///
+    /// Returns the number of resources collected.
+    ///
+    /// # Errors
+    /// Returns a persistent initial-upload error observed while collecting.
+    pub fn collect_texture_retirements(&self) -> VMNLResult<usize> {
+        self.inner.texture_retirements.collect()
+    }
+
     /// Returns the active-layout name of a printable named key.
     ///
     /// The returned UTF-8 name is intended for displaying key bindings. It is not text input and

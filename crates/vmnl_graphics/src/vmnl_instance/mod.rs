@@ -20,7 +20,7 @@ mod vulkan_instance;
 #[cfg(test)]
 mod tests;
 
-use crate::{glfw_runtime::GlfwRuntime, VMNLResult};
+use crate::{glfw_runtime::GlfwRuntime, texture::TextureRetirementRegistry, VMNLResult};
 pub use config::{ContextBuilder, DeviceConfig, DeviceFeature, LineWidthLimits};
 pub use context::Context;
 use std::{cell::Cell, rc::Rc, sync::Arc};
@@ -59,6 +59,8 @@ pub(crate) struct VMNLInstance {
     pub(crate) glfw: Rc<GlfwRuntime>,
     /// Whether layout-dependent key-name queries are safe for the active backend.
     pub(crate) keyboard_name_queries_ready: Cell<bool>,
+    /// Deferred texture images remain alive here until upload completion is observed.
+    pub(crate) texture_retirements: TextureRetirementRegistry,
 }
 
 impl VMNLInstance {
@@ -118,6 +120,7 @@ impl VMNLInstance {
             descriptor_set_allocator,
             glfw,
             keyboard_name_queries_ready,
+            texture_retirements: TextureRetirementRegistry::default(),
         })
     }
 }
@@ -125,5 +128,6 @@ impl VMNLInstance {
 impl Drop for VMNLInstance {
     fn drop(&mut self) {
         log::trace!("dropping VMNL instance");
+        self.texture_retirements.drain();
     }
 }

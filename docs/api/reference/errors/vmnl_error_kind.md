@@ -16,6 +16,7 @@ Classifies initialization, windowing, Vulkan, validation, and client-state failu
 | Vulkan runtime/status | `VulkanValidationFailed`, `VulkanUnsupportedFeature`, `VulkanOutOfMemory`, `VulkanOutOfDate`, `VulkanDeviceLost`, `VulkanSurfaceLost`, `VulkanExtensionNotPresent`, `VulkanLayerNotPresent`, `VulkanIncompatibleDriver`, `VulkanTooManyObjects`, `VulkanFormatNotSupported`, `VulkanFragmentation`, `VulkanUnknownError` |
 | GLFW | `GlfwInitFailed`, `GlfwInitializationConfigConflict { active_hat_buttons, requested_hat_buttons }`, `GlfwInputOperationFailed { operation, message }`, `GlfwWindowCreationFailed`, `GlfwContextCreationFailed`, `GlfwUnsupportedPlatform`, `GlfwVersionMismatch`, `GlfwPlatformError`, `GlfwUnknownError` |
 | Client/state | `InvalidWindowSize`, `InvalidGamepadMapping(String)`, `InvalidState(String)` |
+| Texture source and upload | `TextureDecodeFailed(String)`, `TextureCpuAllocationFailed(String)`, `TextureSourceReadFailed(String)`, `TextureUploadFailed(String)`, `UnsupportedTextureSource(String)` |
 | Device requirements | `DeviceRequirementsNotMet { required_features: Vec<DeviceFeature> }` |
 | Pipeline rasterization | `DeviceFeatureNotEnabled { feature: DeviceFeature }`, `InvalidLineWidth { value: f32, min: f32, max: f32 }` |
 
@@ -30,6 +31,12 @@ detail. There is no default and no validator.
 `DeviceRequirementsNotMet` carries all requested features in first-request order when no baseline-compatible GPU supports their combination; individual features may still be supported separately on different devices.
 
 `DeviceFeatureNotEnabled` identifies a feature not activated on the pipeline's device. `InvalidLineWidth` retains the requested value (including NaN/infinity) and the device range. These are build-time errors before shader compilation.
+
+Texture descriptor conflicts use `InvalidState`. PNG syntax/decoder failures use
+`TextureDecodeFailed`; CPU pixel-buffer allocation failures use
+`TextureCpuAllocationFailed`; unsupported PNG formats or metadata use
+`UnsupportedTextureSource`; owned path I/O failures use `TextureSourceReadFailed`;
+initial GPU upload submission or completion failures use `TextureUploadFailed`.
 
 ## Units, coordinates, and valid ranges
 

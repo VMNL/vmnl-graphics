@@ -19,4 +19,12 @@ poll does not advance another window's snapshot or a standalone `InputRuntime` q
 its assigned cursor until replacement, removal, or window destruction. The last owner destroys the
 native resource while retaining the shared GLFW runtime; there is no explicit destroy method.
 
+Texture and sampler handles retain their `Context` and are single-threaded. Texture clones share
+image storage; the default view retains its texture. A pending upload retains staging until its
+ticket completes. Final texture retirement defaults to waiting for its upload; `DeferToContext`
+keeps the image, view, staging data, and dependency in the creating context until explicit
+collection or context shutdown. Context clones share the same retirement registry. Texture-view
+and sampler pairs from distinct `Context` instances are rejected, even when both selected the same
+physical device.
+
 VMNL does not publish a general cross-thread guarantee for window, event-loop, renderer, or GPU-resource types. Treat them as confined to the creating thread unless Rust's auto-trait system and the platform backend permit a narrower use. Platform window systems may impose main-thread requirements.
