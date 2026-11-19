@@ -10,7 +10,8 @@ use vmnl_graphics::{
 
 fn main() -> VMNLResult<()> {
     let context = Context::new()?;
-    let texture = Texture2D::from_file(&context, "examples/d2/texture/assets/pikachu.png").build()?;
+    let texture =
+        Texture2D::from_file(&context, "examples/d2/texture/assets/pikachu.png").build()?;
     let sampler = Sampler::builder(&context).build()?;
 
     texture.view().validate_sampler(&sampler)?;
