@@ -29,6 +29,19 @@ fn raw_resources_are_send_sync_for_external_clients() {
 }
 
 #[test]
+fn raw_sampled_texture_binding_is_public_from_vmnl() -> VMNLResult<()> {
+    let _sampled_texture: fn(
+        raw::ResourcesBuilder,
+        u32,
+        u32,
+        &vmnl_graphics::texture::Texture2D,
+        &vmnl_graphics::texture::Sampler,
+    ) -> raw::ResourcesBuilder = raw::ResourcesBuilder::sampled_texture;
+
+    Ok(())
+}
+
+#[test]
 fn raw_derive_traits_are_usable_from_vmnl() -> VMNLResult<()> {
     assert_vertex::<PublicRawVertex>();
     assert_uniform::<PublicRawUniform>();

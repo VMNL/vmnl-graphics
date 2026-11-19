@@ -22,7 +22,7 @@
 | Raw pipeline build | `InvalidLineWidth` / `DeviceFeatureNotEnabled` / portability point-polygon or viewport/scissor `InvalidState` before shader I/O; missing/read/compile/interface/layout/pipeline failures | Use valid numeric values and viewport device limits; request required device features before context creation; correct shaders/layout |
 | Viewport/scissor policy resolution | `InvalidState` for invalid viewport numbers/ranges/full dimensions or signed scissor sum overflow | Correct framebuffer-pixel values; headless resolution does not validate device viewport limits |
 | Raw geometry/uniform build | invalid counts/indices or buffer allocation | Correct data/reduce allocation |
-| Raw resources build | context/device/layout/set/binding/type/array/duplicate/missing mismatch; descriptor allocation | Align shader and resource contract |
+| Raw resources build | context/device/layout/set/binding/type/array/duplicate/missing mismatch; unsampleable texture or incompatible sampler; descriptor allocation | Align shader, resource usage, and sampler contract |
 | Frame submit | device/render-pass/resource mismatch; `VulkanOutOfDate` during acquisition, presentation, or zero-size recreation; record/submit/present/device errors | Keep processing events and retry with the same window after its framebuffer is renderable; rebuild/terminate on hard device failure |
 | GLFW callbacks/infallible setters | No typed result; routed through callback/default backend handling | Log/classify callback and reconcile observed state |
 | `time::Clock` reads and transitions | Infallible; interval and accumulation arithmetic saturates at zero/`Duration::MAX` instead of wrapping or panicking | None |

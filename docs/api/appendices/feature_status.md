@@ -12,11 +12,12 @@ the texture resource foundation targets `0.2.0`. Versioning does not qualify a n
 | Ordered 2D/raw frame composition | Operational in 0.1.0 | GPU/example behavior |
 | Owned elapsed-time clocks (`time::Clock`, `time::Duration`) | Accepted for 0.2.0, not in the 0.1.0 baseline | Headless unit/API/doctest evidence; no GPU, window, or display required |
 | Raw typed pipeline/geometry | Operational in 0.1.0 | Restricted public contract |
-| Raw uniform buffers/resources | Operational in 0.1.0 | Single uniform-buffer descriptors only |
+| Raw uniform buffers/resources | Operational in 0.1.0 | Scalar uniform-buffer descriptors |
+| Raw combined image samplers | Partial 0.2.0 | Scalar combined image-sampler descriptor; default `Texture2D` view only |
 | Render-target inspection / preflight | Operational in 0.1.0 | Actual color/depth formats and samples; strict originating-window identity; resize preserves validity |
 | Optional window depth attachments / raw depth tests | Operational in 0.1.0 | Explicit D16/D32, per-image ownership and resize; compare/write state on raw pipelines |
-| Texture pixel descriptors, static PNG decode, Texture2D upload, default view, sampler, readback, and deferred retirement | Partial `0.2.0` resource foundation | CPU/API and GPU/display checks cover upload, sampler creation, exact readback, context identity, ticket error persistence, and both retirement selections; configurable views, source retention, resource capability/memory/tiling controls, and public renderer sampling are not implemented; an actual in-flight GPU `Wait` and Vulkan upload-failure transition are not exercised |
-| Raw textures/samplers/storage/descriptors arrays/push constants | Unsupported | Rejected by pipeline/resource validation |
+| Texture pixel descriptors, static PNG decode, Texture2D upload, default view, sampler, readback, deferred retirement, and raw default-view sampling | Partial `0.2.0` resource foundation | CPU/API and GPU/display checks cover upload, sampler creation, exact readback, raw combined sampling, context identity, ticket error persistence, and both retirement selections; configurable views, source retention, resource capability/memory/tiling controls, and high-level 2D sampling are not implemented; an actual in-flight GPU `Wait` and Vulkan upload-failure transition are not exercised |
+| Raw separate image/sampler bindings, explicit views, storage, descriptor arrays, and push constants | Unsupported | Rejected by pipeline/resource validation |
 | `RenderMode::Batched` optimization | Not implemented | Falls back to `PerObject` |
 
 Compilation, doctests, and headless tests do not prove Vulkan execution or correct pixels. No performance/synchronization claim beyond documented behavior is specified.

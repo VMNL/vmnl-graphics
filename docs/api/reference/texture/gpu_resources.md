@@ -3,8 +3,9 @@
 ## Public path and maturity
 
 Import GPU texture resources from `vmnl_graphics::texture`. This is the initial
-`0.2.0` resource foundation; texture sampling through the public renderers is a
-separate API step.
+`0.2.0` resource foundation. Raw pipelines can sample the default `Texture2D`
+view with a combined image-sampler descriptor; high-level 2D sampling and
+customizable views remain separate API steps.
 
 ## Purpose and use cases
 
@@ -35,6 +36,12 @@ expose custom mip/layer ranges, format reinterpretation, or component swizzles.
 filter support for the view format, and the border color's numeric class. It does
 not validate shader instructions; a draw consumer must still validate shader and
 view/sampler rules together.
+
+`raw::ResourcesBuilder::sampled_texture(set, binding, &texture, &sampler)` binds
+the default 2D view and sampler to a scalar combined image-sampler descriptor.
+Both resources and the pipeline must use the same `Context` identity. The image
+must include sampled usage. The raw shader declares the matching `sampler2D`
+descriptor and controls its own UVs and sampling instructions.
 
 `Texture2DBuilder::retirement_policy` selects `Wait` (default) or
 `DeferToContext`. `Wait` waits only for the texture's outstanding initial upload
@@ -107,7 +114,9 @@ UNORM or sRGB.
 Texture, view, sampler, context and ticket handles are single-threaded because
 they retain `Context`'s `Rc` ownership. A view retains its texture storage.
 Staging data remains owned by the upload ticket until completion. The upload
-ticket is reusable and cloneable.
+ticket is reusable and cloneable. Raw `Resources` and `ResourcesBuilder` retain
+shareable image-view/sampler handles and upload completion state, so they can be
+`Send + Sync` without making these source handles thread-safe.
 
 ## Errors, panics, and failure conditions
 
