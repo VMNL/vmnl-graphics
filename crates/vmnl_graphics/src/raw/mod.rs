@@ -4,6 +4,7 @@
 //! Low-level raw rendering API.
 
 mod depth;
+mod shader_compat;
 mod viewport;
 pub use depth::{CompareOp, DepthState};
 pub(crate) use viewport::resolve_viewport_scissor;
@@ -25,6 +26,7 @@ use vulkano::descriptor_set::layout::{
 };
 use vulkano::descriptor_set::{DescriptorImageViewInfo, DescriptorSet, WriteDescriptorSet};
 use vulkano::device::{Device, DeviceFeatures};
+use vulkano::format::NumericType;
 use vulkano::image::ImageLayout;
 use vulkano::memory::allocator::StandardMemoryAllocator;
 use vulkano::pipeline::graphics::color_blend::{
@@ -48,15 +50,19 @@ use vulkano::pipeline::{
     PipelineShaderStageCreateInfo,
 };
 use vulkano::render_pass::{RenderPass, Subpass};
-use vulkano::shader::{ShaderModule, ShaderModuleCreateInfo};
+use vulkano::shader::{EntryPoint, ShaderModule, ShaderModuleCreateInfo};
 use vulkano::sync::HostAccessError;
 
 use crate::common::{
     checked_draw_counts, BufferMemoryPreference, GraphicsResourceFactory, IndexBuffer, VertexBuffer,
 };
 use crate::exception::{VMNLError, VMNLErrorKind, VMNLResult};
-use crate::texture::{SampledTextureBinding, Sampler, Texture2D, TextureUploadDependency};
+use crate::texture::{
+    validate_sampled_image_sampler, SampledImageBinding, SampledSamplerBinding,
+    SampledTextureBinding, Sampler, Texture2D, TextureUploadDependency,
+};
 use crate::{Context, DeviceFeature, LineWidthLimits, RenderTargetInfo, Window};
+use shader_compat::{BindingPoint, SamplerOperation, ShaderContract, ShaderStageContract};
 
 const FRAME_UNIFORM_IMAGE_COUNT_MISMATCH: &str =
     "raw frame uniform image count is incompatible with current swapchain image count";
@@ -419,19 +425,8 @@ impl<TVertex> PipelineSpec<TVertex> {
 
         let render_pass = window.render_pass();
 
-        let vs = compile_shader(device.clone(), &vertex_shader, shaderc::ShaderKind::Vertex)?;
-        let fs = compile_shader(
-            device.clone(),
-            &fragment_shader,
-            shaderc::ShaderKind::Fragment,
-        )?;
-
-        let vs = vs
-            .entry_point("main")
-            .ok_or_else(|| VMNLError::new(VMNLErrorKind::VulkanShaderCompilationFailed))?;
-        let fs = fs
-            .entry_point("main")
-            .ok_or_else(|| VMNLError::new(VMNLErrorKind::VulkanShaderCompilationFailed))?;
+        let (vs, fs, shader_contract) =
+            compile_raw_shader_stages(device.clone(), &vertex_shader, &fragment_shader)?;
 
         let stages = [
             PipelineShaderStageCreateInfo::new(vs.clone()),
@@ -494,6 +489,7 @@ impl<TVertex> PipelineSpec<TVertex> {
             viewport: self.viewport,
             scissor: self.scissor,
             depth: self.depth,
+            shader_contract,
             _vertex: PhantomData,
         })
     }
@@ -510,6 +506,7 @@ pub struct Pipeline<TVertex> {
     viewport: ViewportPolicy,
     scissor: ScissorPolicy,
     depth: DepthState,
+    shader_contract: Arc<ShaderContract>,
     _vertex: PhantomData<TVertex>,
 }
 
@@ -974,6 +971,7 @@ impl Resources {
             pipeline_device: pipeline.device.clone(),
             pipeline_layout: pipeline_layout.clone(),
             set_layouts: pipeline_layout.set_layouts().to_vec(),
+            shader_contract: pipeline.shader_contract.clone(),
             bindings: BTreeMap::new(),
             duplicate_binding: None,
             frame_uniform_image_count: None,
@@ -995,6 +993,7 @@ pub struct ResourcesBuilder {
     pipeline_device: Arc<Device>,
     pipeline_layout: Arc<PipelineLayout>,
     set_layouts: Vec<Arc<DescriptorSetLayout>>,
+    shader_contract: Arc<ShaderContract>,
     bindings: BTreeMap<u32, BTreeMap<u32, ResourceBinding>>,
     duplicate_binding: Option<(u32, u32)>,
     frame_uniform_image_count: Option<usize>,
@@ -1080,6 +1079,52 @@ impl ResourcesBuilder {
         self
     }
 
+    /// Binds a texture's default view to a scalar sampled-image descriptor.
+    ///
+    /// Pair the image with [`Self::sampler`] at the bindings selected by the shader.
+    /// The texture image must include sampled usage. The image and pipeline must belong
+    /// to the same `Context`. A pending initial upload is joined into each consuming
+    /// frame without adding a host wait.
+    ///
+    /// # Errors
+    /// [`Self::build`] returns `InvalidState` with set/binding detail for a context,
+    /// descriptor-type, image-view/shader compatibility, or sampled-usage mismatch, or
+    /// when a required descriptor is missing or duplicated.
+    #[must_use]
+    pub fn texture(mut self, set: u32, binding: u32, texture: &Texture2D) -> Self {
+        let old = self.bindings.entry(set).or_default().insert(
+            binding,
+            ResourceBinding::SampledImage(texture.sampled_image_binding()),
+        );
+        if old.is_some() && self.duplicate_binding.is_none() {
+            self.duplicate_binding = Some((set, binding));
+        }
+        self
+    }
+
+    /// Binds a sampler to a scalar sampler descriptor.
+    ///
+    /// Pair it with [`Self::texture`] according to the shader's actual sampling
+    /// instructions. The sampler and pipeline must belong to the same `Context`.
+    /// Shader/sampler coordinate-mode compatibility is checked by [`Self::build`].
+    ///
+    /// # Errors
+    /// [`Self::build`] returns `InvalidState` with set/binding detail for a context,
+    /// descriptor-type, shader/sampler compatibility, or unrepresentable depth-compare
+    /// mismatch, or when a required descriptor is missing or duplicated.
+    #[must_use]
+    pub fn sampler(mut self, set: u32, binding: u32, sampler: &Sampler) -> Self {
+        let old = self
+            .bindings
+            .entry(set)
+            .or_default()
+            .insert(binding, ResourceBinding::Sampler(sampler.sampled_binding()));
+        if old.is_some() && self.duplicate_binding.is_none() {
+            self.duplicate_binding = Some((set, binding));
+        }
+        self
+    }
+
     /// Builds descriptor resources compatible with the pipeline used by this builder.
     ///
     /// # Errors
@@ -1093,6 +1138,7 @@ impl ResourcesBuilder {
             pipeline_device,
             pipeline_layout,
             set_layouts,
+            shader_contract,
             bindings,
             duplicate_binding,
             frame_uniform_image_count,
@@ -1111,7 +1157,12 @@ impl ResourcesBuilder {
             ))));
         }
 
-        validate_supplied_resource_bindings(&pipeline_device, &set_layouts, &bindings)?;
+        validate_supplied_resource_bindings(
+            &pipeline_device,
+            &set_layouts,
+            &bindings,
+            &shader_contract,
+        )?;
         let required_set_count = required_descriptor_set_count_from_layouts(&set_layouts);
         let upload_dependencies = collect_upload_dependencies(&bindings);
         let descriptor_sets = match frame_uniform_image_count {
@@ -1154,6 +1205,8 @@ enum ResourceBinding {
         device: Arc<Device>,
     },
     SampledTexture(SampledTextureBinding),
+    SampledImage(SampledImageBinding),
+    Sampler(SampledSamplerBinding),
 }
 
 #[derive(Clone)]
@@ -1177,7 +1230,11 @@ fn collect_upload_dependencies(
         .values()
         .flat_map(BTreeMap::values)
         .filter_map(|resource| match resource {
-            ResourceBinding::SampledTexture(texture) => Some(texture.upload_dependency.clone()),
+            ResourceBinding::SampledTexture(texture) => {
+                Some(texture.image.upload_dependency.clone())
+            }
+            ResourceBinding::SampledImage(image) => Some(image.upload_dependency.clone()),
+            ResourceBinding::Sampler(_) => None,
             ResourceBinding::FrameUniformBuffer { .. } | ResourceBinding::UniformBuffer { .. } => {
                 None
             }
@@ -1433,6 +1490,7 @@ fn validate_supplied_resource_bindings(
     expected_device: &Arc<Device>,
     set_layouts: &[Arc<DescriptorSetLayout>],
     supplied_sets: &BTreeMap<u32, BTreeMap<u32, ResourceBinding>>,
+    shader_contract: &ShaderContract,
 ) -> VMNLResult<()> {
     for (&set, supplied_bindings) in supplied_sets {
         let set_layout = set_layouts.get(usize::try_from(set).map_err(|_| {
@@ -1477,7 +1535,9 @@ fn validate_supplied_resource_bindings(
             let device = match resource {
                 ResourceBinding::FrameUniformBuffer { device, .. }
                 | ResourceBinding::UniformBuffer { device, .. } => device,
-                ResourceBinding::SampledTexture(texture) => &texture.device,
+                ResourceBinding::SampledTexture(texture) => &texture.image.device,
+                ResourceBinding::SampledImage(image) => &image.device,
+                ResourceBinding::Sampler(sampler) => &sampler.device,
             };
             if !Arc::ptr_eq(device, expected_device) {
                 return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
@@ -1489,6 +1549,8 @@ fn validate_supplied_resource_bindings(
                 ResourceBinding::FrameUniformBuffer { .. }
                 | ResourceBinding::UniformBuffer { .. } => DescriptorType::UniformBuffer,
                 ResourceBinding::SampledTexture(_) => DescriptorType::CombinedImageSampler,
+                ResourceBinding::SampledImage(_) => DescriptorType::SampledImage,
+                ResourceBinding::Sampler(_) => DescriptorType::Sampler,
             };
             if binding_layout.descriptor_type != resource_type {
                 return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
@@ -1502,8 +1564,186 @@ fn validate_supplied_resource_bindings(
                         "raw resources set {set} binding {binding}: {reason}"
                     ))));
                 }
+                validate_sampled_image_binding(
+                    BindingPoint { set, binding },
+                    &texture.image,
+                    shader_contract,
+                )?;
+                validate_sampler_shader_binding(
+                    BindingPoint { set, binding },
+                    &texture.sampler,
+                    shader_contract,
+                )?;
+            }
+            if let ResourceBinding::SampledImage(image) = resource {
+                validate_sampled_image_binding(
+                    BindingPoint { set, binding },
+                    image,
+                    shader_contract,
+                )?;
+            }
+            if let ResourceBinding::Sampler(sampler) = resource {
+                validate_sampler_shader_binding(
+                    BindingPoint { set, binding },
+                    sampler,
+                    shader_contract,
+                )?;
             }
         }
+    }
+
+    validate_sampled_pairs(supplied_sets, shader_contract)?;
+
+    Ok(())
+}
+
+fn validate_sampled_image_binding(
+    point: BindingPoint,
+    image: &SampledImageBinding,
+    shader_contract: &ShaderContract,
+) -> VMNLResult<()> {
+    if !image.sampled_usage {
+        return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+            "raw resources set {} binding {} image usage does not include shader sampling",
+            point.set, point.binding
+        ))));
+    }
+
+    let Some(requirements) = shader_contract.descriptors.get(&point) else {
+        return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+            "raw resources set {} binding {} has no reflected shader requirements",
+            point.set, point.binding
+        ))));
+    };
+    if requirements
+        .image_view_type
+        .is_some_and(|view_type| view_type != vulkano::image::view::ImageViewType::Dim2d)
+    {
+        return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+            "raw resources set {} binding {} requires an image view type incompatible with Texture2D",
+            point.set, point.binding
+        ))));
+    }
+    if requirements.image_multisampled {
+        return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+            "raw resources set {} binding {} requires a multisampled image",
+            point.set, point.binding
+        ))));
+    }
+    if requirements
+        .image_scalar_type
+        .is_some_and(|scalar_type| scalar_type != NumericType::Float)
+    {
+        return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+            "raw resources set {} binding {} shader scalar type is incompatible with normalized RGBA8 texture data",
+            point.set, point.binding
+        ))));
+    }
+    if requirements
+        .image_format
+        .is_some_and(|format| image.image_view.format() != format)
+    {
+        return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+            "raw resources set {} binding {} shader image format is incompatible with the texture view",
+            point.set, point.binding
+        ))));
+    }
+
+    Ok(())
+}
+
+fn validate_sampler_shader_binding(
+    point: BindingPoint,
+    sampler: &SampledSamplerBinding,
+    shader_contract: &ShaderContract,
+) -> VMNLResult<()> {
+    let requirements = shader_contract.descriptors.get(&point).ok_or_else(|| {
+        VMNLError::new(VMNLErrorKind::InvalidState(format!(
+            "raw resources set {} binding {} has no reflected shader requirements",
+            point.set, point.binding
+        )))
+    })?;
+
+    for descriptor in requirements.descriptors.values() {
+        if descriptor.sampler_compare {
+            return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+                "raw resources set {} binding {} requires depth comparison, which VMNL samplers do not expose",
+                point.set, point.binding
+            ))));
+        }
+        if sampler.config.coordinate_mode() == crate::texture::SamplerCoordinateMode::Texel
+            && descriptor.sampler_no_unnormalized_coordinates
+        {
+            return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+                "raw resources set {} binding {} shader sampling instructions are incompatible with texel coordinates",
+                point.set, point.binding
+            ))));
+        }
+    }
+
+    if sampler.config.coordinate_mode() == crate::texture::SamplerCoordinateMode::Texel {
+        for usage in shader_contract
+            .sampler_uses
+            .iter()
+            .filter(|usage| usage.pair.sampler == point)
+        {
+            if let SamplerOperation::TexelIncompatible(reason) = usage.operation {
+                return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+                    "raw resources sampler set {} binding {}: {reason}",
+                    point.set, point.binding
+                ))));
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn validate_sampled_pairs(
+    supplied_sets: &BTreeMap<u32, BTreeMap<u32, ResourceBinding>>,
+    shader_contract: &ShaderContract,
+) -> VMNLResult<()> {
+    for pair in &shader_contract.sampled_pairs {
+        let image_resource = supplied_sets
+            .get(&pair.image.set)
+            .and_then(|bindings| bindings.get(&pair.image.binding));
+        let sampler_resource = supplied_sets
+            .get(&pair.sampler.set)
+            .and_then(|bindings| bindings.get(&pair.sampler.binding));
+
+        let (image, sampler) = match (image_resource, sampler_resource) {
+            (
+                Some(ResourceBinding::SampledTexture(texture)),
+                Some(ResourceBinding::SampledTexture(_)),
+            ) if pair.image == pair.sampler => (&texture.image, &texture.sampler),
+            (
+                Some(ResourceBinding::SampledImage(image)),
+                Some(ResourceBinding::Sampler(sampler)),
+            ) => (image, sampler),
+            _ => {
+                return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+                    "raw shader sampled image set {} binding {} with sampler set {} binding {}, but the resource bindings do not form that pair",
+                    pair.image.set,
+                    pair.image.binding,
+                    pair.sampler.set,
+                    pair.sampler.binding
+                ))));
+            }
+        };
+
+        validate_sampled_image_sampler(
+            &image.image_view,
+            &image.device,
+            image.sampled_usage,
+            &sampler.device,
+            sampler.config,
+        )
+        .map_err(|error| {
+            VMNLError::new(VMNLErrorKind::InvalidState(format!(
+                "raw sampled image set {} binding {} and sampler set {} binding {}: {}",
+                pair.image.set, pair.image.binding, pair.sampler.set, pair.sampler.binding, error
+            )))
+        })?;
     }
 
     Ok(())
@@ -1560,7 +1800,9 @@ fn descriptor_writes_for_set(
                 writes.push(WriteDescriptorSet::buffer(binding, buffer.clone()));
             }
             ResourceBinding::SampledTexture(texture) => {
-                if !Arc::ptr_eq(&texture.device, expected_device) {
+                if !Arc::ptr_eq(&texture.image.device, expected_device)
+                    || !Arc::ptr_eq(&texture.sampler.device, expected_device)
+                {
                     return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
                         "raw resources set {set} binding {binding} must belong to this context"
                     ))));
@@ -1573,10 +1815,40 @@ fn descriptor_writes_for_set(
                 writes.push(WriteDescriptorSet::image_view_with_layout_sampler(
                     binding,
                     DescriptorImageViewInfo {
-                        image_view: texture.image_view.clone(),
+                        image_view: texture.image.image_view.clone(),
                         image_layout: ImageLayout::General,
                     },
-                    texture.sampler.clone(),
+                    texture.sampler.sampler.clone(),
+                ));
+            }
+            ResourceBinding::SampledImage(image) => {
+                if !Arc::ptr_eq(&image.device, expected_device) {
+                    return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+                        "raw resources set {set} binding {binding} must belong to this context"
+                    ))));
+                }
+                if !image.sampled_usage {
+                    return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+                        "raw resources set {set} binding {binding} image usage does not include shader sampling"
+                    ))));
+                }
+                writes.push(WriteDescriptorSet::image_view_with_layout(
+                    binding,
+                    DescriptorImageViewInfo {
+                        image_view: image.image_view.clone(),
+                        image_layout: ImageLayout::General,
+                    },
+                ));
+            }
+            ResourceBinding::Sampler(sampler) => {
+                if !Arc::ptr_eq(&sampler.device, expected_device) {
+                    return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+                        "raw resources set {set} binding {binding} must belong to this context"
+                    ))));
+                }
+                writes.push(WriteDescriptorSet::sampler(
+                    binding,
+                    sampler.sampler.clone(),
                 ));
             }
         }
@@ -1694,16 +1966,7 @@ fn validate_raw_descriptor_binding(
     binding: u32,
     descriptor_type: DescriptorType,
 ) -> VMNLResult<()> {
-    if !matches!(
-        descriptor_type,
-        DescriptorType::UniformBuffer | DescriptorType::CombinedImageSampler
-    ) {
-        return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
-            "raw pipeline set {set} binding {binding} only supports uniform buffers and combined image samplers for now"
-        ))));
-    }
-
-    Ok(())
+    shader_compat::validate_raw_descriptor_type(set, binding, descriptor_type)
 }
 
 fn required_descriptor_set_count(layout: &PipelineLayout) -> usize {
@@ -1717,11 +1980,53 @@ fn required_descriptor_set_count_from_layouts(set_layouts: &[Arc<DescriptorSetLa
         .map_or(0, |index| index + 1)
 }
 
+struct CompiledRawShader {
+    module: Arc<ShaderModule>,
+    contract: ShaderStageContract,
+}
+
+fn compile_raw_shader_stages(
+    device: Arc<Device>,
+    vertex_source: &ShaderSource,
+    fragment_source: &ShaderSource,
+) -> VMNLResult<(EntryPoint, EntryPoint, Arc<ShaderContract>)> {
+    let vertex_shader = compile_shader(
+        device.clone(),
+        vertex_source,
+        shaderc::ShaderKind::Vertex,
+        vulkano::shader::spirv::ExecutionModel::Vertex,
+        "vertex",
+    )?;
+    let fragment_shader = compile_shader(
+        device,
+        fragment_source,
+        shaderc::ShaderKind::Fragment,
+        vulkano::shader::spirv::ExecutionModel::Fragment,
+        "fragment",
+    )?;
+    let contract = Arc::new(ShaderContract::merge(
+        &vertex_shader.contract,
+        &fragment_shader.contract,
+    )?);
+    let vertex_entry = vertex_shader
+        .module
+        .entry_point("main")
+        .ok_or_else(|| VMNLError::new(VMNLErrorKind::VulkanShaderCompilationFailed))?;
+    let fragment_entry = fragment_shader
+        .module
+        .entry_point("main")
+        .ok_or_else(|| VMNLError::new(VMNLErrorKind::VulkanShaderCompilationFailed))?;
+
+    Ok((vertex_entry, fragment_entry, contract))
+}
+
 fn compile_shader(
     device: Arc<Device>,
     source: &ShaderSource,
     kind: shaderc::ShaderKind,
-) -> VMNLResult<Arc<ShaderModule>> {
+    execution_model: vulkano::shader::spirv::ExecutionModel,
+    stage_name: &str,
+) -> VMNLResult<CompiledRawShader> {
     let (source, name) = match source {
         ShaderSource::Src(source) => (source.clone(), "raw_inline_shader.glsl".to_string()),
         ShaderSource::Path(path) => {
@@ -1743,10 +2048,13 @@ fn compile_shader(
         .compile_into_spirv(&source, kind, &name, "main", None)
         .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanShaderCompilationFailed))?;
 
-    let create_info = ShaderModuleCreateInfo::new(spirv.as_binary());
+    let words = spirv.as_binary().to_vec();
+    let create_info = ShaderModuleCreateInfo::new(&words);
     // SAFETY: shaderc returns valid SPIR-V for the requested stage or an error.
-    unsafe { ShaderModule::new(device, create_info) }
-        .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanShaderModuleCreationFailed))
+    let module = unsafe { ShaderModule::new(device, create_info) }
+        .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanShaderModuleCreationFailed))?;
+    let contract = shader_compat::reflect_stage_contract(&words, execution_model, stage_name)?;
+    Ok(CompiledRawShader { module, contract })
 }
 
 fn validate_raw_rasterization(

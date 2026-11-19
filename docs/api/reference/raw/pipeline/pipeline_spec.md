@@ -2,7 +2,7 @@
 
 ## Public path and maturity
 
-Import path: `vmnl_graphics::raw::PipelineSpec<TVertex>`. Status: operational within raw limits; combined image-sampler descriptors are added for 0.2.0.
+Import path: `vmnl_graphics::raw::PipelineSpec<TVertex>`. Status: operational within raw limits; combined and separate image/sampler descriptors are added for 0.2.0.
 
 ## Purpose and use cases
 
@@ -14,7 +14,7 @@ Configures shaders, topology, blending, triangle culling, front-face winding, po
 
 ## Construction, defaults, and validation
 
-Defaults: no shaders, `TriangleList`, `Opaque`, `CullMode::None`, `FrontFace::CounterClockwise`, `PolygonMode::Fill`, line width `1.0`. Both shaders are required. Build requires `TVertex: BufferContents + Vertex + 'static`; entry point `main`; compatible vertex inputs; scalar uniform-buffer or combined image-sampler descriptors; no descriptor arrays/push constants. All culling/winding combinations are valid and require no optional device feature. Setters/getters do not allocate or submit GPU work. `build` first validates rasterization against the window's logical device, before reading or compiling shaders. Non-solid modes require enabled `FillModeNonSolid`; any width other than `1.0` requires enabled `WideLines`, even for a topology that does not use that state. Support alone is insufficient. No feature is activated or GPU reselected.
+Defaults: no shaders, `TriangleList`, `Opaque`, `CullMode::None`, `FrontFace::CounterClockwise`, `PolygonMode::Fill`, line width `1.0`. Both shaders are required. Build requires `TVertex: BufferContents + Vertex + 'static`; entry point `main`; compatible vertex inputs; scalar uniform-buffer, combined image-sampler, sampled-image, or sampler descriptors; no descriptor arrays, including length-one arrays, or push constants. Cross-stage descriptor conflicts return `InvalidState` before Vulkano layout merging. Sampling compatibility is checked when the matching `Resources` are built; samplerless `texelFetch` is outside the raw texture-sampling contract. All culling/winding combinations are valid and require no optional device feature. Setters/getters do not allocate or submit GPU work. `build` first validates rasterization against the window's logical device, before reading or compiling shaders. Non-solid modes require enabled `FillModeNonSolid`; any width other than `1.0` requires enabled `WideLines`, even for a topology that does not use that state. Support alone is insufficient. No feature is activated or GPU reselected.
 
 Viewport and scissor both default to `FullFramebuffer`. Build validates their numbers and viewport device limits before shader I/O. Each raw draw resolves both policies against the actual acquired image extent, after any swapchain recreation. One viewport and one scissor are supported.
 

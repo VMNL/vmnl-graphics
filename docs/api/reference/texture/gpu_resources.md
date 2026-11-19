@@ -4,8 +4,8 @@
 
 Import GPU texture resources from `vmnl_graphics::texture`. This is the initial
 `0.2.0` resource foundation. Raw pipelines can sample the default `Texture2D`
-view with a combined image-sampler descriptor; high-level 2D sampling and
-customizable views remain separate API steps.
+view through combined or separate image/sampler descriptors; high-level 2D
+sampling and customizable views remain separate API steps.
 
 ## Purpose and use cases
 
@@ -34,14 +34,18 @@ allocation. `view` returns a full-range `TextureView2D`; this step does not yet
 expose custom mip/layer ranges, format reinterpretation, or component swizzles.
 `TextureView2D::validate_sampler` checks context identity, sampled usage, linear
 filter support for the view format, and the border color's numeric class. It does
-not validate shader instructions; a draw consumer must still validate shader and
-view/sampler rules together.
+not inspect shader instructions. Raw `ResourcesBuilder::build` validates the
+reflected shader image/sampler pairs and coordinate-mode compatibility.
 
 `raw::ResourcesBuilder::sampled_texture(set, binding, &texture, &sampler)` binds
 the default 2D view and sampler to a scalar combined image-sampler descriptor.
-Both resources and the pipeline must use the same `Context` identity. The image
-must include sampled usage. The raw shader declares the matching `sampler2D`
-descriptor and controls its own UVs and sampling instructions.
+Use `texture` and `sampler` for separate scalar descriptors. Both resources and
+the pipeline must use the same `Context` identity. The image must include sampled
+usage. The raw shader controls its own UVs and sampling instructions; VMNL checks
+the actual image/sampler pairs reflected from SPIR-V. Normalized coordinates keep
+shader-selected LOD behavior. Texel coordinates require explicit statically known
+LOD zero and reject unsupported operations such as implicit LOD, comparison,
+projection, bias, gradients, and offsets.
 
 `Texture2DBuilder::retirement_policy` selects `Wait` (default) or
 `DeferToContext`. `Wait` waits only for the texture's outstanding initial upload

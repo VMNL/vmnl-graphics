@@ -46,11 +46,24 @@ pub(crate) type TextureUploadDependency = Arc<FenceSignalFuture<Box<dyn GpuFutur
 
 #[derive(Clone)]
 pub(crate) struct SampledTextureBinding {
+    pub(crate) image: SampledImageBinding,
+    pub(crate) sampler: SampledSamplerBinding,
+    pub(crate) validation_error: Option<String>,
+}
+
+#[derive(Clone)]
+pub(crate) struct SampledImageBinding {
     pub(crate) image_view: Arc<ImageView>,
-    pub(crate) sampler: Arc<VulkanSampler>,
     pub(crate) device: Arc<Device>,
     pub(crate) upload_dependency: TextureUploadDependency,
-    pub(crate) validation_error: Option<String>,
+    pub(crate) sampled_usage: bool,
+}
+
+#[derive(Clone)]
+pub(crate) struct SampledSamplerBinding {
+    pub(crate) sampler: Arc<VulkanSampler>,
+    pub(crate) device: Arc<Device>,
+    pub(crate) config: SamplerConfig,
 }
 
 enum TextureSource<'a> {
@@ -383,10 +396,6 @@ impl Texture2D {
         Rc::ptr_eq(&self.storage, &other.storage)
     }
 
-    pub(crate) fn belongs_to_context(&self, context: &Context) -> bool {
-        Rc::ptr_eq(&self.storage.context.inner, &context.inner)
-    }
-
     pub(crate) fn sampled_binding(&self, sampler: &Sampler) -> SampledTextureBinding {
         let view = self.view();
         let validation_error =
@@ -398,11 +407,18 @@ impl Texture2D {
                 });
 
         SampledTextureBinding {
+            image: self.sampled_image_binding(),
+            sampler: sampler.sampled_binding(),
+            validation_error,
+        }
+    }
+
+    pub(crate) fn sampled_image_binding(&self) -> SampledImageBinding {
+        SampledImageBinding {
             image_view: self.storage.default_view.clone(),
-            sampler: sampler.inner.clone(),
             device: self.storage.context.inner.device.clone(),
             upload_dependency: self.storage.upload_dependency.clone(),
-            validation_error,
+            sampled_usage: self.is_sampleable(),
         }
     }
 }
@@ -442,57 +458,81 @@ impl TextureView2D {
     /// Checks whether this view can be paired with a sampler on the same context.
     ///
     /// This validates sampled usage, context identity, linear-filter support, and the border
-    /// color's numeric class. Shader instruction compatibility remains the consumer's
-    /// responsibility.
+    /// color's numeric class. It does not inspect shader instructions; raw
+    /// [`ResourcesBuilder`](crate::raw::ResourcesBuilder) checks those when resources are built.
     ///
     /// # Errors
     /// Returns `InvalidState` when the view and sampler are incompatible.
     pub fn validate_sampler(&self, sampler: &Sampler) -> VMNLResult<()> {
-        if !self.texture.belongs_to_context(&sampler.context) {
-            return Err(invalid_state(
-                "texture view and sampler belong to different Context instances",
-            ));
-        }
-        if !self.texture.is_sampleable() {
-            return Err(invalid_state(
-                "texture view image usage does not include shader sampling",
-            ));
-        }
+        validate_sampled_image_sampler(
+            &self.inner,
+            &self.texture.storage.context.inner.device,
+            self.texture.is_sampleable(),
+            &sampler.context.inner.device,
+            sampler.config(),
+        )
+    }
+}
 
-        let config = sampler.config();
-        let uses_linear_filter = [
-            config.min_filter(),
-            config.mag_filter(),
-            config.mipmap_filter(),
-        ]
-        .contains(&super::Filter::Linear);
-        if uses_linear_filter
-            && !self
-                .inner
-                .format_features()
-                .contains(FormatFeatures::SAMPLED_IMAGE_FILTER_LINEAR)
-        {
-            return Err(invalid_state(
-                "texture view format does not support linear filtering",
-            ));
-        }
+pub(crate) fn validate_sampled_image_sampler(
+    image_view: &ImageView,
+    image_device: &Arc<Device>,
+    sampled_usage: bool,
+    sampler_device: &Arc<Device>,
+    config: SamplerConfig,
+) -> VMNLResult<()> {
+    if !Arc::ptr_eq(image_device, sampler_device) {
+        return Err(invalid_state(
+            "texture view and sampler belong to different Context instances",
+        ));
+    }
+    if !sampled_usage {
+        return Err(invalid_state(
+            "texture view image usage does not include shader sampling",
+        ));
+    }
 
-        let uses_border = [config.address_u(), config.address_v()]
-            .into_iter()
-            .any(|mode| mode == super::AddressMode::ClampToBorder);
-        let integer_border = matches!(
-            config.border_color(),
-            super::SamplerBorderColor::IntTransparentBlack
-                | super::SamplerBorderColor::IntOpaqueBlack
-                | super::SamplerBorderColor::IntOpaqueWhite
-        );
-        if uses_border && integer_border {
-            return Err(invalid_state(
-                "RGBA8 normalized texture views require a floating-point sampler border color",
-            ));
-        }
+    let uses_linear_filter = [
+        config.min_filter(),
+        config.mag_filter(),
+        config.mipmap_filter(),
+    ]
+    .contains(&super::Filter::Linear);
+    if uses_linear_filter
+        && !image_view
+            .format_features()
+            .contains(FormatFeatures::SAMPLED_IMAGE_FILTER_LINEAR)
+    {
+        return Err(invalid_state(
+            "texture view format does not support linear filtering",
+        ));
+    }
 
-        Ok(())
+    let uses_border = [config.address_u(), config.address_v()]
+        .into_iter()
+        .any(|mode| mode == super::AddressMode::ClampToBorder);
+    let integer_border = matches!(
+        config.border_color(),
+        super::SamplerBorderColor::IntTransparentBlack
+            | super::SamplerBorderColor::IntOpaqueBlack
+            | super::SamplerBorderColor::IntOpaqueWhite
+    );
+    if uses_border && integer_border {
+        return Err(invalid_state(
+            "RGBA8 normalized texture views require a floating-point sampler border color",
+        ));
+    }
+
+    Ok(())
+}
+
+impl Sampler {
+    pub(crate) fn sampled_binding(&self) -> SampledSamplerBinding {
+        SampledSamplerBinding {
+            sampler: self.inner.clone(),
+            device: self.context.inner.device.clone(),
+            config: self.config,
+        }
     }
 }
 

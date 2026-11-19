@@ -37,7 +37,7 @@ Build initializes one uniform slot per current swapchain image. `write_frame_uni
 
 ## Platform, Vulkan, and display constraints
 
-Size/alignment/layout must match the shader and device requirements. Raw descriptors also support a single combined image-sampler binding through `ResourcesBuilder::sampled_texture`; descriptor arrays and storage descriptors remain unsupported.
+Size/alignment/layout must match the shader and device requirements. Raw descriptors also support combined or separate image/sampler bindings through `ResourcesBuilder`; descriptor arrays and storage descriptors remain unsupported.
 
 ## Example and related types
 

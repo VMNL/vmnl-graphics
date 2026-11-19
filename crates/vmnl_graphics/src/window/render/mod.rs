@@ -128,7 +128,10 @@ mod tests {
     #![allow(clippy::expect_used, clippy::panic, clippy::unwrap_used)]
 
     use crate::raw::{self, Scissor, ScissorPolicy, Viewport, ViewportPolicy};
-    use crate::texture::{PixelSource, Sampler, SamplerConfig, Texture2D, TextureFormat};
+    use crate::texture::{
+        PixelSource, Sampler, SamplerConfig, SamplerCoordinateMode, SamplerLodLimit, Texture2D,
+        TextureFormat,
+    };
     use crate::{Context, VMNLErrorKind, VMNLResult, Window};
     use std::sync::Arc;
     use vulkano::{
@@ -173,6 +176,80 @@ mod tests {
         void main() {
             out_color = tint;
         }
+    ";
+
+    const SEPARATE_TEXTURE_FRAGMENT_SHADER: &str = r"
+        #version 450
+        layout(set = 0, binding = 0) uniform texture2D color_image;
+        layout(set = 1, binding = 0) uniform sampler nearest_sampler;
+        layout(set = 2, binding = 0) uniform sampler linear_sampler;
+        layout(location = 0) in vec2 texture_uv;
+        layout(location = 0) out vec4 out_color;
+        vec4 sample_with(texture2D image, sampler state, vec2 coordinates) {
+            return texture(sampler2D(image, state), coordinates);
+        }
+        void main() {
+            vec4 nearest = sample_with(color_image, nearest_sampler, texture_uv);
+            vec4 linear = textureLod(
+                sampler2D(color_image, linear_sampler), texture_uv, 0.0);
+            out_color = vec4(nearest.r, linear.g, nearest.b, 1.0);
+        }
+    ";
+
+    const SEPARATE_TEXEL_FRAGMENT_SHADER: &str = r"
+        #version 450
+        layout(set = 0, binding = 0) uniform texture2D color_image;
+        layout(set = 1, binding = 0) uniform sampler image_sampler;
+        layout(location = 0) in vec2 texture_uv;
+        layout(location = 0) out vec4 out_color;
+        void main() {
+            out_color = textureLod(
+                sampler2D(color_image, image_sampler), texture_uv, 0.0);
+        }
+    ";
+
+    const SEPARATE_IMPLICIT_FRAGMENT_SHADER: &str = r"
+        #version 450
+        layout(set = 0, binding = 0) uniform texture2D color_image;
+        layout(set = 1, binding = 0) uniform sampler image_sampler;
+        layout(location = 0) in vec2 texture_uv;
+        layout(location = 0) out vec4 out_color;
+        void main() {
+            out_color = texture(
+                sampler2D(color_image, image_sampler), texture_uv);
+        }
+    ";
+
+    const SEPARATE_NONZERO_LOD_FRAGMENT_SHADER: &str = r"
+        #version 450
+        layout(set = 0, binding = 0) uniform texture2D color_image;
+        layout(set = 1, binding = 0) uniform sampler image_sampler;
+        layout(location = 0) in vec2 texture_uv;
+        layout(location = 0) out vec4 out_color;
+        void main() {
+            out_color = textureLod(
+                sampler2D(color_image, image_sampler), texture_uv, 1.0);
+        }
+    ";
+
+    const CONFLICTING_VERTEX_SHADER: &str = r"
+        #version 450
+        layout(set = 0, binding = 0) uniform Transform { vec4 position; } transform;
+        void main() { gl_Position = transform.position; }
+    ";
+
+    const CONFLICTING_FRAGMENT_SHADER: &str = r"
+        #version 450
+        layout(set = 0, binding = 0) uniform sampler2D image;
+        layout(location = 0) out vec4 color;
+        void main() { color = texture(image, vec2(0.5)); }
+    ";
+
+    const LENGTH_ONE_ARRAY_FRAGMENT_SHADER: &str = r"
+        #version 450
+        layout(set = 0, binding = 0) uniform sampler2D images[1];
+        layout(location = 0) out vec4 color;
+        void main() { color = texture(images[0], vec2(0.5)); }
     ";
 
     #[repr(C)]
@@ -229,6 +306,67 @@ mod tests {
             VMNLErrorKind::InvalidState(message) if message == expected => {}
             kind => panic!("expected InvalidState({expected:?}), received {kind:?}"),
         }
+    }
+
+    fn assert_invalid_state_contains<T>(result: VMNLResult<T>, expected: &str) {
+        let Err(error) = result else {
+            panic!("expected InvalidState containing {expected:?}");
+        };
+        match error.kind() {
+            VMNLErrorKind::InvalidState(message) if message.contains(expected) => {}
+            kind => panic!("expected InvalidState containing {expected:?}, received {kind:?}"),
+        }
+    }
+
+    fn raw_texture_pipeline(
+        window: &Window,
+        fragment_shader: &str,
+    ) -> VMNLResult<raw::Pipeline<TexturedVertex>> {
+        raw::Pipeline::<TexturedVertex>::builder()
+            .vertex_shader(raw::ShaderSource::Src(TEXTURED_VERTEX_SHADER.into()))
+            .fragment_shader(raw::ShaderSource::Src(fragment_shader.into()))
+            .topology(raw::PrimitiveTopology::TriangleList)
+            .viewport(ViewportPolicy::Fixed(Viewport {
+                offset: [0.0, 0.0],
+                extent: [2.0, 2.0],
+                depth_range: [0.0, 1.0],
+            }))
+            .scissor(ScissorPolicy::Fixed(Scissor {
+                offset: [0, 0],
+                extent: [2, 2],
+            }))
+            .build(window)
+    }
+
+    fn raw_test_texture(context: &Context) -> VMNLResult<Texture2D> {
+        let pixels = [
+            255, 0, 0, 255, 0, 255, 0, 255, // top row: red, green
+            0, 0, 255, 255, 255, 255, 255, 255, // bottom row: blue, white
+        ];
+        Texture2D::from_pixels(
+            context,
+            PixelSource::new(2, 2, TextureFormat::Rgba8Unorm, &pixels)?,
+        )
+        .build()
+    }
+
+    fn assert_raw_pipeline_layout_rejections(window: &Window) {
+        assert_invalid_state_contains(
+            raw::Pipeline::<TexturedVertex>::builder()
+                .vertex_shader(raw::ShaderSource::Src(CONFLICTING_VERTEX_SHADER.into()))
+                .fragment_shader(raw::ShaderSource::Src(CONFLICTING_FRAGMENT_SHADER.into()))
+                .build(window),
+            "conflict at set 0 binding 0",
+        );
+        assert_invalid_state_contains(
+            raw::Pipeline::<TexturedVertex>::builder()
+                .vertex_shader(raw::ShaderSource::Src(TEXTURED_VERTEX_SHADER.into()))
+                .fragment_shader(raw::ShaderSource::Src(
+                    LENGTH_ONE_ARRAY_FRAGMENT_SHADER.into(),
+                ))
+                .build(window),
+            "set 0 binding 0 descriptor arrays are not supported yet",
+        );
     }
 
     fn install_rgba8_readback_target(window: &mut Window) -> Option<Arc<Image>> {
@@ -490,6 +628,128 @@ mod tests {
             // Nearest therefore returns red; Linear would blend the two texels.
             assert_eq!(&readback[8..12], &[255, 0, 0, 255]);
         }
+
+        Ok(())
+    }
+
+    #[test]
+    #[ignore = "Requires Vulkan + GLFW display."]
+    fn raw_separate_sampled_resources_pair_distinct_samplers() -> VMNLResult<()> {
+        let _guard = crate::test_support::gpu_test_guard();
+        let context = Context::new()?;
+        let mut window = Window::builder().build(&context)?;
+        assert_raw_pipeline_layout_rejections(&window);
+        let Some(target) = install_rgba8_readback_target(&mut window) else {
+            log::info!("R8G8B8A8_UNORM color+transfer target is unsupported; skipped");
+            return Ok(());
+        };
+
+        let texture = raw_test_texture(&context)?;
+        let nearest_sampler = Sampler::builder(&context)
+            .config(SamplerConfig::nearest())
+            .build()?;
+        let linear_sampler = Sampler::builder(&context)
+            .config(SamplerConfig::linear())
+            .build()?;
+
+        let separate_pipeline = raw_texture_pipeline(&window, SEPARATE_TEXTURE_FRAGMENT_SHADER)?;
+        assert_invalid_state_contains(
+            raw::Resources::builder(&separate_pipeline)
+                .texture(0, 0, &texture)
+                .sampler(1, 0, &nearest_sampler)
+                .build(&context),
+            "missing set 2 binding 0",
+        );
+        assert_invalid_state_contains(
+            raw::Resources::builder(&separate_pipeline)
+                .texture(0, 0, &texture)
+                .sampler(1, 0, &nearest_sampler)
+                .sampler(1, 0, &linear_sampler)
+                .sampler(2, 0, &linear_sampler)
+                .build(&context),
+            "duplicate binding set 1 binding 0",
+        );
+        assert_invalid_state_contains(
+            raw::Resources::builder(&separate_pipeline)
+                .sampler(0, 0, &nearest_sampler)
+                .sampler(1, 0, &nearest_sampler)
+                .sampler(2, 0, &linear_sampler)
+                .build(&context),
+            "set 0 binding 0 resource does not match",
+        );
+        let separate_resources = raw::Resources::builder(&separate_pipeline)
+            .texture(0, 0, &texture)
+            .sampler(1, 0, &nearest_sampler)
+            .sampler(2, 0, &linear_sampler)
+            .build(&context)?;
+        let separate_geometry =
+            raw::Geometry::builder(textured_quad_at_uv([0.375, 0.25])).build(&context)?;
+
+        window
+            .render()
+            .draw_raw_2d_with(
+                &separate_pipeline,
+                &separate_resources,
+                [&separate_geometry],
+            )
+            .submit()?;
+        let readback = readback_first_2x2(&mut window, target);
+        assert_eq!(&readback[0..4], &[255, 64, 0, 255]);
+
+        Ok(())
+    }
+
+    #[test]
+    #[ignore = "Requires Vulkan + GLFW display."]
+    fn raw_texel_sampler_requires_explicit_static_zero_lod() -> VMNLResult<()> {
+        let _guard = crate::test_support::gpu_test_guard();
+        let context = Context::new()?;
+        let mut window = Window::builder().build(&context)?;
+        let Some(target) = install_rgba8_readback_target(&mut window) else {
+            log::info!("R8G8B8A8_UNORM color+transfer target is unsupported; skipped");
+            return Ok(());
+        };
+        let texture = raw_test_texture(&context)?;
+        let texel_pipeline = raw_texture_pipeline(&window, SEPARATE_TEXEL_FRAGMENT_SHADER)?;
+        let texel_sampler = Sampler::builder(&context)
+            .config(
+                SamplerConfig::nearest()
+                    .with_coordinate_mode(SamplerCoordinateMode::Texel)
+                    .with_max_lod(SamplerLodLimit::Value(0.0)),
+            )
+            .build()?;
+        let texel_resources = raw::Resources::builder(&texel_pipeline)
+            .texture(0, 0, &texture)
+            .sampler(1, 0, &texel_sampler)
+            .build(&context)?;
+        let texel_geometry =
+            raw::Geometry::builder(textured_quad_at_uv([0.5, 0.5])).build(&context)?;
+
+        let implicit_pipeline = raw_texture_pipeline(&window, SEPARATE_IMPLICIT_FRAGMENT_SHADER)?;
+        assert_invalid_state_contains(
+            raw::Resources::builder(&implicit_pipeline)
+                .texture(0, 0, &texture)
+                .sampler(1, 0, &texel_sampler)
+                .build(&context),
+            "incompatible with texel coordinates",
+        );
+
+        let nonzero_lod_pipeline =
+            raw_texture_pipeline(&window, SEPARATE_NONZERO_LOD_FRAGMENT_SHADER)?;
+        assert_invalid_state_contains(
+            raw::Resources::builder(&nonzero_lod_pipeline)
+                .texture(0, 0, &texture)
+                .sampler(1, 0, &texel_sampler)
+                .build(&context),
+            "explicit LOD zero",
+        );
+
+        window
+            .render()
+            .draw_raw_2d_with(&texel_pipeline, &texel_resources, [&texel_geometry])
+            .submit()?;
+        let readback = readback_first_2x2(&mut window, target);
+        assert_eq!(&readback[0..4], &[255, 0, 0, 255]);
 
         Ok(())
     }

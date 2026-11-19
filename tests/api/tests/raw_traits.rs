@@ -42,6 +42,24 @@ fn raw_sampled_texture_binding_is_public_from_vmnl() -> VMNLResult<()> {
 }
 
 #[test]
+fn raw_separate_texture_and_sampler_bindings_are_public_from_vmnl() -> VMNLResult<()> {
+    let _texture: fn(
+        raw::ResourcesBuilder,
+        u32,
+        u32,
+        &vmnl_graphics::texture::Texture2D,
+    ) -> raw::ResourcesBuilder = raw::ResourcesBuilder::texture;
+    let _sampler: fn(
+        raw::ResourcesBuilder,
+        u32,
+        u32,
+        &vmnl_graphics::texture::Sampler,
+    ) -> raw::ResourcesBuilder = raw::ResourcesBuilder::sampler;
+
+    Ok(())
+}
+
+#[test]
 fn raw_derive_traits_are_usable_from_vmnl() -> VMNLResult<()> {
     assert_vertex::<PublicRawVertex>();
     assert_uniform::<PublicRawUniform>();
