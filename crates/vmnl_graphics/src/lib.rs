@@ -41,6 +41,8 @@ mod glfw_backend;
 mod glfw_runtime;
 /// Low-level raw graphics resources and public types.
 pub mod raw;
+#[cfg(test)]
+pub(crate) mod test_support;
 /// Texture source descriptors and CPU-side pixel preparation.
 pub mod texture;
 mod vmnl_instance;

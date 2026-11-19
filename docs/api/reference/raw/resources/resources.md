@@ -2,7 +2,7 @@
 
 ## Public path and maturity
 
-Import path: `vmnl_graphics::raw::Resources`. Status: 0.1.0, operational for uniform buffers.
+Import path: `vmnl_graphics::raw::Resources`. Status: uniform-buffer resources are operational in 0.1.0; combined image-sampler resources using a texture's default view are added for 0.2.0.
 
 ## Purpose and use cases
 
@@ -14,7 +14,7 @@ Owns descriptor resources compatible with one raw pipeline layout for `draw_raw_
 
 ## Construction, defaults, and validation
 
-Builder captures the pipeline device/layout. Every required supported binding must be supplied before build. If any binding uses `FrameUniform`, every `FrameUniform` in the same `Resources` must have the same swapchain image count.
+Builder captures the pipeline device/layout. Every required supported binding must be supplied before build. Supported bindings are scalar uniform buffers and combined image samplers from `Texture2D` plus `Sampler`. If any binding uses `FrameUniform`, every `FrameUniform` in the same `Resources` must have the same swapchain image count. Texture and sampler handles must share the pipeline's `Context` identity and satisfy sampled usage and sampler compatibility.
 
 ## Units, coordinates, and valid ranges
 
@@ -26,16 +26,16 @@ Owns shared descriptor/device/layout state; borrowed during frame recording. It 
 
 ## Errors, panics, and failure conditions
 
-Builder entry is infallible; resource build/submission can reject device, layout, binding, descriptor allocation, or swapchain image-count mismatches.
+Builder entry is infallible; resource build/submission can reject device, layout, binding, sampled-usage, sampler, descriptor allocation, or swapchain image-count mismatches.
 
 ## Allocation, transfers, synchronization, and GPU cost
 
-Static uniform resources allocate descriptor sets at build. `FrameUniform` resources keep shared frame-uniform slots and allocate descriptor sets during frame recording so the acquired image uses the latest slot. Exact cost is unspecified.
+Static resources allocate descriptor sets at build. `FrameUniform` resources keep shared frame-uniform slots and allocate descriptor sets during frame recording so the acquired image uses the latest slot. Texture resources retain the default image view, sampler, and upload dependency; a pending initial upload joins each consuming frame without a host wait. Exact cost is unspecified.
 
 ## Platform, Vulkan, and display constraints
 
-Current surface supports single uniform-buffer descriptors only; no arrays, textures/samplers, storage buffers, or push constants.
+Current surface supports scalar uniform-buffer and combined image-sampler descriptors. Separate image/sampler bindings, explicit texture views, arrays, storage buffers, and push constants remain unsupported.
 
 ## Example and related types
 
-See [`ResourcesBuilder`](resources_builder.md) and the [uniform-binding workflow](../../../workflows/bind_raw_uniforms.md).
+See [`ResourcesBuilder`](resources_builder.md), the [uniform-binding workflow](../../../workflows/bind_raw_uniforms.md), and the [raw texture-sampling workflow](../../../workflows/sample_raw_texture.md).

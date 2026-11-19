@@ -890,6 +890,7 @@ pub struct vmnl_graphics::raw::ResourcesBuilder
 impl vmnl_graphics::raw::ResourcesBuilder
 pub fn vmnl_graphics::raw::ResourcesBuilder::build(self, &vmnl_graphics::Context) -> vmnl_graphics::VMNLResult<vmnl_graphics::raw::Resources>
 pub fn vmnl_graphics::raw::ResourcesBuilder::frame_uniform<TData>(self, u32, u32, &vmnl_graphics::raw::FrameUniform<TData>) -> Self
+pub fn vmnl_graphics::raw::ResourcesBuilder::sampled_texture(self, u32, u32, &vmnl_graphics::texture::Texture2D, &vmnl_graphics::texture::Sampler) -> Self
 pub fn vmnl_graphics::raw::ResourcesBuilder::uniform<TData>(self, u32, u32, &vmnl_graphics::raw::Uniform<TData>) -> Self
 impl core::marker::Freeze for vmnl_graphics::raw::ResourcesBuilder
 impl core::marker::Send for vmnl_graphics::raw::ResourcesBuilder

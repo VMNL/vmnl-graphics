@@ -23,8 +23,9 @@ use vulkano::descriptor_set::allocator::StandardDescriptorSetAllocator;
 use vulkano::descriptor_set::layout::{
     DescriptorSetLayout, DescriptorSetLayoutCreateInfo, DescriptorType,
 };
-use vulkano::descriptor_set::{DescriptorSet, WriteDescriptorSet};
+use vulkano::descriptor_set::{DescriptorImageViewInfo, DescriptorSet, WriteDescriptorSet};
 use vulkano::device::{Device, DeviceFeatures};
+use vulkano::image::ImageLayout;
 use vulkano::memory::allocator::StandardMemoryAllocator;
 use vulkano::pipeline::graphics::color_blend::{
     AttachmentBlend, ColorBlendAttachmentState, ColorBlendState,
@@ -54,6 +55,7 @@ use crate::common::{
     checked_draw_counts, BufferMemoryPreference, GraphicsResourceFactory, IndexBuffer, VertexBuffer,
 };
 use crate::exception::{VMNLError, VMNLErrorKind, VMNLResult};
+use crate::texture::{SampledTextureBinding, Sampler, Texture2D, TextureUploadDependency};
 use crate::{Context, DeviceFeature, LineWidthLimits, RenderTargetInfo, Window};
 
 const FRAME_UNIFORM_IMAGE_COUNT_MISMATCH: &str =
@@ -1050,6 +1052,34 @@ impl ResourcesBuilder {
         self
     }
 
+    /// Binds a texture's default view and sampler to a combined image-sampler descriptor.
+    ///
+    /// The texture image must include sampled usage, and the texture and sampler must
+    /// belong to the same `Context` as the pipeline. A pending initial upload is joined
+    /// into each frame that consumes these resources; this adds no CPU wait for that upload.
+    ///
+    /// # Errors
+    /// [`Self::build`] returns `InvalidState` with set/binding detail for a context,
+    /// descriptor-type, sampled-usage, or sampler-compatibility mismatch, or when a
+    /// required descriptor is missing or duplicated.
+    #[must_use]
+    pub fn sampled_texture(
+        mut self,
+        set: u32,
+        binding: u32,
+        texture: &Texture2D,
+        sampler: &Sampler,
+    ) -> Self {
+        let old = self.bindings.entry(set).or_default().insert(
+            binding,
+            ResourceBinding::SampledTexture(texture.sampled_binding(sampler)),
+        );
+        if old.is_some() && self.duplicate_binding.is_none() {
+            self.duplicate_binding = Some((set, binding));
+        }
+        self
+    }
+
     /// Builds descriptor resources compatible with the pipeline used by this builder.
     ///
     /// # Errors
@@ -1083,6 +1113,7 @@ impl ResourcesBuilder {
 
         validate_supplied_resource_bindings(&pipeline_device, &set_layouts, &bindings)?;
         let required_set_count = required_descriptor_set_count_from_layouts(&set_layouts);
+        let upload_dependencies = collect_upload_dependencies(&bindings);
         let descriptor_sets = match frame_uniform_image_count {
             Some(image_count) => RawDescriptorSets::FrameUniforms {
                 image_count,
@@ -1090,14 +1121,17 @@ impl ResourcesBuilder {
                 bindings,
                 required_set_count,
             },
-            None => RawDescriptorSets::Static(build_descriptor_sets(
-                &context.inner.descriptor_set_allocator,
-                &context.inner.device,
-                &set_layouts,
-                &bindings,
-                required_set_count,
-                None,
-            )?),
+            None => RawDescriptorSets::Static {
+                sets: build_descriptor_sets(
+                    &context.inner.descriptor_set_allocator,
+                    &context.inner.device,
+                    &set_layouts,
+                    &bindings,
+                    required_set_count,
+                    None,
+                )?,
+                upload_dependencies,
+            },
         };
 
         Ok(Resources {
@@ -1119,6 +1153,7 @@ enum ResourceBinding {
         buffer: Subbuffer<[u8]>,
         device: Arc<Device>,
     },
+    SampledTexture(SampledTextureBinding),
 }
 
 #[derive(Clone)]
@@ -1129,12 +1164,43 @@ enum RawDescriptorSets {
         bindings: BTreeMap<u32, BTreeMap<u32, ResourceBinding>>,
         required_set_count: usize,
     },
-    Static(Vec<Arc<DescriptorSet>>),
+    Static {
+        sets: Vec<Arc<DescriptorSet>>,
+        upload_dependencies: Vec<TextureUploadDependency>,
+    },
+}
+
+fn collect_upload_dependencies(
+    bindings: &BTreeMap<u32, BTreeMap<u32, ResourceBinding>>,
+) -> Vec<TextureUploadDependency> {
+    bindings
+        .values()
+        .flat_map(BTreeMap::values)
+        .filter_map(|resource| match resource {
+            ResourceBinding::SampledTexture(texture) => Some(texture.upload_dependency.clone()),
+            ResourceBinding::FrameUniformBuffer { .. } | ResourceBinding::UniformBuffer { .. } => {
+                None
+            }
+        })
+        .collect()
 }
 
 impl RawDescriptorSets {
     fn empty() -> Self {
-        Self::Static(Vec::new())
+        Self::Static {
+            sets: Vec::new(),
+            upload_dependencies: Vec::new(),
+        }
+    }
+
+    fn upload_dependencies(&self) -> Vec<TextureUploadDependency> {
+        match self {
+            Self::Static {
+                upload_dependencies,
+                ..
+            } => upload_dependencies.clone(),
+            Self::FrameUniforms { bindings, .. } => collect_upload_dependencies(bindings),
+        }
     }
 
     fn for_image(
@@ -1145,7 +1211,7 @@ impl RawDescriptorSets {
         expected_device: &Arc<Device>,
     ) -> VMNLResult<Vec<Arc<DescriptorSet>>> {
         match self {
-            Self::Static(sets) => Ok(sets.clone()),
+            Self::Static { sets, .. } => Ok(sets.clone()),
             Self::FrameUniforms {
                 image_count,
                 set_layouts,
@@ -1209,6 +1275,10 @@ pub(crate) struct RenderItemRaw {
 }
 
 impl RenderItemRaw {
+    pub(crate) fn upload_dependencies(&self) -> Vec<TextureUploadDependency> {
+        self.descriptor_sets.upload_dependencies()
+    }
+
     pub(crate) fn descriptor_sets_for_image(
         &self,
         image_index: usize,
@@ -1407,11 +1477,31 @@ fn validate_supplied_resource_bindings(
             let device = match resource {
                 ResourceBinding::FrameUniformBuffer { device, .. }
                 | ResourceBinding::UniformBuffer { device, .. } => device,
+                ResourceBinding::SampledTexture(texture) => &texture.device,
             };
             if !Arc::ptr_eq(device, expected_device) {
                 return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
                     "raw resources set {set} binding {binding} must belong to this context"
                 ))));
+            }
+
+            let resource_type = match resource {
+                ResourceBinding::FrameUniformBuffer { .. }
+                | ResourceBinding::UniformBuffer { .. } => DescriptorType::UniformBuffer,
+                ResourceBinding::SampledTexture(_) => DescriptorType::CombinedImageSampler,
+            };
+            if binding_layout.descriptor_type != resource_type {
+                return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+                    "raw resources set {set} binding {binding} resource does not match the pipeline descriptor type"
+                ))));
+            }
+
+            if let ResourceBinding::SampledTexture(texture) = resource {
+                if let Some(reason) = &texture.validation_error {
+                    return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+                        "raw resources set {set} binding {binding}: {reason}"
+                    ))));
+                }
             }
         }
     }
@@ -1468,6 +1558,26 @@ fn descriptor_writes_for_set(
                     ))));
                 }
                 writes.push(WriteDescriptorSet::buffer(binding, buffer.clone()));
+            }
+            ResourceBinding::SampledTexture(texture) => {
+                if !Arc::ptr_eq(&texture.device, expected_device) {
+                    return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+                        "raw resources set {set} binding {binding} must belong to this context"
+                    ))));
+                }
+                if let Some(reason) = &texture.validation_error {
+                    return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+                        "raw resources set {set} binding {binding}: {reason}"
+                    ))));
+                }
+                writes.push(WriteDescriptorSet::image_view_with_layout_sampler(
+                    binding,
+                    DescriptorImageViewInfo {
+                        image_view: texture.image_view.clone(),
+                        image_layout: ImageLayout::General,
+                    },
+                    texture.sampler.clone(),
+                ));
             }
         }
     }
@@ -1584,9 +1694,12 @@ fn validate_raw_descriptor_binding(
     binding: u32,
     descriptor_type: DescriptorType,
 ) -> VMNLResult<()> {
-    if descriptor_type != DescriptorType::UniformBuffer {
+    if !matches!(
+        descriptor_type,
+        DescriptorType::UniformBuffer | DescriptorType::CombinedImageSampler
+    ) {
         return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
-            "raw pipeline set {set} binding {binding} only supports uniform buffers for now"
+            "raw pipeline set {set} binding {binding} only supports uniform buffers and combined image samplers for now"
         ))));
     }
 
@@ -1994,9 +2107,19 @@ mod tests {
     }
 
     #[test]
-    fn raw_pipeline_refuses_unsupported_descriptor_layouts() {
+    fn raw_pipeline_accepts_combined_image_sampler_descriptor_layouts() {
         let layout_info = pipeline_layout_info(vec![descriptor_set_layout(
             DescriptorType::CombinedImageSampler,
+            1,
+        )]);
+
+        assert!(validate_raw_pipeline_layout(&layout_info).is_ok());
+    }
+
+    #[test]
+    fn raw_pipeline_refuses_unsupported_descriptor_layouts() {
+        let layout_info = pipeline_layout_info(vec![descriptor_set_layout(
+            DescriptorType::StorageBuffer,
             1,
         )]);
 
@@ -2105,7 +2228,10 @@ mod tests {
 
     #[test]
     fn raw_descriptor_sets_select_static_and_frame_uniform_modes() {
-        let static_sets = RawDescriptorSets::Static(Vec::new());
+        let static_sets = RawDescriptorSets::Static {
+            sets: Vec::new(),
+            upload_dependencies: Vec::new(),
+        };
         let frame_uniform_sets = RawDescriptorSets::FrameUniforms {
             image_count: 2,
             set_layouts: Vec::new(),
@@ -2115,7 +2241,7 @@ mod tests {
 
         assert!(matches!(
             static_sets,
-            RawDescriptorSets::Static(ref sets) if sets.is_empty()
+            RawDescriptorSets::Static { ref sets, .. } if sets.is_empty()
         ));
         assert!(matches!(
             frame_uniform_sets,

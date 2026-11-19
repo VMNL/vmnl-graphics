@@ -25,6 +25,7 @@ use vulkano::{
         AutoCommandBufferBuilder, CommandBufferUsage, CopyBufferToImageInfo,
         PrimaryAutoCommandBuffer,
     },
+    device::Device,
     format::{Format, FormatFeatures},
     image::{
         sampler::{
@@ -41,7 +42,16 @@ use vulkano::{
 
 const UPLOAD_POLL_INTERVAL: Duration = Duration::from_millis(1);
 
-type UploadFuture = Arc<FenceSignalFuture<Box<dyn GpuFuture + Send + Sync>>>;
+pub(crate) type TextureUploadDependency = Arc<FenceSignalFuture<Box<dyn GpuFuture + Send + Sync>>>;
+
+#[derive(Clone)]
+pub(crate) struct SampledTextureBinding {
+    pub(crate) image_view: Arc<ImageView>,
+    pub(crate) sampler: Arc<VulkanSampler>,
+    pub(crate) device: Arc<Device>,
+    pub(crate) upload_dependency: TextureUploadDependency,
+    pub(crate) validation_error: Option<String>,
+}
 
 enum TextureSource<'a> {
     Pixels(PixelSource<'a>),
@@ -257,6 +267,7 @@ struct TextureStorage {
     image: Arc<Image>,
     default_view: Arc<ImageView>,
     upload: Rc<UploadState>,
+    upload_dependency: TextureUploadDependency,
     extent: [u32; 2],
     format: TextureFormat,
     encoding: ColorEncoding,
@@ -374,6 +385,25 @@ impl Texture2D {
 
     pub(crate) fn belongs_to_context(&self, context: &Context) -> bool {
         Rc::ptr_eq(&self.storage.context.inner, &context.inner)
+    }
+
+    pub(crate) fn sampled_binding(&self, sampler: &Sampler) -> SampledTextureBinding {
+        let view = self.view();
+        let validation_error =
+            view.validate_sampler(sampler)
+                .err()
+                .map(|error| match error.kind() {
+                    VMNLErrorKind::InvalidState(message) => message.clone(),
+                    _ => error.to_string(),
+                });
+
+        SampledTextureBinding {
+            image_view: self.storage.default_view.clone(),
+            sampler: sampler.inner.clone(),
+            device: self.storage.context.inner.device.clone(),
+            upload_dependency: self.storage.upload_dependency.clone(),
+            validation_error,
+        }
     }
 }
 
@@ -511,7 +541,7 @@ impl PreparedTexture2D {
         );
         let upload = Rc::new(UploadState {
             progress: RefCell::new(UploadProgress::Pending(PendingUpload::Vulkan {
-                future,
+                future: future.clone(),
                 _staging: self.staging,
             })),
         });
@@ -521,6 +551,7 @@ impl PreparedTexture2D {
                 image: self.image,
                 default_view: self.view,
                 upload,
+                upload_dependency: future,
                 extent: self.extent,
                 format: self.format,
                 encoding: self.encoding,
@@ -550,7 +581,7 @@ enum UploadProgress {
 
 enum PendingUpload {
     Vulkan {
-        future: UploadFuture,
+        future: TextureUploadDependency,
         _staging: Subbuffer<[u8]>,
     },
     #[cfg(test)]
@@ -694,7 +725,7 @@ pub enum UploadWaitOutcome {
 #[derive(Clone)]
 pub struct Sampler {
     context: Context,
-    _inner: Arc<VulkanSampler>,
+    inner: Arc<VulkanSampler>,
     config: SamplerConfig,
 }
 
@@ -877,7 +908,7 @@ impl SamplerBuilder {
 
         Ok(Sampler {
             context: self.context,
-            _inner: inner,
+            inner,
             config,
         })
     }
@@ -965,26 +996,24 @@ fn upload_error(message: impl Into<String>) -> VMNLError {
 
 #[cfg(test)]
 mod tests {
-    #![allow(clippy::expect_used, clippy::unwrap_used)]
+    #![allow(clippy::expect_used, clippy::panic, clippy::unwrap_used)]
 
     use super::*;
     use crate::{
+        raw,
         texture::{AddressMode, PixelLayout, PixelOrigin, SamplerBorderColor},
-        Window,
+        Context, Window,
     };
-    use std::sync::{Mutex, MutexGuard, OnceLock};
     use vulkano::{
         buffer::BufferUsage, command_buffer::CopyImageToBufferInfo,
         memory::allocator::MemoryTypeFilter,
     };
 
-    static GPU_TEST_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
-
     #[test]
     fn upload_future_can_be_shared_with_raw_resources() {
         fn assert_send_sync<T: Send + Sync>() {}
 
-        assert_send_sync::<UploadFuture>();
+        assert_send_sync::<TextureUploadDependency>();
     }
 
     fn simulated_upload(
@@ -1042,11 +1071,92 @@ mod tests {
         assert!(!deferred.get());
     }
 
-    fn gpu_test_guard() -> MutexGuard<'static, ()> {
-        GPU_TEST_LOCK
-            .get_or_init(|| Mutex::new(()))
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
+    fn gpu_test_guard() -> std::sync::MutexGuard<'static, ()> {
+        crate::test_support::gpu_test_guard()
+    }
+
+    #[repr(C)]
+    #[derive(Clone, Copy, raw::Vertex, raw::Pod, raw::Zeroable)]
+    struct RawTextureVertex {
+        #[format(R32G32_SFLOAT)]
+        position: [f32; 2],
+    }
+
+    #[test]
+    #[ignore = "Requires Vulkan + GLFW display."]
+    fn raw_sampled_resources_reject_image_without_sampled_usage() -> VMNLResult<()> {
+        let _guard = gpu_test_guard();
+        let context = Context::new()?;
+        let window = Window::builder().build(&context)?;
+        let pipeline = raw::Pipeline::<RawTextureVertex>::builder()
+            .vertex_shader(raw::ShaderSource::Src(
+                "#version 450\nlayout(location = 0) in vec2 position;\nvoid main() { gl_Position = vec4(position, 0.0, 1.0); }"
+                    .into(),
+            ))
+            .fragment_shader(raw::ShaderSource::Src(
+                "#version 450\nlayout(set = 0, binding = 0) uniform sampler2D image;\nlayout(location = 0) out vec4 color;\nvoid main() { color = texture(image, vec2(0.5)); }"
+                    .into(),
+            ))
+            .build(&window)?;
+        let sampler = Sampler::builder(&context)
+            .config(SamplerConfig::nearest())
+            .build()?;
+        let dependency_texture = Texture2D::from_pixels(
+            &context,
+            PixelSource::new(1, 1, TextureFormat::Rgba8Unorm, &[255, 255, 255, 255])?,
+        )
+        .build()?;
+
+        // Exercise the raw resource guard with a view-compatible GPU image whose
+        // image usage deliberately omits SAMPLED. The public texture builder cannot
+        // currently create this combination because it always creates a default view.
+        let image = Image::new(
+            context.inner.memory_allocator.clone(),
+            ImageCreateInfo {
+                format: Format::R8G8B8A8_UNORM,
+                extent: [1, 1, 1],
+                usage: ImageUsage::COLOR_ATTACHMENT,
+                ..Default::default()
+            },
+            AllocationCreateInfo {
+                memory_type_filter: MemoryTypeFilter::PREFER_DEVICE,
+                ..Default::default()
+            },
+        )
+        .map_err(|error| upload_error(error.to_string()))?;
+        let default_view = ImageView::new_default(image.clone())
+            .map_err(|error| upload_error(error.to_string()))?;
+        let texture = Texture2D {
+            storage: Rc::new(TextureStorage {
+                context: context.clone(),
+                image,
+                default_view,
+                upload: Rc::new(UploadState {
+                    progress: RefCell::new(UploadProgress::Complete),
+                }),
+                upload_dependency: dependency_texture.storage.upload_dependency.clone(),
+                extent: [1, 1],
+                format: TextureFormat::Rgba8Unorm,
+                encoding: ColorEncoding::Linear,
+                alpha_mode: AlphaMode::Opaque,
+                usage: TextureUsage::TRANSFER_DESTINATION,
+                retirement_policy: TextureRetirementPolicy::Wait,
+            }),
+        };
+        let Err(error) = raw::Resources::builder(&pipeline)
+            .sampled_texture(0, 0, &texture, &sampler)
+            .build(&context)
+        else {
+            panic!("a non-sampled image must be rejected");
+        };
+        match error.kind() {
+            VMNLErrorKind::InvalidState(message)
+                if message
+                    == "raw resources set 0 binding 0: texture view image usage does not include shader sampling" => {}
+            kind => panic!("unexpected non-sampled texture rejection: {kind:?}"),
+        }
+
+        Ok(())
     }
 
     fn readback_rgba8(texture: &Texture2D) -> Vec<u8> {

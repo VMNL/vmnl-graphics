@@ -133,6 +133,7 @@
   - [Create a raw pipeline](workflows/create_raw_pipeline.md)
   - [Create raw geometry](workflows/create_raw_geometry.md)
   - [Bind raw uniforms](workflows/bind_raw_uniforms.md)
+  - [Sample a texture in a raw pipeline](workflows/sample_raw_texture.md)
   - [Compose 2D and raw passes](workflows/compose_2d_and_raw.md)
   - [Handle errors and shutdown](workflows/error_handling_and_shutdown.md)
 - [Appendices](appendices/README.md)
