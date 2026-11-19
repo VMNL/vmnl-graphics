@@ -40,6 +40,23 @@ fn device_requirements_accumulate_without_duplicates() {
 }
 
 #[test]
+fn texture_features_are_explicit_device_requirements() {
+    let features = [
+        DeviceFeature::SamplerAnisotropy,
+        DeviceFeature::SamplerMipLodBias,
+        DeviceFeature::ImageViewFormatSwizzle,
+        DeviceFeature::ImageViewFormatReinterpretation,
+    ];
+    let config = DeviceConfig::default().require_features(features);
+
+    assert_eq!(config.required_features(), &features);
+    assert!(Context::builder()
+        .device_config()
+        .required_features()
+        .is_empty());
+}
+
+#[test]
 fn context_device_configuration_is_replaced_and_can_be_reused() {
     let first = DeviceConfig::default().require_feature(DeviceFeature::FillModeNonSolid);
     let second = DeviceConfig::default().require_feature(DeviceFeature::LargePoints);

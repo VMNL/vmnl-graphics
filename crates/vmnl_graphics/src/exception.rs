@@ -203,6 +203,16 @@ pub enum VMNLErrorKind {
     InvalidWindowSize,
     /// Invalid state error with message.
     InvalidState(String),
+    /// A PNG source could not be decoded.
+    TextureDecodeFailed(String),
+    /// CPU-side pixel preparation or image decoding allocation failed.
+    TextureCpuAllocationFailed(String),
+    /// Reading an owned texture source path failed.
+    TextureSourceReadFailed(String),
+    /// Initial texture upload submission or completion failed.
+    TextureUploadFailed(String),
+    /// A texture source uses a format or metadata combination not supported by VMNL.
+    UnsupportedTextureSource(String),
 }
 
 /// Represents an error that can occur within the VMNL library,
@@ -416,6 +426,21 @@ impl fmt::Display for VMNLError {
             VMNLErrorKind::InvalidState(msg) => {
                 write!(f, "invalid state: {msg}")
             }
+            VMNLErrorKind::TextureDecodeFailed(message) => {
+                write!(f, "texture PNG decoding failed: {message}")
+            }
+            VMNLErrorKind::TextureCpuAllocationFailed(message) => {
+                write!(f, "texture CPU allocation failed: {message}")
+            }
+            VMNLErrorKind::TextureSourceReadFailed(message) => {
+                write!(f, "texture source read failed: {message}")
+            }
+            VMNLErrorKind::TextureUploadFailed(message) => {
+                write!(f, "texture upload failed: {message}")
+            }
+            VMNLErrorKind::UnsupportedTextureSource(message) => {
+                write!(f, "unsupported texture source: {message}")
+            }
         }
     }
 }
@@ -438,6 +463,21 @@ mod tests {
         assert_eq!(
             VMNLError::new(VMNLErrorKind::InvalidState("bad state".to_string())).to_string(),
             "invalid state: bad state"
+        );
+        assert_eq!(
+            VMNLError::new(VMNLErrorKind::TextureDecodeFailed("bad PNG".to_string())).to_string(),
+            "texture PNG decoding failed: bad PNG"
+        );
+        assert_eq!(
+            VMNLError::new(VMNLErrorKind::TextureCpuAllocationFailed(
+                "full".to_string()
+            ))
+            .to_string(),
+            "texture CPU allocation failed: full"
+        );
+        assert_eq!(
+            VMNLError::new(VMNLErrorKind::UnsupportedTextureSource("APNG".to_string())).to_string(),
+            "unsupported texture source: APNG"
         );
         assert_eq!(
             VMNLError::new(VMNLErrorKind::GlfwInitializationConfigConflict {

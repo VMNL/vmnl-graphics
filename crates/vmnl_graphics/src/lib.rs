@@ -5,8 +5,8 @@
 //!
 //! Depend directly on the `vmnl_graphics` package and import `vmnl_graphics`.
 //! The root exports context, windowing, events, input, monitoring, rendering,
-//! and error types; [`common`], [`d2`], and [`raw`] group the remaining
-//! public surface. Procedural macros are re-exported through [`raw`].
+//! and error types; [`common`], [`d2`], [`raw`], and [`texture`] group the
+//! remaining public surface. Procedural macros are re-exported through [`raw`].
 //!
 //! This is the initial graphics API baseline. The 2D and raw rendering paths are operational
 //! within their documented constraints.
@@ -41,6 +41,8 @@ mod glfw_backend;
 mod glfw_runtime;
 /// Low-level raw graphics resources and public types.
 pub mod raw;
+/// Texture source descriptors and CPU-side pixel preparation.
+pub mod texture;
 mod vmnl_instance;
 mod window;
 pub use common::ShaderSource;

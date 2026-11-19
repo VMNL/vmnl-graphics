@@ -49,6 +49,14 @@ pub enum DeviceFeature {
     WideLines,
     /// Enable point sizes greater than `1.0`, within the device's supported range.
     LargePoints,
+    /// Enable anisotropic sampler filtering.
+    SamplerAnisotropy,
+    /// Enable nonzero sampler LOD bias on portability-subset devices.
+    SamplerMipLodBias,
+    /// Enable non-identity image-view component swizzles on portability-subset devices.
+    ImageViewFormatSwizzle,
+    /// Enable compatible image-view format reinterpretation on portability-subset devices.
+    ImageViewFormatReinterpretation,
 }
 
 impl DeviceFeature {
@@ -57,6 +65,10 @@ impl DeviceFeature {
             Self::FillModeNonSolid => features.fill_mode_non_solid,
             Self::WideLines => features.wide_lines,
             Self::LargePoints => features.large_points,
+            Self::SamplerAnisotropy => features.sampler_anisotropy,
+            Self::SamplerMipLodBias => features.sampler_mip_lod_bias,
+            Self::ImageViewFormatSwizzle => features.image_view_format_swizzle,
+            Self::ImageViewFormatReinterpretation => features.image_view_format_reinterpretation,
         }
     }
 }
@@ -105,6 +117,18 @@ impl DeviceConfig {
                 .contains(&DeviceFeature::FillModeNonSolid),
             wide_lines: self.required_features.contains(&DeviceFeature::WideLines),
             large_points: self.required_features.contains(&DeviceFeature::LargePoints),
+            sampler_anisotropy: self
+                .required_features
+                .contains(&DeviceFeature::SamplerAnisotropy),
+            sampler_mip_lod_bias: self
+                .required_features
+                .contains(&DeviceFeature::SamplerMipLodBias),
+            image_view_format_swizzle: self
+                .required_features
+                .contains(&DeviceFeature::ImageViewFormatSwizzle),
+            image_view_format_reinterpretation: self
+                .required_features
+                .contains(&DeviceFeature::ImageViewFormatReinterpretation),
             ..DeviceFeatures::empty()
         }
     }
@@ -179,8 +203,12 @@ mod tests {
             DeviceFeature::FillModeNonSolid,
             DeviceFeature::WideLines,
             DeviceFeature::LargePoints,
+            DeviceFeature::SamplerAnisotropy,
+            DeviceFeature::SamplerMipLodBias,
+            DeviceFeature::ImageViewFormatSwizzle,
+            DeviceFeature::ImageViewFormatReinterpretation,
         ];
-        for mask in 0..8 {
+        for mask in 0..128 {
             let config = features.iter().enumerate().fold(
                 DeviceConfig::default(),
                 |config, (index, &feature)| {
@@ -195,9 +223,12 @@ mod tests {
             assert_eq!(enabled.fill_mode_non_solid, mask & 1 != 0);
             assert_eq!(enabled.wide_lines, mask & 2 != 0);
             assert_eq!(enabled.large_points, mask & 4 != 0);
+            assert_eq!(enabled.sampler_anisotropy, mask & 8 != 0);
+            assert_eq!(enabled.sampler_mip_lod_bias, mask & 16 != 0);
+            assert_eq!(enabled.image_view_format_swizzle, mask & 32 != 0);
+            assert_eq!(enabled.image_view_format_reinterpretation, mask & 64 != 0);
             assert!(!enabled.depth_clamp);
             assert!(!enabled.geometry_shader);
-            assert!(!enabled.sampler_anisotropy);
             for (index, &feature) in features.iter().enumerate() {
                 assert_eq!(feature.is_set_in(&enabled), mask & (1 << index) != 0);
             }

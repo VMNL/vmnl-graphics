@@ -1046,6 +1046,21 @@ Run them explicitly:
 just test-gpu
 ```
 
+`tests/gpu/tests/texture.rs` exercises upload-ticket reuse, shared view storage, exact transfer
+usage rejection, and default sampler creation through the public API. Private ignored GPU tests in
+`crates/vmnl_graphics/src/texture/gpu.rs` read back exact texels for padded top-left and
+bottom-left sources, validate a view/sampler pair while creating and rendering two windows from
+cloned contexts, reject a distinct context on the same selected device, and observe one upload
+through ticket clones alongside both windows. They also cover `Wait` retirement after upload
+completion and deferred collection after the final view drops. A headless unit test simulates a
+pending completion that resolves to an upload failure and verifies that polls and waits through
+cloned tickets keep returning the same `TextureUploadFailed`; it also verifies that `Wait` keeps
+polling until completion. No GPU test holds actual queue work pending through final-owner drop.
+These tests do not sample a texture in a renderer, qualify custom views, inject Vulkan
+upload/device-loss failures, or prove behavior on unavailable GPUs and display servers. A separate
+fixture exercises the context-shutdown drain. `just test-gpu` and
+`just test-gpu-compile` include both the private library fixtures and `tests/gpu` integration tests.
+
 
 ## Standalone graphics consumers
 

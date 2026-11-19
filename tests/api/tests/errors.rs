@@ -27,6 +27,22 @@ fn vmnl_error_exposes_kind_location_and_report() -> VMNLResult<()> {
 }
 
 #[test]
+fn texture_gpu_failures_preserve_source_and_upload_details() {
+    let source = VMNLError::new(VMNLErrorKind::TextureSourceReadFailed(
+        "assets/missing.png: not found".to_string(),
+    ));
+    let upload = VMNLError::new(VMNLErrorKind::TextureUploadFailed(
+        "device lost".to_string(),
+    ));
+
+    assert_eq!(
+        source.to_string(),
+        "texture source read failed: assets/missing.png: not found"
+    );
+    assert_eq!(upload.to_string(), "texture upload failed: device lost");
+}
+
+#[test]
 fn window_builder_size_limits_cover_valid_boundaries_and_each_inversion() -> VMNLResult<()> {
     for result in [
         Window::builder().size_limit(None, None, None, None),

@@ -3,10 +3,14 @@
 VMNL exposes a progression of control:
 
 1. `Shape` builders create predefined GPU-backed 2D resources.
-2. `FrameRenderer` composes 2D and raw passes for one frame.
-3. `raw` lets the client define typed vertex layouts, shaders, topology, blending, triangle culling/front-face winding, geometry, and uniform bindings.
+2. `texture::Texture2D` owns uploaded image storage; views and samplers are explicit GPU resources.
+3. `FrameRenderer` composes 2D and raw passes for one frame.
+4. `raw` lets the client define typed vertex layouts, shaders, topology, blending, triangle culling/front-face winding, geometry, and uniform bindings.
 
 The layers share a `Context`. Resources and pipelines must be used with the compatible context/window/device from which they were created. The raw layer is not a direct Vulkan handle API: VMNL still owns render passes, swapchains, command buffers, submission, and presentation.
+
+The initial texture resource foundation exposes asynchronous upload and full-range views. Public
+renderer sampling and custom image-view configuration are still separate implementation steps.
 
 In `0.1.0`, the `raw::BufferContents` and `raw::Vertex` adapters inherit Vulkano traits.
 This backend coupling remains explicitly unstable and outside the compatibility commitment;

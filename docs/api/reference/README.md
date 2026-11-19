@@ -8,3 +8,4 @@
 | Shared values | [Common](common/README.md) |
 | Windowing | [Window](window/README.md) |
 | Rendering | [2D](d2/README.md), [raw](raw/README.md) |
+| Texture sources, GPU resources, and samplers | [Texture](texture/README.md) |
