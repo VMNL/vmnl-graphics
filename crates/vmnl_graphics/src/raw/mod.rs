@@ -54,7 +54,8 @@ use vulkano::shader::{EntryPoint, ShaderModule, ShaderModuleCreateInfo};
 use vulkano::sync::HostAccessError;
 
 use crate::common::{
-    checked_draw_counts, BufferMemoryPreference, GraphicsResourceFactory, IndexBuffer, VertexBuffer,
+    checked_draw_counts, BufferMemoryPreference, ColorBlendConfig, GraphicsResourceFactory,
+    IndexBuffer, VertexBuffer,
 };
 use crate::exception::{VMNLError, VMNLErrorKind, VMNLResult};
 use crate::texture::{
@@ -141,9 +142,13 @@ impl From<PrimitiveTopology> for VulkanoPrimitiveTopology {
 /// Blend mode used by a raw pipeline.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BlendMode {
-    /// No blending.
+    /// Disable blending and write fragment output directly.
     Opaque,
-    /// Standard source-alpha blending.
+    /// Preserve the original source-alpha blend equation.
+    ///
+    /// RGB is `Cs * As + Cd * (1 - As)`; alpha is
+    /// `As * As + Ad * (1 - As)`. Use [`ColorBlendConfig::straight_alpha`]
+    /// for the common source-over alpha equation `As + Ad * (1 - As)`.
     Alpha,
 }
 
@@ -203,6 +208,7 @@ pub struct PipelineSpec<TVertex> {
     fragment_shader: Option<ShaderSource>,
     topology: PrimitiveTopology,
     blend_mode: BlendMode,
+    color_blend: Option<ColorBlendConfig>,
     cull_mode: CullMode,
     front_face: FrontFace,
     polygon_mode: PolygonMode,
@@ -220,6 +226,7 @@ impl<TVertex> Default for PipelineSpec<TVertex> {
             fragment_shader: None,
             topology: PrimitiveTopology::TriangleList,
             blend_mode: BlendMode::Opaque,
+            color_blend: None,
             cull_mode: CullMode::None,
             front_face: FrontFace::CounterClockwise,
             polygon_mode: PolygonMode::Fill,
@@ -270,10 +277,25 @@ impl<TVertex> PipelineSpec<TVertex> {
         self
     }
 
-    /// Sets the blend mode.
+    /// Sets the legacy blend mode and clears any explicit color blend override.
+    ///
+    /// This preserves the original `BlendMode` request and equation. Call
+    /// [`Self::color_blend`] afterward to select an explicit configuration.
     #[must_use]
     pub fn blend_mode(mut self, blend_mode: BlendMode) -> Self {
         self.blend_mode = blend_mode;
+        self.color_blend = None;
+        self
+    }
+
+    /// Sets an explicit, editable color and alpha blend configuration.
+    ///
+    /// This overrides the legacy mode for pipeline creation without changing the
+    /// value returned by [`Self::blend_mode_value`]. A later [`Self::blend_mode`]
+    /// call clears this override.
+    #[must_use]
+    pub fn color_blend(mut self, config: ColorBlendConfig) -> Self {
+        self.color_blend = Some(config);
         self
     }
 
@@ -370,6 +392,23 @@ impl<TVertex> PipelineSpec<TVertex> {
         self.blend_mode
     }
 
+    /// Returns the blend configuration that this spec will use at build.
+    ///
+    /// An explicit [`Self::color_blend`] value takes precedence; otherwise this
+    /// resolves the legacy mode while preserving `BlendMode::Alpha`'s historical
+    /// alpha equation. The built pipeline's getter is authoritative for a
+    /// successfully created pipeline.
+    #[must_use]
+    pub const fn color_blend_config_value(&self) -> ColorBlendConfig {
+        match self.color_blend {
+            Some(config) => config,
+            None => match self.blend_mode {
+                BlendMode::Opaque => ColorBlendConfig::opaque(),
+                BlendMode::Alpha => ColorBlendConfig::legacy_alpha(),
+            },
+        }
+    }
+
     /// Returns the configured triangle culling mode.
     #[must_use]
     pub const fn cull_mode_value(&self) -> CullMode {
@@ -411,6 +450,7 @@ impl<TVertex> PipelineSpec<TVertex> {
         let depth_stencil_state = self
             .depth
             .resolve(window.render_target_config().depth_value().is_some())?;
+        let color_blend = self.color_blend_config_value();
 
         let vertex_shader = self.vertex_shader.ok_or_else(|| {
             VMNLError::new(VMNLErrorKind::InvalidState(
@@ -469,7 +509,7 @@ impl<TVertex> PipelineSpec<TVertex> {
                 )),
                 multisample_state: Some(MultisampleState::default()),
                 depth_stencil_state,
-                color_blend_state: Some(color_blend_state(self.blend_mode)),
+                color_blend_state: Some(color_blend_state(color_blend)),
                 dynamic_state: [DynamicState::Viewport, DynamicState::Scissor]
                     .into_iter()
                     .collect(),
@@ -489,6 +529,7 @@ impl<TVertex> PipelineSpec<TVertex> {
             viewport: self.viewport,
             scissor: self.scissor,
             depth: self.depth,
+            color_blend,
             shader_contract,
             _vertex: PhantomData,
         })
@@ -506,6 +547,7 @@ pub struct Pipeline<TVertex> {
     viewport: ViewportPolicy,
     scissor: ScissorPolicy,
     depth: DepthState,
+    color_blend: ColorBlendConfig,
     shader_contract: Arc<ShaderContract>,
     _vertex: PhantomData<TVertex>,
 }
@@ -551,6 +593,16 @@ impl<TVertex> Pipeline<TVertex> {
     #[must_use]
     pub const fn depth_value(&self) -> DepthState {
         self.depth
+    }
+
+    /// Returns the effective color and alpha blend state used by this pipeline.
+    ///
+    /// This is the configuration passed to Vulkan when the pipeline was built,
+    /// including any explicit override or legacy preset resolution. It performs
+    /// no allocation or GPU access.
+    #[must_use]
+    pub const fn color_blend_config_value(&self) -> ColorBlendConfig {
+        self.color_blend
     }
 
     /// Starts a raw pipeline builder.
@@ -2128,19 +2180,24 @@ fn raw_rasterization_state(
     }
 }
 
-fn color_blend_state(blend_mode: BlendMode) -> ColorBlendState {
-    match blend_mode {
-        BlendMode::Opaque => {
-            ColorBlendState::with_attachment_states(1, ColorBlendAttachmentState::default())
-        }
-        BlendMode::Alpha => ColorBlendState::with_attachment_states(
-            1,
-            ColorBlendAttachmentState {
-                blend: Some(AttachmentBlend::alpha()),
-                ..Default::default()
-            },
-        ),
-    }
+fn color_blend_state(config: ColorBlendConfig) -> ColorBlendState {
+    let blend = config.blend_enabled().then_some(AttachmentBlend {
+        src_color_blend_factor: config.color_source_factor().to_vulkano(),
+        dst_color_blend_factor: config.color_destination_factor().to_vulkano(),
+        color_blend_op: config.color_operation().to_vulkano(),
+        src_alpha_blend_factor: config.alpha_source_factor().to_vulkano(),
+        dst_alpha_blend_factor: config.alpha_destination_factor().to_vulkano(),
+        alpha_blend_op: config.alpha_operation().to_vulkano(),
+    });
+    let mut state = ColorBlendState::with_attachment_states(
+        1,
+        ColorBlendAttachmentState {
+            blend,
+            ..Default::default()
+        },
+    );
+    state.blend_constants = config.blend_constants();
+    state
 }
 
 #[cfg(test)]

@@ -54,6 +54,9 @@
 | struct | `vmnl_graphics::Window` | [Window](../reference/window/window.md) | [Rustdoc](../../../target/doc/vmnl_graphics/struct.Window.html) |
 | struct | `vmnl_graphics::WindowBuilder` | [WindowBuilder](../reference/window/window_builder.md) | [Rustdoc](../../../target/doc/vmnl_graphics/struct.WindowBuilder.html) |
 | enum | `vmnl_graphics::common::BufferMemoryPreference` | [BufferMemoryPreference](../reference/common/buffer_memory_preference.md) | [Rustdoc](../../../target/doc/vmnl_graphics/common/enum.BufferMemoryPreference.html) |
+| struct | `vmnl_graphics::common::ColorBlendConfig` | [ColorBlendConfig](../reference/common/color_blend_config.md) | [Rustdoc](../../../target/doc/vmnl_graphics/common/struct.ColorBlendConfig.html) |
+| enum | `vmnl_graphics::common::ColorBlendFactor` | [ColorBlendFactor](../reference/common/color_blend_factor.md) | [Rustdoc](../../../target/doc/vmnl_graphics/common/enum.ColorBlendFactor.html) |
+| enum | `vmnl_graphics::common::ColorBlendOperation` | [ColorBlendOperation](../reference/common/color_blend_operation.md) | [Rustdoc](../../../target/doc/vmnl_graphics/common/enum.ColorBlendOperation.html) |
 | struct | `vmnl_graphics::common::Rgba` | [Rgba](../reference/common/rgba.md) | [Rustdoc](../../../target/doc/vmnl_graphics/common/struct.Rgba.html) |
 | enum | `vmnl_graphics::common::ShaderSource` | [ShaderSource](../reference/common/shader_source.md) | [Rustdoc](../../../target/doc/vmnl_graphics/common/enum.ShaderSource.html) |
 | enum | `vmnl_graphics::d2::Anchor` | [Anchor](../reference/d2/shapes/anchor.md) | [Rustdoc](../../../target/doc/vmnl_graphics/d2/enum.Anchor.html) |

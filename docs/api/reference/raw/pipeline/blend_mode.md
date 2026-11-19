@@ -14,7 +14,9 @@ Variants: `Opaque` and `Alpha`. Derives `Clone`, `Copy`, `Debug`, `PartialEq`, `
 
 ## Construction, defaults, and validation
 
-`PipelineSpec` defaults to `Opaque`. `Alpha` uses Vulkano's standard source-alpha attachment blend state.
+`PipelineSpec` defaults to `Opaque`, which disables blending. `Alpha` is retained as the original exhaustive enum variant. It computes RGB as `Cs * As + Cd * (1 - As)` and alpha as `As * As + Ad * (1 - As)`, matching the previous `AttachmentBlend::alpha()` state exactly. Use [`ColorBlendConfig::straight_alpha`](../../common/color_blend_config.md) for conventional source-over alpha (`As + Ad * (1 - As)`).
+
+`PipelineSpec::blend_mode` stores the legacy request and clears an explicit color-blend override. `blend_mode_value` continues to return that request even if a later `color_blend` overrides the built state. The built [`Pipeline`](pipeline.md) exposes its effective configuration through `color_blend_config_value`. No variants are added to this enum.
 
 ## Units, coordinates, and valid ranges
 
@@ -46,4 +48,4 @@ let spec = PipelineSpec::<[f32; 2]>::default().blend_mode(BlendMode::Alpha);
 assert_eq!(spec.blend_mode_value(), BlendMode::Alpha);
 ```
 
-Related: [`PipelineSpec`](pipeline_spec.md).
+Related: [`PipelineSpec`](pipeline_spec.md) and [`ColorBlendConfig`](../../common/color_blend_config.md).

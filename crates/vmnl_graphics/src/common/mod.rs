@@ -5,12 +5,14 @@
 
 mod buffer;
 mod color;
+mod color_blend;
 mod geometry;
 mod pipeline;
 mod shader;
 
 pub use buffer::BufferMemoryPreference;
 pub use color::Rgba;
+pub use color_blend::{ColorBlendConfig, ColorBlendFactor, ColorBlendOperation};
 pub use shader::ShaderSource;
 
 pub(crate) use buffer::{GraphicsResourceFactory, IndexBuffer, VertexBuffer};

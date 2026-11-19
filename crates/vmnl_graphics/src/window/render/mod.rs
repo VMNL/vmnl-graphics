@@ -127,12 +127,13 @@ impl VMNLWindow {
 mod tests {
     #![allow(clippy::expect_used, clippy::panic, clippy::unwrap_used)]
 
+    use crate::common::{ColorBlendConfig, ColorBlendFactor, ColorBlendOperation};
     use crate::raw::{self, Scissor, ScissorPolicy, Viewport, ViewportPolicy};
     use crate::texture::{
         PixelSource, Sampler, SamplerConfig, SamplerCoordinateMode, SamplerLodLimit, Texture2D,
         TextureFormat, UploadWaitOutcome,
     };
-    use crate::{Context, VMNLErrorKind, VMNLResult, Window};
+    use crate::{Context, VMNLError, VMNLErrorKind, VMNLResult, Window};
     use std::sync::Arc;
     use std::time::Duration;
     use vulkano::{
@@ -149,6 +150,26 @@ mod tests {
     };
 
     const PENDING_UPLOAD_EXTENT: u32 = 2048;
+
+    #[derive(Clone, Copy)]
+    struct BlendPresetCase {
+        name: &'static str,
+        config: Option<ColorBlendConfig>,
+        effective_config: ColorBlendConfig,
+        solid_shader: &'static str,
+        texture_shader: &'static str,
+        expected: [u8; 4],
+    }
+
+    #[derive(Clone, Copy)]
+    struct BlendReadbackCase<'a> {
+        name: &'static str,
+        fragment_shader: &'a str,
+        config: Option<ColorBlendConfig>,
+        effective_config: ColorBlendConfig,
+        texture_binding: Option<(&'a Texture2D, &'a Sampler)>,
+        expected: [u8; 4],
+    }
 
     const TEXTURED_VERTEX_SHADER: &str = r"
         #version 450
@@ -168,6 +189,33 @@ mod tests {
         layout(location = 0) out vec4 out_color;
         void main() {
             out_color = texture(color_image, texture_uv);
+        }
+    ";
+
+    const SOLID_FRAGMENT_SHADER: &str = r"
+        #version 450
+        layout(location = 0) out vec4 out_color;
+        void main() {
+            out_color = vec4(1.0, 0.0, 0.0, 0.5);
+        }
+    ";
+
+    const PREMULTIPLIED_SOLID_FRAGMENT_SHADER: &str = r"
+        #version 450
+        layout(location = 0) out vec4 out_color;
+        void main() {
+            out_color = vec4(0.5, 0.0, 0.0, 0.5);
+        }
+    ";
+
+    const PREMULTIPLIED_TEXTURE_FRAGMENT_SHADER: &str = r"
+        #version 450
+        layout(set = 0, binding = 0) uniform sampler2D color_image;
+        layout(location = 0) in vec2 texture_uv;
+        layout(location = 0) out vec4 out_color;
+        void main() {
+            vec4 straight = texture(color_image, texture_uv);
+            out_color = vec4(straight.rgb * straight.a, straight.a);
         }
     ";
 
@@ -358,6 +406,102 @@ mod tests {
             .build(window)
     }
 
+    fn raw_blend_pipeline(
+        window: &Window,
+        fragment_shader: &str,
+        config: Option<crate::common::ColorBlendConfig>,
+    ) -> VMNLResult<raw::Pipeline<TexturedVertex>> {
+        let spec = raw::Pipeline::<TexturedVertex>::builder()
+            .vertex_shader(raw::ShaderSource::Src(TEXTURED_VERTEX_SHADER.into()))
+            .fragment_shader(raw::ShaderSource::Src(fragment_shader.into()))
+            .topology(raw::PrimitiveTopology::TriangleList)
+            .viewport(ViewportPolicy::Fixed(Viewport {
+                offset: [0.0, 0.0],
+                extent: [2.0, 2.0],
+                depth_range: [0.0, 1.0],
+            }))
+            .scissor(ScissorPolicy::Fixed(Scissor {
+                offset: [0, 0],
+                extent: [2, 2],
+            }));
+        match config {
+            Some(config) => spec.color_blend(config).build(window),
+            None => spec.blend_mode(raw::BlendMode::Alpha).build(window),
+        }
+    }
+
+    fn assert_raw_blend_output(
+        window: &mut Window,
+        context: &Context,
+        target: &Arc<Image>,
+        row_stride: usize,
+        geometry: &raw::Geometry<TexturedVertex>,
+        case: BlendReadbackCase<'_>,
+    ) -> VMNLResult<()> {
+        let pipeline = raw_blend_pipeline(window, case.fragment_shader, case.config)?;
+        assert_eq!(
+            pipeline.color_blend_config_value(),
+            case.effective_config,
+            "effective {} config",
+            case.name
+        );
+        let builder = raw::Resources::builder(&pipeline);
+        let resources = match case.texture_binding {
+            Some((texture, sampler)) => builder.sampled_texture(0, 0, texture, sampler),
+            None => builder,
+        }
+        .build(context)?;
+        window
+            .render()
+            .draw_raw_2d_with(&pipeline, &resources, [geometry])
+            .submit()?;
+        let readback = readback_first_2x2(window, target.clone());
+        assert_first_2x2_color(&readback, row_stride, case.expected);
+        Ok(())
+    }
+
+    fn raw_blend_preset_cases() -> [BlendPresetCase; 4] {
+        let legacy = ColorBlendConfig::straight_alpha().with_alpha_blend(
+            ColorBlendFactor::SourceAlpha,
+            ColorBlendFactor::OneMinusSourceAlpha,
+            ColorBlendOperation::Add,
+        );
+        [
+            BlendPresetCase {
+                name: "opaque",
+                config: Some(ColorBlendConfig::opaque()),
+                effective_config: ColorBlendConfig::opaque(),
+                solid_shader: SOLID_FRAGMENT_SHADER,
+                texture_shader: TEXTURED_FRAGMENT_SHADER,
+                expected: [255, 0, 0, 128],
+            },
+            BlendPresetCase {
+                name: "straight-alpha",
+                config: Some(ColorBlendConfig::straight_alpha()),
+                effective_config: ColorBlendConfig::straight_alpha(),
+                solid_shader: SOLID_FRAGMENT_SHADER,
+                texture_shader: TEXTURED_FRAGMENT_SHADER,
+                expected: [128, 0, 0, 128],
+            },
+            BlendPresetCase {
+                name: "premultiplied-alpha",
+                config: Some(ColorBlendConfig::premultiplied_alpha()),
+                effective_config: ColorBlendConfig::premultiplied_alpha(),
+                solid_shader: PREMULTIPLIED_SOLID_FRAGMENT_SHADER,
+                texture_shader: PREMULTIPLIED_TEXTURE_FRAGMENT_SHADER,
+                expected: [128, 0, 0, 128],
+            },
+            BlendPresetCase {
+                name: "legacy-alpha",
+                config: None,
+                effective_config: legacy,
+                solid_shader: SOLID_FRAGMENT_SHADER,
+                texture_shader: TEXTURED_FRAGMENT_SHADER,
+                expected: [128, 0, 0, 64],
+            },
+        ]
+    }
+
     fn raw_test_texture(context: &Context) -> VMNLResult<Texture2D> {
         let pixels = [
             255, 0, 0, 255, 0, 255, 0, 255, // top row: red, green
@@ -461,6 +605,24 @@ mod tests {
             crate::RenderTargetInfo::from_render_pass(&render_pass)
                 .expect("readback render target properties should resolve");
         Some(image)
+    }
+
+    fn install_rgba8_blend_target(window: &mut Window) -> VMNLResult<Option<Arc<Image>>> {
+        let Some(target) = install_rgba8_readback_target(window) else {
+            log::info!("R8G8B8A8_UNORM color+transfer target is unsupported; skipped");
+            return Ok(None);
+        };
+        let format_features = window
+            .device()
+            .physical_device()
+            .format_properties(Format::R8G8B8A8_UNORM)
+            .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanValidationFailed))?
+            .optimal_tiling_features;
+        if !format_features.contains(vulkano::format::FormatFeatures::COLOR_ATTACHMENT_BLEND) {
+            log::info!("R8G8B8A8_UNORM blending is unsupported; skipped");
+            return Ok(None);
+        }
+        Ok(Some(target))
     }
 
     fn readback_first_2x2(window: &mut Window, image: Arc<Image>) -> Vec<u8> {
@@ -659,6 +821,70 @@ mod tests {
             // u=0.375 is one quarter between the red and green texel centers.
             // Nearest therefore returns red; Linear would blend the two texels.
             assert_eq!(&readback[8..12], &[255, 0, 0, 255]);
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    #[ignore = "Requires Vulkan + GLFW display."]
+    fn raw_color_blend_presets_match_rgba8_with_and_without_textures() -> VMNLResult<()> {
+        let _guard = crate::test_support::gpu_test_guard();
+        let context = Context::new()?;
+        let mut window = Window::builder()
+            .set_clear_color([0, 0, 0, 0])
+            .build(&context)?;
+        let Some(target) = install_rgba8_blend_target(&mut window)? else {
+            return Ok(());
+        };
+
+        let pixels = [
+            255, 0, 0, 128, 255, 0, 0, 128, // top row
+            255, 0, 0, 128, 255, 0, 0, 128, // bottom row
+        ];
+        let texture = Texture2D::from_pixels(
+            &context,
+            PixelSource::new(2, 2, TextureFormat::Rgba8Unorm, &pixels)?,
+        )
+        .build()?;
+        let sampler = Sampler::builder(&context)
+            .config(SamplerConfig::nearest())
+            .build()?;
+        let geometry = raw::Geometry::builder(textured_quad()).build(&context)?;
+        let row_stride = usize::try_from(window.inner.handle.swapchain.image_extent()[0])
+            .expect("width should fit usize")
+            .checked_mul(4)
+            .expect("row stride should fit usize");
+
+        for preset in raw_blend_preset_cases() {
+            let readback_cases = [
+                BlendReadbackCase {
+                    name: preset.name,
+                    fragment_shader: preset.solid_shader,
+                    config: preset.config,
+                    effective_config: preset.effective_config,
+                    texture_binding: None,
+                    expected: preset.expected,
+                },
+                BlendReadbackCase {
+                    name: preset.name,
+                    fragment_shader: preset.texture_shader,
+                    config: preset.config,
+                    effective_config: preset.effective_config,
+                    texture_binding: Some((&texture, &sampler)),
+                    expected: preset.expected,
+                },
+            ];
+            for case in readback_cases {
+                assert_raw_blend_output(
+                    &mut window,
+                    &context,
+                    &target,
+                    row_stride,
+                    &geometry,
+                    case,
+                )?;
+            }
         }
 
         Ok(())
