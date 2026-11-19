@@ -24,7 +24,7 @@ Set/binding numbers are shader-declared `u32` indices.
 
 ## Ownership, lifecycle, and threading
 
-Builder stores cloned buffer handles or shared frame-uniform slots and is consumed by build. `Resources` remains tied to pipeline layout/device but does not borrow the pipeline/uniform values.
+Builder stores cloned buffer handles or shared frame-uniform slots and is consumed by build. `ResourcesBuilder` implements `Send + Sync`, so the handle can be moved or shared between Rust threads. This does not make `Context` or `Window` thread-safe; building or using resources still requires the owning context and window on their permitted threads. `Resources` remains tied to pipeline layout/device but does not borrow the pipeline/uniform values.
 
 ## Errors, panics, and failure conditions
 

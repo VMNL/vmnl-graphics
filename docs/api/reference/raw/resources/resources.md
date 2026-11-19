@@ -22,7 +22,7 @@ Descriptor set/binding indices are `u32` and must match shader declarations.
 
 ## Ownership, lifecycle, and threading
 
-Owns shared descriptor/device/layout state; borrowed during frame recording. It is logically tied to its pipeline layout/device. Frame-uniform resources are also tied to the swapchain image count observed when their frame uniforms were built.
+Owns shared descriptor/device/layout state; borrowed during frame recording. It is logically tied to its pipeline layout/device. Frame-uniform resources are also tied to the swapchain image count observed when their frame uniforms were built. `Resources` implements `Send + Sync`, so the handle can be moved or shared between Rust threads. This does not make `Context` or `Window` thread-safe or move GPU operations away from their owning thread.
 
 ## Errors, panics, and failure conditions
 
