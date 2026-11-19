@@ -580,6 +580,8 @@
 | `vmnl_graphics::raw::ResourcesBuilder` | `build` | [ResourcesBuilder](../reference/raw/resources/resources_builder.md) | [`build`](../../../target/doc/vmnl_graphics/raw/struct.ResourcesBuilder.html#method.build) |
 | `vmnl_graphics::raw::ResourcesBuilder` | `frame_uniform` | [ResourcesBuilder](../reference/raw/resources/resources_builder.md) | [`frame_uniform`](../../../target/doc/vmnl_graphics/raw/struct.ResourcesBuilder.html#method.frame_uniform) |
 | `vmnl_graphics::raw::ResourcesBuilder` | `sampled_texture` | [ResourcesBuilder](../reference/raw/resources/resources_builder.md) | [`sampled_texture`](../../../target/doc/vmnl_graphics/raw/struct.ResourcesBuilder.html#method.sampled_texture) |
+| `vmnl_graphics::raw::ResourcesBuilder` | `sampler` | [ResourcesBuilder](../reference/raw/resources/resources_builder.md) | [`sampler`](../../../target/doc/vmnl_graphics/raw/struct.ResourcesBuilder.html#method.sampler) |
+| `vmnl_graphics::raw::ResourcesBuilder` | `texture` | [ResourcesBuilder](../reference/raw/resources/resources_builder.md) | [`texture`](../../../target/doc/vmnl_graphics/raw/struct.ResourcesBuilder.html#method.texture) |
 | `vmnl_graphics::raw::ResourcesBuilder` | `uniform` | [ResourcesBuilder](../reference/raw/resources/resources_builder.md) | [`uniform`](../../../target/doc/vmnl_graphics/raw/struct.ResourcesBuilder.html#method.uniform) |
 | `vmnl_graphics::raw::Scissor` | `clone` | [Scissor](../reference/raw/pipeline/scissor.md) | [`clone`](../../../target/doc/vmnl_graphics/raw/struct.Scissor.html#method.clone) |
 | `vmnl_graphics::raw::Scissor` | `eq` | [Scissor](../reference/raw/pipeline/scissor.md) | [`eq`](../../../target/doc/vmnl_graphics/raw/struct.Scissor.html#method.eq) |

@@ -8,7 +8,7 @@
 
 The canonical implementation is [`examples/raw/pipeline`](../../../examples/raw/pipeline/src/main.rs); do not copy its full shaders into documentation. Review [`PipelineSpec`](../reference/raw/pipeline/pipeline_spec.md) and [shader/layout safety](../concepts/shaders_vertex_layouts_and_safety.md).
 
-Current layout limits: only descriptor-count-one uniform buffers, no descriptor arrays, no other descriptor types, and no push constants.
+Current layout limits: descriptor-count-one uniform buffers, combined image samplers, separate sampled images and samplers. Descriptor arrays (including length-one arrays), storage descriptors, and push constants are rejected. Cross-stage descriptor conflicts return `InvalidState` before layout merging. See [raw texture sampling](sample_raw_texture.md) for shader/sampler compatibility.
 
 ## Inspect triangle culling
 

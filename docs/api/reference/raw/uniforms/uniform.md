@@ -37,7 +37,7 @@ Build allocates and writes one uniform buffer. `write` maps and writes the exist
 
 ## Platform, Vulkan, and display constraints
 
-Size/alignment/layout must match shader and device requirements. Raw descriptors also support a single combined image-sampler binding through `ResourcesBuilder::sampled_texture`; descriptor arrays and storage descriptors remain unsupported.
+Size/alignment/layout must match shader and device requirements. Raw descriptors also support combined or separate image/sampler bindings through `ResourcesBuilder`; descriptor arrays and storage descriptors remain unsupported.
 
 ## Example and related types
 
