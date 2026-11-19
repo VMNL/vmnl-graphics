@@ -132,6 +132,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "d2_texture"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
 name = "dispatch2"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
