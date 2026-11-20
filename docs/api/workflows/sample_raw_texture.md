@@ -68,9 +68,11 @@ Vulkano merges the layout.
 Normalized-coordinate samplers allow the shader to select its sampling operation
 and LOD. Texel-coordinate samplers require a single-layer, single-mip 2D image
 and explicit, statically known LOD zero, such as `textureLod(..., 0.0)`. Implicit
-or dynamic/nonzero LOD, depth comparison, projection, gather, bias, gradients,
-and offsets are rejected for texel-coordinate sampling. These checks happen
-when resources are built, before a draw is submitted.
+or dynamic/nonzero LOD, projection, gather, bias, gradients, and offsets are
+rejected for texel-coordinate sampling. Depth comparison, including
+`textureGather` with a shadow sampler, returns `InvalidState` for both
+coordinate modes. These checks happen when resources are built, before a draw
+is submitted.
 Samplerless `texelFetch` is outside this sampling contract and returns
 `InvalidState` with the image set/binding when SPIR-V identifies it.
 

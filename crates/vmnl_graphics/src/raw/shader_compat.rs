@@ -26,6 +26,7 @@ pub(super) struct SampledPair {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum SamplerOperation {
     ExplicitLodZero,
+    DepthComparison,
     TexelIncompatible(&'static str),
 }
 
@@ -657,12 +658,9 @@ fn sampling_instruction(
         | Instruction::ImageSparseSampleProjDrefImplicitLod { sampled_image, .. }
         | Instruction::ImageSparseSampleProjDrefExplicitLod { sampled_image, .. }
         | Instruction::ImageDrefGather { sampled_image, .. }
-        | Instruction::ImageSparseDrefGather { sampled_image, .. } => Some((
-            sampled_image,
-            SamplerOperation::TexelIncompatible(
-                "depth comparison is not supported by VMNL samplers",
-            ),
-        )),
+        | Instruction::ImageSparseDrefGather { sampled_image, .. } => {
+            Some((sampled_image, SamplerOperation::DepthComparison))
+        }
         Instruction::ImageSampleProjImplicitLod { sampled_image, .. }
         | Instruction::ImageSampleProjExplicitLod { sampled_image, .. }
         | Instruction::ImageSparseSampleProjImplicitLod { sampled_image, .. }
@@ -919,26 +917,29 @@ mod tests {
     }
 
     #[test]
-    fn depth_comparison_is_reflected_for_ordinary_and_texel_samplers() {
-        let shader = fragment_shader(
+    fn depth_sampling_and_gather_are_classified_as_comparisons() {
+        let point = BindingPoint { set: 2, binding: 5 };
+        for expression in [
             "vec4(texture(shadow_image, vec3(uv, 0.5)))",
-            "layout(set = 2, binding = 5) uniform sampler2DShadow shadow_image;",
-        );
-        let contract = reflect_fragment(&shader);
-        let requirements = contract
-            .descriptors
-            .get(&BindingPoint { set: 2, binding: 5 })
-            .expect("shadow descriptor should be reflected");
-        assert!(requirements
-            .descriptors
-            .values()
-            .any(|descriptor| descriptor.sampler_compare));
-        assert_eq!(
-            contract.sampler_uses[0].operation,
-            SamplerOperation::TexelIncompatible(
-                "depth comparison is not supported by VMNL samplers"
-            )
-        );
+            "textureGather(shadow_image, uv, 0.5)",
+        ] {
+            let shader = fragment_shader(
+                expression,
+                "layout(set = 2, binding = 5) uniform sampler2DShadow shadow_image;",
+            );
+            let contract = reflect_fragment(&shader);
+            assert_eq!(
+                contract.sampler_uses,
+                [SamplerUse {
+                    pair: SampledPair {
+                        image: point,
+                        sampler: point,
+                    },
+                    operation: SamplerOperation::DepthComparison,
+                }],
+                "{expression}"
+            );
+        }
     }
 
     #[test]

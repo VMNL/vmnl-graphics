@@ -1766,29 +1766,38 @@ fn validate_sampler_shader_binding(
         )))
     })?;
 
-    for descriptor in requirements.descriptors.values() {
-        if descriptor.sampler_compare {
-            return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
-                "raw resources set {} binding {} requires depth comparison, which VMNL samplers do not expose",
-                point.set, point.binding
-            ))));
-        }
-        if sampler.config.coordinate_mode() == crate::texture::SamplerCoordinateMode::Texel
-            && descriptor.sampler_no_unnormalized_coordinates
+    let sampler_uses = shader_contract
+        .sampler_uses
+        .iter()
+        .filter(|usage| usage.pair.sampler == point);
+
+    // Vulkano 0.35.2 does not flag depth gather as a comparison.
+    if sampler_uses
+        .clone()
+        .any(|usage| usage.operation == SamplerOperation::DepthComparison)
+        || requirements
+            .descriptors
+            .values()
+            .any(|descriptor| descriptor.sampler_compare)
+    {
+        return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+            "raw resources set {} binding {} requires depth comparison, which VMNL samplers do not expose",
+            point.set, point.binding
+        ))));
+    }
+
+    if sampler.config.coordinate_mode() == crate::texture::SamplerCoordinateMode::Texel {
+        if requirements
+            .descriptors
+            .values()
+            .any(|descriptor| descriptor.sampler_no_unnormalized_coordinates)
         {
             return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
                 "raw resources set {} binding {} shader sampling instructions are incompatible with texel coordinates",
                 point.set, point.binding
             ))));
         }
-    }
-
-    if sampler.config.coordinate_mode() == crate::texture::SamplerCoordinateMode::Texel {
-        for usage in shader_contract
-            .sampler_uses
-            .iter()
-            .filter(|usage| usage.pair.sampler == point)
-        {
+        for usage in sampler_uses {
             if let SamplerOperation::TexelIncompatible(reason) = usage.operation {
                 return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
                     "raw resources sampler set {} binding {}: {reason}",
