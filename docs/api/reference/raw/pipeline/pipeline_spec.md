@@ -46,7 +46,10 @@ Invalid viewport values, exceeded device viewport limits, or overflowing signed 
 
 ## Allocation, transfers, synchronization, and GPU cost
 
-Setters are CPU-only; source strings/paths may allocate. Build reads paths, runs shaderc, reflects layouts, and creates Vulkan objects. Cost is unspecified.
+Setters are CPU-only; source strings/paths may allocate. Build reads paths, runs shaderc, reflects
+layouts, and creates Vulkan objects. During reflection of each shader stage, VMNL reuses the
+analysis of a helper when its image and sampler argument origins match an earlier call.
+This temporary analysis state is released at the end of stage reflection. Cost is unspecified.
 
 ## Platform, Vulkan, and display constraints
 
