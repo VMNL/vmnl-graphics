@@ -25,15 +25,18 @@ pub(crate) enum RenderPassCommand {
     Raw { items: Vec<RenderItemRaw> },
 }
 
+fn raw_draw_items(commands: &[RenderPassCommand]) -> impl Iterator<Item = &RenderItemRaw> {
+    commands.iter().flat_map(|command| match command {
+        RenderPassCommand::Raw { items } => items.as_slice(),
+        RenderPassCommand::D2 { .. } => &[],
+    })
+}
+
 fn prepare_texture_uploads(
     commands: &[RenderPassCommand],
 ) -> VMNLResult<Vec<TextureUploadDependency>> {
-    let uploads = commands.iter().flat_map(|command| match command {
-        RenderPassCommand::Raw { items } => items.as_slice(),
-        RenderPassCommand::D2 { .. } => &[],
-    });
     let mut dependencies = Vec::new();
-    for dependency in uploads.flat_map(RenderItemRaw::upload_dependencies) {
+    for dependency in raw_draw_items(commands).flat_map(RenderItemRaw::upload_dependencies) {
         if !dependencies
             .iter()
             .any(|seen| Arc::ptr_eq(seen, &dependency))
@@ -68,12 +71,14 @@ impl VMNLWindow {
         if self.state.swapchain_recreation_requested {
             self.recreate_swapchain()?;
         }
+        let mut raw_draw_states = self.preflight_frame(commands, &frame_uniform_writes)?;
         Self::begin_frame(&mut self.handle.previous_frame_end);
         let (image_index, suboptimal, acquire_future): (u32, bool, SwapchainAcquireFuture) =
             match Self::acquire_next_image_from_swapchain(&self.handle.swapchain, None) {
                 Ok(acquisition) => acquisition,
                 Err(error) if matches!(error.kind(), VMNLErrorKind::VulkanOutOfDate) => {
                     self.recreate_swapchain()?;
+                    raw_draw_states = self.preflight_frame(commands, &frame_uniform_writes)?;
                     Self::acquire_next_image_from_swapchain(&self.handle.swapchain, None)?
                 }
                 Err(error) => return Err(error),
@@ -99,13 +104,12 @@ impl VMNLWindow {
                 .wait(None)
                 .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanValidationFailed))?;
         }
-        let current_image_count = self.handle.framebuffers.len();
         for write in frame_uniform_writes {
-            write.write(framebuffer_index, current_image_count)?;
+            write.write(framebuffer_index)?;
         }
 
         let command_buffer: Arc<PrimaryAutoCommandBuffer> =
-            self.build_command_buffer(image_index, commands)?;
+            self.build_command_buffer(image_index, commands, raw_draw_states)?;
         let frame_sync = Self::frame_sync(
             &mut self.handle.previous_frame_end,
             acquire_future,
@@ -1018,6 +1022,108 @@ mod tests {
         window
             .render()
             .draw_raw_2d_with(&pipeline, &valid_resources, [&geometry])
+            .submit()?;
+        assert!(ACQUIRE_ATTEMPTS.get() > attempts_before);
+
+        Ok(())
+    }
+
+    #[test]
+    #[ignore = "Requires Vulkan + GLFW display."]
+    fn raw_frame_preflight_rejects_resources_from_another_pipeline() -> VMNLResult<()> {
+        use super::acquire::ACQUIRE_ATTEMPTS;
+
+        let _guard = crate::test_support::gpu_test_guard();
+        let context = Context::new()?;
+        let mut window = Window::builder().build(&context)?;
+        let pipeline = raw_texture_pipeline(&window, TEXTURED_FRAGMENT_SHADER)?;
+        let other_pipeline = raw_texture_pipeline(&window, TEXTURED_FRAGMENT_SHADER)?;
+        let texture = raw_test_texture(&context)?;
+        let sampler = Sampler::builder(&context)
+            .config(SamplerConfig::nearest())
+            .build()?;
+        let wrong_resources = raw::Resources::builder(&other_pipeline)
+            .sampled_texture(0, 0, &texture, &sampler)
+            .build(&context)?;
+        let resources = raw::Resources::builder(&pipeline)
+            .sampled_texture(0, 0, &texture, &sampler)
+            .build(&context)?;
+        let geometry = raw::Geometry::builder(textured_quad()).build(&context)?;
+        let attempts_before = ACQUIRE_ATTEMPTS.get();
+
+        for _ in 0..2 {
+            assert_invalid_state_contains(
+                window
+                    .render()
+                    .draw_raw_2d_with(&pipeline, &wrong_resources, [&geometry])
+                    .submit(),
+                "raw resources must be built for this raw pipeline",
+            );
+            assert_eq!(ACQUIRE_ATTEMPTS.get(), attempts_before);
+        }
+        window
+            .render()
+            .draw_raw_2d_with(&pipeline, &resources, [&geometry])
+            .submit()?;
+        assert!(ACQUIRE_ATTEMPTS.get() > attempts_before);
+
+        Ok(())
+    }
+
+    #[test]
+    #[ignore = "Requires Vulkan + GLFW display."]
+    fn raw_frame_preflight_rejects_stale_frame_uniforms() -> VMNLResult<()> {
+        use super::acquire::ACQUIRE_ATTEMPTS;
+
+        let _guard = crate::test_support::gpu_test_guard();
+        let context = Context::new()?;
+        let mut window = Window::builder().build(&context)?;
+        let tint = TextureTint { tint: [1.0; 4] };
+        // Simulate a stale FrameUniform without depending on a driver changing its image count.
+        let framebuffers = &mut window.inner.handle.framebuffers;
+        framebuffers.push(framebuffers[0].clone());
+        let stale = raw::FrameUniform::builder(tint).build(&window);
+        window.inner.handle.framebuffers.pop();
+        let mut stale = stale?;
+        let mut valid = raw::FrameUniform::builder(tint).build(&window)?;
+        let pipeline = raw_texture_pipeline(&window, TEXTURED_FRAME_UNIFORM_FRAGMENT_SHADER)?;
+        let texture = raw_test_texture(&context)?;
+        let sampler = Sampler::builder(&context)
+            .config(SamplerConfig::nearest())
+            .build()?;
+        let resources = raw::Resources::builder(&pipeline)
+            .sampled_texture(0, 0, &texture, &sampler)
+            .frame_uniform(0, 1, &valid)
+            .build(&context)?;
+        let stale_resources = raw::Resources::builder(&pipeline)
+            .sampled_texture(0, 0, &texture, &sampler)
+            .frame_uniform(0, 1, &stale)
+            .build(&context)?;
+        let geometry = raw::Geometry::builder(textured_quad()).build(&context)?;
+        let attempts_before = ACQUIRE_ATTEMPTS.get();
+        let mismatch =
+            "raw frame uniform image count is incompatible with current swapchain image count";
+
+        assert_invalid_state_contains(
+            window
+                .render()
+                .draw_raw_2d_with(&pipeline, &stale_resources, [&geometry])
+                .submit(),
+            mismatch,
+        );
+        assert_eq!(ACQUIRE_ATTEMPTS.get(), attempts_before);
+        assert_invalid_state_contains(
+            window
+                .render()
+                .write_frame_uniform(&mut stale, tint)
+                .submit(),
+            mismatch,
+        );
+        assert_eq!(ACQUIRE_ATTEMPTS.get(), attempts_before);
+        window
+            .render()
+            .write_frame_uniform(&mut valid, tint)
+            .draw_raw_2d_with(&pipeline, &resources, [&geometry])
             .submit()?;
         assert!(ACQUIRE_ATTEMPTS.get() > attempts_before);
 

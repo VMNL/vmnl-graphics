@@ -1365,28 +1365,24 @@ impl RawDescriptorSets {
     fn for_image(
         &self,
         image_index: usize,
-        current_image_count: usize,
         descriptor_set_allocator: &Arc<StandardDescriptorSetAllocator>,
         expected_device: &Arc<Device>,
     ) -> VMNLResult<Vec<Arc<DescriptorSet>>> {
         match self {
             Self::Static { sets, .. } => Ok(sets.clone()),
             Self::FrameUniforms {
-                image_count,
                 set_layouts,
                 bindings,
                 required_set_count,
-            } => {
-                validate_frame_uniform_image_count(*image_count, current_image_count)?;
-                build_descriptor_sets(
-                    descriptor_set_allocator,
-                    expected_device,
-                    set_layouts,
-                    bindings,
-                    *required_set_count,
-                    Some(image_index),
-                )
-            }
+                ..
+            } => build_descriptor_sets(
+                descriptor_set_allocator,
+                expected_device,
+                set_layouts,
+                bindings,
+                *required_set_count,
+                Some(image_index),
+            ),
         }
     }
 }
@@ -1409,8 +1405,11 @@ impl<'a> PendingFrameUniformWrite<'a> {
         }
     }
 
-    pub(crate) fn write(self, image_index: usize, current_image_count: usize) -> VMNLResult<()> {
-        validate_frame_uniform_image_count(self.image_count, current_image_count)?;
+    pub(crate) fn validate_image_count(&self, current_image_count: usize) -> VMNLResult<()> {
+        validate_frame_uniform_image_count(self.image_count, current_image_count)
+    }
+
+    pub(crate) fn write(self, image_index: usize) -> VMNLResult<()> {
         (self.write)(image_index)
     }
 }
@@ -1438,19 +1437,37 @@ impl RenderItemRaw {
         self.descriptor_sets.upload_dependencies()
     }
 
+    pub(crate) fn validate_descriptor_sets_for_frame(
+        &self,
+        current_image_count: usize,
+    ) -> VMNLResult<()> {
+        let set_count = match &self.descriptor_sets {
+            RawDescriptorSets::Static { sets, .. } => sets.len(),
+            RawDescriptorSets::FrameUniforms {
+                image_count,
+                required_set_count,
+                ..
+            } => {
+                validate_frame_uniform_image_count(*image_count, current_image_count)?;
+                *required_set_count
+            }
+        };
+        if set_count != self.required_descriptor_set_count {
+            return Err(VMNLError::new(VMNLErrorKind::InvalidState(
+                "raw pipeline descriptor resources are incomplete".into(),
+            )));
+        }
+        Ok(())
+    }
+
     pub(crate) fn descriptor_sets_for_image(
         &self,
         image_index: usize,
-        current_image_count: usize,
         descriptor_set_allocator: &Arc<StandardDescriptorSetAllocator>,
         expected_device: &Arc<Device>,
     ) -> VMNLResult<Vec<Arc<DescriptorSet>>> {
-        self.descriptor_sets.for_image(
-            image_index,
-            current_image_count,
-            descriptor_set_allocator,
-            expected_device,
-        )
+        self.descriptor_sets
+            .for_image(image_index, descriptor_set_allocator, expected_device)
     }
 }
 
