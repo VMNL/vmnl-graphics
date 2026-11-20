@@ -110,6 +110,9 @@ range selection is outside this workflow.
 joins that upload dependency before the sampling draw; callers do not need to
 wait on `initial_upload()` before using the texture. This is GPU ordering, not a
 claim that the texture upload has completed when `build` returns.
+Before acquiring a swapchain image, submission checks each referenced upload's
+status without waiting for GPU completion. A known upload failure returns
+`TextureUploadFailed` and leaves the window available for a subsequent valid frame.
 
 Run `just run raw_texture` for a maintained client example. It draws combined
 `sampler2D` and separate `texture2D`/`sampler` bindings side by side. Press `F`

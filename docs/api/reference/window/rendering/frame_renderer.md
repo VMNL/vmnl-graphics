@@ -39,6 +39,10 @@ The builder mutably borrows `Window` and borrows draw resources for `'g`; those 
 
 `submit` can fail for incompatible devices/layouts/render passes, incompatible frame-uniform image counts, frame-uniform allocation/write/binding, zero-size/out-of-date swapchains, command recording, acquisition, device loss, queue submission, or presentation.
 
+Before acquiring a swapchain image, `submit` checks each distinct initial texture upload referenced
+by a raw draw. It returns `TextureUploadFailed` if the upload has a recorded failure or its fence
+status query fails. Pending uploads join the GPU dependency chain without a host wait.
+
 `VulkanOutOfDate` can be returned when acquisition or presentation finds the swapchain out of date, or when the framebuffer has no renderable extent. A presentation-stage error may follow queue submission; it does not mean that no work was submitted or that its resources are idle. VMNL requests swapchain recreation and preserves the synchronization state needed to keep the same window usable after it becomes renderable. Continue processing events and retry with that window.
 
 With Vulkano 0.35.2, retiring a failed presentation future can wait for the presentation queue to become idle. This error path can block the thread calling `submit` while submitted resources are retired.

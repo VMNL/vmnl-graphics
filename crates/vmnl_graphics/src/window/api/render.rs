@@ -228,6 +228,8 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     /// ```
     ///
     /// # Errors
+    /// Returns `TextureUploadFailed` before acquiring a swapchain image if an initial
+    /// upload used by a raw draw has a known failure or its fence status query fails.
     /// Returns an error if frame-uniform allocation/write/binding, frame acquisition,
     /// command recording, submission, or presentation fails. An out-of-date swapchain
     /// during acquisition or presentation returns `VMNLErrorKind::VulkanOutOfDate`.

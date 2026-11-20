@@ -15,7 +15,7 @@ use std::{
     fs,
     path::PathBuf,
     rc::Rc,
-    sync::Arc,
+    sync::{Arc, OnceLock},
     thread,
     time::{Duration, Instant},
 };
@@ -46,7 +46,44 @@ use vulkano::{
 
 const UPLOAD_POLL_INTERVAL: Duration = Duration::from_millis(1);
 
-pub(crate) type TextureUploadDependency = Arc<FenceSignalFuture<Box<dyn GpuFuture + Send + Sync>>>;
+type UploadFence = Arc<FenceSignalFuture<Box<dyn GpuFuture + Send + Sync>>>;
+
+pub(crate) type TextureUploadDependency = Arc<TextureUpload>;
+
+pub(crate) struct TextureUpload {
+    future: UploadFence,
+    // Keep the first error visible even after Vulkano cleans the fence.
+    failure: OnceLock<String>,
+}
+
+impl TextureUpload {
+    pub(crate) fn check_for_failure(&self) -> VMNLResult<()> {
+        self.is_signaled().map(|_| ()).map_err(upload_error)
+    }
+
+    pub(crate) fn future(&self) -> UploadFence {
+        self.future.clone()
+    }
+
+    fn record_failure(&self, message: String) -> String {
+        self.failure.get_or_init(|| message).clone()
+    }
+
+    fn is_signaled(&self) -> Result<bool, String> {
+        if let Some(message) = self.failure.get() {
+            return Err(message.clone());
+        }
+        self.future
+            .is_signaled()
+            .map_err(|error| self.record_failure(error.to_string()))
+    }
+
+    fn wait(&self) -> Result<(), String> {
+        self.future
+            .wait(None)
+            .map_err(|error| self.record_failure(error.to_string()))
+    }
+}
 
 #[derive(Clone)]
 pub(crate) struct SampledTextureBinding {
@@ -479,6 +516,13 @@ impl Texture2D {
         UploadTicket {
             state: self.storage.upload.clone(),
         }
+    }
+
+    #[cfg(test)]
+    pub(crate) fn simulate_initial_upload_failure(&self, message: &str) {
+        self.storage
+            .upload_dependency
+            .record_failure(message.into());
     }
 
     /// Returns whether this texture and another handle share the same image allocation.
@@ -1108,9 +1152,13 @@ impl PreparedTexture2D {
                 .then_signal_fence_and_flush()
                 .map_err(|error| upload_error(error.to_string()))?,
         );
+        let dependency = Arc::new(TextureUpload {
+            future,
+            failure: OnceLock::new(),
+        });
         let upload = Rc::new(UploadState {
             progress: RefCell::new(UploadProgress::Pending(PendingUpload::Vulkan {
-                future: future.clone(),
+                dependency: dependency.clone(),
                 _staging: self.staging,
             })),
         });
@@ -1120,7 +1168,7 @@ impl PreparedTexture2D {
                 image: self.image,
                 default_view: self.view,
                 upload,
-                upload_dependency: future,
+                upload_dependency: dependency,
                 extent: self.extent,
                 format: self.format,
                 encoding: self.encoding,
@@ -1151,7 +1199,7 @@ enum UploadProgress {
 
 enum PendingUpload {
     Vulkan {
-        future: TextureUploadDependency,
+        dependency: TextureUploadDependency,
         _staging: Subbuffer<[u8]>,
     },
     #[cfg(test)]
@@ -1165,7 +1213,7 @@ enum PendingUpload {
 impl PendingUpload {
     fn is_signaled(&mut self) -> Result<bool, String> {
         match self {
-            Self::Vulkan { future, .. } => future.is_signaled().map_err(|error| error.to_string()),
+            Self::Vulkan { dependency, .. } => dependency.is_signaled(),
             #[cfg(test)]
             Self::Simulated {
                 polls_until_signal,
@@ -1185,7 +1233,7 @@ impl PendingUpload {
 
     fn wait(&mut self) -> Result<(), String> {
         match self {
-            Self::Vulkan { future, .. } => future.wait(None).map_err(|error| error.to_string()),
+            Self::Vulkan { dependency, .. } => dependency.wait(),
             #[cfg(test)]
             Self::Simulated { completion, .. } => completion.clone(),
         }
