@@ -20,6 +20,7 @@ just build <example>
 | `window_wait_events` | `just run window_wait_events` | explicit blocking event wait, event-driven redraw, and transient swapchain out-of-date recovery |
 | `raw_triangle` | `just run raw_triangle` | minimal raw pipeline triangle |
 | `raw_pipeline` | `just run raw_pipeline` | explicit `LargePoints` / `FillModeNonSolid` / `WideLines` requirements and line-width limits, raw shader paths, topology and legacy blend variants, straight-alpha and premultiplied-alpha presets, indexed/non-indexed geometry; `C` culling, `F` winding, `P` fill/wireframe, `W` line width |
+| `raw_texture` | `just run raw_texture` | combined and separate texture bindings side by side; `F` nearest/linear filtering, `V` identity/red-blue-swizzled view, `B` opaque/straight-alpha/premultiplied-alpha blend |
 | `raw_uniform` | `just run raw_uniform` | animated raw pipeline resources backed by `FrameUniform` |
 | `raw_d2_composition` | `just run raw_d2_composition` | ordered 2D/raw passes; `V` viewport, `S` scissor; clipping outline, framebuffer/attachment diagnostics, target preflight, isolation markers; optional `VMNL_DEPTH_FORMAT=none/d16/d32`, `D` depth test/write selection and `O` draw-order comparison |
 

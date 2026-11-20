@@ -1058,13 +1058,18 @@ cloned tickets keep returning the same `TextureUploadFailed`; it also verifies t
 polling until completion. No GPU test holds actual queue work pending through final-owner drop.
 Private ignored renderer GPU tests in `crates/vmnl_graphics/src/window/render/mod.rs` sample
 combined and separate raw image/sampler bindings into an RGBA8 readback target, verify nearest and
-linear filtering plus texel LOD zero. They also sample explicit component-swizzled views through
+linear filtering plus texel LOD zero. At normalized UV `(0.375, 0.375)`, the four-color fixture
+checks nearest red against the bilinear RGBA result `(0.625, 0.25, 0.25, 1.0)` within one UNORM
+step for both combined and separate bindings. They also sample explicit component-swizzled views through
 combined and separate bindings, reject opaque-black border sampling with a non-identity mapping,
 and verify RGBA8 UNORM/sRGB reinterpretation on devices that support it. They exercise a confirmed
 pending upload shared by two windows
 from the same `Context`. The latter uses a separate raw pipeline and `FrameUniform`-plus-texture
 resources for each window, submits both frames before readback, and checks their independently
-tinted pixels. These tests do not inject Vulkan upload/device-loss failures or prove behavior on
+tinted pixels. Another readback combines a static `Uniform` with a texture, draws a raw color-only
+pass after the texture pass, and drops the resource handles after submission before reading pixels.
+A foreign `Context` texture is rejected during resource construction. These tests do not inject
+Vulkan upload/device-loss failures or prove behavior on
 unavailable GPUs and display servers. A separate fixture exercises the
 context-shutdown drain. `just test-gpu` and
 `just test-gpu-compile` include both the private library fixtures and `tests/gpu` integration tests.

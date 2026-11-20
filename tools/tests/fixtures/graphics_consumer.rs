@@ -20,10 +20,21 @@ struct Uniform {
 
 fn vertex_contract<T: raw::Vertex + raw::Pod + raw::Zeroable>() {}
 fn uniform_contract<T: raw::BufferContents + raw::Pod + raw::Zeroable>() {}
+fn send_sync_contract<T: Send + Sync>() {}
+
+fn exhaustive_legacy_blend_match(mode: raw::BlendMode) -> bool {
+    match mode {
+        raw::BlendMode::Opaque => false,
+        raw::BlendMode::Alpha => true,
+    }
+}
 
 fn main() {
     vertex_contract::<Vertex>();
     uniform_contract::<Uniform>();
+    send_sync_contract::<raw::Resources>();
+    send_sync_contract::<raw::ResourcesBuilder>();
+    assert!(exhaustive_legacy_blend_match(raw::BlendMode::Alpha));
     let _builder: fn() -> ContextBuilder = Context::builder;
     let result: VMNLResult<()> = Ok(());
     assert!(result.is_ok());

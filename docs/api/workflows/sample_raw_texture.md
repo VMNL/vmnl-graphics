@@ -111,6 +111,14 @@ joins that upload dependency before the sampling draw; callers do not need to
 wait on `initial_upload()` before using the texture. This is GPU ordering, not a
 claim that the texture upload has completed when `build` returns.
 
+Run `just run raw_texture` for a maintained client example. It draws combined
+`sampler2D` and separate `texture2D`/`sampler` bindings side by side. Press `F`
+to switch nearest/linear filtering, `V` to use an explicit red/blue-swizzled
+view, and `B` to cycle opaque, straight-alpha, and premultiplied-alpha pipelines.
+The example builds static descriptor sets during setup. When a `Resources`
+value binds `FrameUniform`, those descriptor sets are allocated during frame
+recording for the acquired swapchain image instead.
+
 See [`ResourcesBuilder`](../reference/raw/resources/resources_builder.md),
 [`Texture2D`](../reference/texture/gpu_resources.md#texture2d-and-texture2dbuilder),
 and the [raw resource contract](../reference/raw/resources/resources.md).

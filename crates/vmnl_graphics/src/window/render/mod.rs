@@ -232,6 +232,25 @@ mod tests {
         }
     ";
 
+    const TEXTURED_STATIC_UNIFORM_FRAGMENT_SHADER: &str = r"
+        #version 450
+        layout(set = 0, binding = 0) uniform sampler2D color_image;
+        layout(set = 0, binding = 1) uniform Tint { vec4 tint; };
+        layout(location = 0) in vec2 texture_uv;
+        layout(location = 0) out vec4 out_color;
+        void main() {
+            out_color = texture(color_image, texture_uv) * tint;
+        }
+    ";
+
+    const SOLID_GREEN_FRAGMENT_SHADER: &str = r"
+        #version 450
+        layout(location = 0) out vec4 out_color;
+        void main() {
+            out_color = vec4(0.0, 1.0, 0.0, 1.0);
+        }
+    ";
+
     const UNIFORM_FRAGMENT_SHADER: &str = r"
         #version 450
         layout(set = 0, binding = 0) uniform Tint { vec4 tint; };
@@ -269,6 +288,17 @@ mod tests {
         void main() {
             out_color = textureLod(
                 sampler2D(color_image, image_sampler), texture_uv, 0.0);
+        }
+    ";
+
+    const SEPARATE_NORMALIZED_FRAGMENT_SHADER: &str = r"
+        #version 450
+        layout(set = 0, binding = 0) uniform texture2D color_image;
+        layout(set = 1, binding = 0) uniform sampler image_sampler;
+        layout(location = 0) in vec2 texture_uv;
+        layout(location = 0) out vec4 out_color;
+        void main() {
+            out_color = texture(sampler2D(color_image, image_sampler), texture_uv);
         }
     ";
 
@@ -523,6 +553,24 @@ mod tests {
             PixelSource::new(2, 2, TextureFormat::Rgba8Unorm, &pixels)?,
         )
         .build()
+    }
+
+    fn assert_foreign_texture_context_is_rejected(
+        context: &Context,
+        pipeline: &raw::Pipeline<TexturedVertex>,
+    ) -> VMNLResult<()> {
+        let foreign_context = Context::new()?;
+        let foreign_texture = raw_test_texture(&foreign_context)?;
+        let foreign_sampler = Sampler::builder(&foreign_context)
+            .config(SamplerConfig::nearest())
+            .build()?;
+        assert_invalid_state_contains(
+            raw::Resources::builder(pipeline)
+                .sampled_texture(0, 0, &foreign_texture, &foreign_sampler)
+                .build(context),
+            "must belong to this context",
+        );
+        Ok(())
     }
 
     fn assert_raw_pipeline_layout_rejections(window: &Window) {
@@ -842,6 +890,9 @@ mod tests {
         let resources = raw::Resources::builder(&pipeline)
             .sampled_texture(0, 0, &texture, &sampler)
             .build(&context)?;
+
+        assert_foreign_texture_context_is_rejected(&context, &pipeline)?;
+
         let offcenter_resources = raw::Resources::builder(&offcenter_pipeline)
             .sampled_texture(0, 0, &texture, &sampler)
             .build(&context)?;
@@ -867,6 +918,82 @@ mod tests {
             // u=0.375 is one quarter between the red and green texel centers.
             // Nearest therefore returns red; Linear would blend the two texels.
             assert_eq!(&readback[8..12], &[255, 0, 0, 255]);
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    #[ignore = "Requires Vulkan + GLFW display."]
+    fn raw_texture_with_static_uniform_survives_source_drop_before_readback() -> VMNLResult<()> {
+        let _guard = crate::test_support::gpu_test_guard();
+        let context = Context::new()?;
+        let mut window = Window::builder().size(640, 480).build(&context)?;
+        let Some(target) = install_rgba8_readback_target(&mut window) else {
+            log::info!("R8G8B8A8_UNORM color+transfer target is unsupported; skipped");
+            return Ok(());
+        };
+        let [target_width, target_height] = window.inner.handle.swapchain.image_extent();
+        if target_width < 4 || target_height < 2 {
+            log::info!("readback target is smaller than the mixed-resource test layout; skipped");
+            return Ok(());
+        }
+
+        let texture = raw_test_texture(&context)?;
+        let sampler = Sampler::builder(&context)
+            .config(SamplerConfig::nearest())
+            .build()?;
+        let textured_pipeline = raw_texture_pipeline_at(
+            &window,
+            TEXTURED_STATIC_UNIFORM_FRAGMENT_SHADER,
+            [0.0, 0.0],
+            [0, 0],
+        )?;
+        let color_only_pipeline =
+            raw_texture_pipeline_at(&window, SOLID_GREEN_FRAGMENT_SHADER, [2.0, 0.0], [2, 0])?;
+        let uniform = raw::Uniform::builder(TextureTint {
+            tint: [0.5, 0.0, 1.0, 1.0],
+        })
+        .build(&context)?;
+        let resources = raw::Resources::builder(&textured_pipeline)
+            .sampled_texture(0, 0, &texture, &sampler)
+            .uniform(0, 1, &uniform)
+            .build(&context)?;
+        let geometry = raw::Geometry::builder(textured_quad_at_uv([0.25, 0.25])).build(&context)?;
+
+        window
+            .render()
+            .draw_raw_2d_with(&textured_pipeline, &resources, [&geometry])
+            .draw_raw_2d(&color_only_pipeline, [&geometry])
+            .submit()?;
+
+        drop(geometry);
+        drop(uniform);
+        drop(sampler);
+        drop(texture);
+        drop(resources);
+        drop(textured_pipeline);
+        drop(color_only_pipeline);
+
+        let readback = readback_first_2x2(&mut window, target);
+        let row_stride = usize::try_from(target_width)
+            .expect("target width fits usize")
+            .checked_mul(4)
+            .expect("row stride fits usize");
+        for y in 0..2 {
+            let row_start = usize::try_from(y)
+                .expect("small row index fits usize")
+                .checked_mul(row_stride)
+                .expect("row offset fits usize");
+            for x in 0..4 {
+                let pixel_start = row_start + usize::try_from(x).expect("small x fits usize") * 4;
+                let expected = if x < 2 {
+                    [128, 0, 0, 255]
+                } else {
+                    [0, 255, 0, 255]
+                };
+                assert_eq!(&readback[pixel_start..pixel_start + 4], &expected);
+            }
         }
 
         Ok(())
@@ -1224,6 +1351,111 @@ mod tests {
             .submit()?;
         let readback = readback_first_2x2(&mut window, target);
         assert_eq!(&readback[0..4], &[255, 64, 0, 255]);
+
+        Ok(())
+    }
+
+    #[test]
+    #[ignore = "Requires Vulkan + GLFW display."]
+    fn raw_combined_and_separate_bindings_distinguish_linear_filtering() -> VMNLResult<()> {
+        let _guard = crate::test_support::gpu_test_guard();
+        let context = Context::new()?;
+        let mut window = Window::builder().size(640, 480).build(&context)?;
+        let Some(target) = install_rgba8_readback_target(&mut window) else {
+            log::info!("R8G8B8A8_UNORM color+transfer target is unsupported; skipped");
+            return Ok(());
+        };
+        let [target_width, target_height] = window.inner.handle.swapchain.image_extent();
+        if target_width < 8 || target_height < 2 {
+            log::info!("readback target is smaller than the filter test layout; skipped");
+            return Ok(());
+        }
+
+        let texture = raw_test_texture(&context)?;
+        let nearest_sampler = Sampler::builder(&context)
+            .config(SamplerConfig::nearest())
+            .build()?;
+        let linear_sampler = Sampler::builder(&context)
+            .config(SamplerConfig::linear())
+            .build()?;
+        if let Err(error) = texture.view().validate_sampler(&linear_sampler) {
+            log::info!("linear filtering is unsupported for the test image: {error}; skipped");
+            return Ok(());
+        }
+
+        let combined_nearest_pipeline =
+            raw_texture_pipeline_at(&window, TEXTURED_FRAGMENT_SHADER, [0.0, 0.0], [0, 0])?;
+        let combined_linear_pipeline =
+            raw_texture_pipeline_at(&window, TEXTURED_FRAGMENT_SHADER, [2.0, 0.0], [2, 0])?;
+        let separate_nearest_pipeline = raw_texture_pipeline_at(
+            &window,
+            SEPARATE_NORMALIZED_FRAGMENT_SHADER,
+            [4.0, 0.0],
+            [4, 0],
+        )?;
+        let separate_linear_pipeline = raw_texture_pipeline_at(
+            &window,
+            SEPARATE_NORMALIZED_FRAGMENT_SHADER,
+            [6.0, 0.0],
+            [6, 0],
+        )?;
+        let combined_nearest_resources = raw::Resources::builder(&combined_nearest_pipeline)
+            .sampled_texture(0, 0, &texture, &nearest_sampler)
+            .build(&context)?;
+        let combined_linear_resources = raw::Resources::builder(&combined_linear_pipeline)
+            .sampled_texture(0, 0, &texture, &linear_sampler)
+            .build(&context)?;
+        let separate_nearest_resources = raw::Resources::builder(&separate_nearest_pipeline)
+            .texture(0, 0, &texture)
+            .sampler(1, 0, &nearest_sampler)
+            .build(&context)?;
+        let separate_linear_resources = raw::Resources::builder(&separate_linear_pipeline)
+            .texture(0, 0, &texture)
+            .sampler(1, 0, &linear_sampler)
+            .build(&context)?;
+        let geometry =
+            raw::Geometry::builder(textured_quad_at_uv([0.375, 0.375])).build(&context)?;
+
+        window
+            .render()
+            .draw_raw_2d_with(
+                &combined_nearest_pipeline,
+                &combined_nearest_resources,
+                [&geometry],
+            )
+            .draw_raw_2d_with(
+                &combined_linear_pipeline,
+                &combined_linear_resources,
+                [&geometry],
+            )
+            .draw_raw_2d_with(
+                &separate_nearest_pipeline,
+                &separate_nearest_resources,
+                [&geometry],
+            )
+            .draw_raw_2d_with(
+                &separate_linear_pipeline,
+                &separate_linear_resources,
+                [&geometry],
+            )
+            .submit()?;
+
+        let readback = readback_first_2x2(&mut window, target);
+        for x_offset in [0, 16] {
+            assert_eq!(&readback[x_offset..x_offset + 4], &[255, 0, 0, 255]);
+        }
+        // At (0.375, 0.375), bilinear weights produce (0.625, 0.25, 0.25, 1.0).
+        // Allow one UNORM step for implementation rounding while checking both layouts.
+        for x_offset in [8, 24] {
+            let observed = &readback[x_offset..x_offset + 4];
+            let expected = [159_u8, 64, 64, 255];
+            for (channel, (actual, expected)) in observed.iter().zip(expected).enumerate() {
+                assert!(
+                    actual.abs_diff(expected) <= 1,
+                    "linear sample channel {channel}: expected {expected} ±1, got {actual}"
+                );
+            }
+        }
 
         Ok(())
     }
