@@ -1075,7 +1075,10 @@ a known initial upload failure after resource construction and verifies that bot
 return `TextureUploadFailed` with zero swapchain acquisitions, then submits a valid frame on the
 same window. These tests do not inject Vulkan upload/device-loss failures or prove behavior on
 unavailable GPUs and display servers. A separate fixture exercises the
-context-shutdown drain. `just test-gpu` and
+context-shutdown drain. Renderer preflight tests verify zero acquisition attempts for incompatible
+raw pipeline resources, bound stale frame uniforms, and queued stale frame-uniform writes. They
+then submit a valid frame on the same window. The stale slot count is simulated independently of
+the driver's swapchain image-count decisions. `just test-gpu` and
 `just test-gpu-compile` include both the private library fixtures and `tests/gpu` integration tests.
 
 
