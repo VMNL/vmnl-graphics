@@ -54,8 +54,8 @@ use vulkano::shader::{EntryPoint, ShaderModule, ShaderModuleCreateInfo};
 use vulkano::sync::HostAccessError;
 
 use crate::common::{
-    checked_draw_counts, BufferMemoryPreference, ColorBlendConfig, GraphicsResourceFactory,
-    IndexBuffer, VertexBuffer,
+    checked_draw_counts, BufferMemoryPreference, ColorBlendConfig, ColorBlendOverrides,
+    GraphicsResourceFactory, IndexBuffer, VertexBuffer,
 };
 use crate::exception::{VMNLError, VMNLErrorKind, VMNLResult};
 use crate::texture::{
@@ -207,8 +207,8 @@ pub struct PipelineSpec<TVertex> {
     vertex_shader: Option<ShaderSource>,
     fragment_shader: Option<ShaderSource>,
     topology: PrimitiveTopology,
-    blend_mode: BlendMode,
-    color_blend: Option<ColorBlendConfig>,
+    blend_mode: Option<BlendMode>,
+    color_blend: Option<ColorBlendOverrides>,
     cull_mode: CullMode,
     front_face: FrontFace,
     polygon_mode: PolygonMode,
@@ -225,7 +225,7 @@ impl<TVertex> Default for PipelineSpec<TVertex> {
             vertex_shader: None,
             fragment_shader: None,
             topology: PrimitiveTopology::TriangleList,
-            blend_mode: BlendMode::Opaque,
+            blend_mode: None,
             color_blend: None,
             cull_mode: CullMode::None,
             front_face: FrontFace::CounterClockwise,
@@ -283,7 +283,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     /// [`Self::color_blend`] afterward to select an explicit configuration.
     #[must_use]
     pub fn blend_mode(mut self, blend_mode: BlendMode) -> Self {
-        self.blend_mode = blend_mode;
+        self.blend_mode = Some(blend_mode);
         self.color_blend = None;
         self
     }
@@ -295,7 +295,17 @@ impl<TVertex> PipelineSpec<TVertex> {
     /// call clears this override.
     #[must_use]
     pub fn color_blend(mut self, config: ColorBlendConfig) -> Self {
-        self.color_blend = Some(config);
+        self.color_blend = Some(ColorBlendOverrides::from_config(config));
+        self
+    }
+
+    /// Replaces the active blend request with per-field overrides.
+    ///
+    /// Unset fields use the window's context defaults at build. The legacy
+    /// inspector still reports the last legacy selection, or `Opaque`.
+    #[must_use]
+    pub fn color_blend_overrides(mut self, overrides: ColorBlendOverrides) -> Self {
+        self.color_blend = Some(overrides);
         self
     }
 
@@ -389,22 +399,33 @@ impl<TVertex> PipelineSpec<TVertex> {
     /// Returns the configured blend mode.
     #[must_use]
     pub const fn blend_mode_value(&self) -> BlendMode {
-        self.blend_mode
+        match self.blend_mode {
+            Some(mode) => mode,
+            None => BlendMode::Opaque,
+        }
     }
 
-    /// Returns the blend configuration that this spec will use at build.
-    ///
-    /// An explicit [`Self::color_blend`] value takes precedence; otherwise this
-    /// resolves the legacy mode while preserving `BlendMode::Alpha`'s historical
-    /// alpha equation. The built pipeline's getter is authoritative for a
-    /// successfully created pipeline.
+    /// Resolves the specification against VMNL's opaque default, without a window.
+    /// Use the built pipeline's getter for the actual state inherited from a context.
     #[must_use]
     pub const fn color_blend_config_value(&self) -> ColorBlendConfig {
+        self.color_blend_overrides_value()
+            .resolve(ColorBlendConfig::opaque())
+    }
+
+    /// Returns active local blend requests. A legacy mode or complete preset fixes every field.
+    #[must_use]
+    pub const fn color_blend_overrides_value(&self) -> ColorBlendOverrides {
         match self.color_blend {
             Some(config) => config,
             None => match self.blend_mode {
-                BlendMode::Opaque => ColorBlendConfig::opaque(),
-                BlendMode::Alpha => ColorBlendConfig::legacy_alpha(),
+                Some(BlendMode::Opaque) => {
+                    ColorBlendOverrides::from_config(ColorBlendConfig::opaque())
+                }
+                Some(BlendMode::Alpha) => {
+                    ColorBlendOverrides::from_config(ColorBlendConfig::legacy_alpha())
+                }
+                None => ColorBlendOverrides::EMPTY,
             },
         }
     }
@@ -450,7 +471,11 @@ impl<TVertex> PipelineSpec<TVertex> {
         let depth_stencil_state = self
             .depth
             .resolve(window.render_target_config().depth_value().is_some())?;
-        let color_blend = self.color_blend_config_value();
+        let color_blend = self.color_blend_overrides_value().resolve(
+            window
+                .raw_color_blend_defaults()
+                .resolve(ColorBlendConfig::opaque()),
+        );
 
         let vertex_shader = self.vertex_shader.ok_or_else(|| {
             VMNLError::new(VMNLErrorKind::InvalidState(

@@ -103,7 +103,8 @@ An explicit view can remap sampled channels or select the compatible RGBA8
 UNORM/sRGB format if mutable-format views were requested when the image was
 created. A non-identity mapping or changed view format has no inherited color
 and alpha interpretation for managed-color consumers unless the view builder
-declares one. Raw shader values remain shader-owned; sRGB view sampling still
+or [context defaults](../reference/texture/texture_defaults.md) declare one.
+Raw shader values remain shader-owned. sRGB view sampling still
 performs Vulkan's format-defined RGB decode. Explicit views retain the same
 image storage and upload dependency. They cover the full single-mip image; mip
 range selection is outside this workflow.

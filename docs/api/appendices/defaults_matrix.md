@@ -4,6 +4,7 @@
 |---|---|
 | `BufferMemoryPreference` | `Device` |
 | `ContextBuilder` / `DeviceConfig` | automatic compatible GPU/graphics queue selection; no optional feature request |
+| `TextureDefaults` / `ColorBlendOverrides` | every field unset; resolve local request, context request, then standard default |
 | `Rgba` | `(0, 0, 0, 0)`; named colors are opaque |
 | `Vector2f`, `Vertex2D` | Component/field zero defaults |
 | `WindowBuilder` | title `VMNL Window`, `800x600`, common event delivery enabled, joystick event delivery/tracking disabled, zero-dead-zone `Math2D` left/right sticks, built-in 2D shaders, opaque black clear, no size limits, automatic present mode |
@@ -26,14 +27,14 @@
 | Triangle | white per vertex unless created from colored vertices; device memory preference |
 | Line | width `1.0`, butt cap, white, device memory preference |
 | Indexed shape / raw geometry / uniform | device memory preference |
-| `PipelineSpec` | shaders missing, `TriangleList`, legacy `BlendMode::Opaque` resolving to blending-disabled `ColorBlendConfig::opaque()`, `CullMode::None`, `FrontFace::CounterClockwise`, `PolygonMode::Fill`, line width `1.0`, viewport/scissor `FullFramebuffer`, depth `Disabled` |
+| `PipelineSpec` | shaders missing, `TriangleList`, blend inherited from the context then the opaque preset, `CullMode::None`, `FrontFace::CounterClockwise`, `PolygonMode::Fill`, line width `1.0`, viewport/scissor `FullFramebuffer`, depth `Disabled` |
 | `ViewportPolicy` / `ScissorPolicy` | `FullFramebuffer`, resolved against the acquired image extent on each raw draw |
 | `GeometryBuilder` | no indices |
 | `PixelSource` | tightly packed top-left rows; encoding follows `TextureFormat`; straight alpha; automatic usage; no explicit range, so the supplied length must equal the required end |
 | automatic texture usage | sampled plus transfer destination; no implicit transfer source |
 | `Texture2DBuilder` / image allocation | optimal tiling; one mip level; device-preferred image memory; `General` layout; `Wait` retirement for pending upload |
-| `Texture2DBuilder::with_mutable_format_views` | disabled; image supports only its requested RGBA8 format |
-| `TextureView2DBuilder` | source format, identity RGBA mapping, inherited source color/alpha declarations only for an unchanged view; changed format/mapping has no sampled interpretation unless explicit |
+| `Texture2DBuilder::with_mutable_format_views` | inherits the context policy or disables mutable-format views |
+| `TextureView2DBuilder` | inherits context fields; otherwise the storage format and identity mapping, with texture declarations inherited only by an unchanged view |
 | `PngDecodeOptions::decode_png` | untagged input defaults to sRGB; PNG alpha or `tRNS` defaults to straight alpha; otherwise opaque alpha |
 | `SamplerConfig` / `.linear()` | linear min/mag/mipmap filters; U/V clamp-to-edge; transparent float border; min LOD 0; unbounded max LOD; bias 0; anisotropy 1 (disabled); normalized coordinates |
 | `SamplerConfig::nearest()` | nearest min/mag/mipmap filters; all other settings match the linear preset |

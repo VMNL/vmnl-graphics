@@ -144,13 +144,15 @@ impl VMNLWindow {
 mod tests {
     #![allow(clippy::expect_used, clippy::panic, clippy::unwrap_used)]
 
-    use crate::common::{ColorBlendConfig, ColorBlendFactor, ColorBlendOperation};
+    use crate::common::{
+        ColorBlendConfig, ColorBlendFactor, ColorBlendOperation, ColorBlendOverrides,
+    };
     use crate::raw::{self, Scissor, ScissorPolicy, Viewport, ViewportPolicy};
     use crate::texture::{
         AddressMode, AlphaMode, ColorEncoding, PixelSource, Sampler, SamplerBorderColor,
         SamplerConfig, SamplerCoordinateMode, SamplerLodLimit, Texture2D, TextureComponent,
-        TextureComponentMapping, TextureFormat, TextureView2D, TextureViewInterpretation,
-        UploadWaitOutcome,
+        TextureComponentMapping, TextureDefaults, TextureFormat, TextureView2D,
+        TextureViewInterpretation, UploadWaitOutcome,
     };
     use crate::{Context, DeviceFeature, VMNLError, VMNLErrorKind, VMNLResult, Window};
     use std::sync::Arc;
@@ -1030,6 +1032,42 @@ mod tests {
 
     #[test]
     #[ignore = "Requires Vulkan + GLFW display."]
+    fn raw_pipeline_resolves_blend_defaults_at_build() -> VMNLResult<()> {
+        let _guard = crate::test_support::gpu_test_guard();
+        let defaults = ColorBlendOverrides::from_config(ColorBlendConfig::straight_alpha());
+        let context = Context::builder().raw_color_blend(defaults).build()?;
+        let window = Window::builder().build(&context)?;
+        let spec = raw::Pipeline::<TexturedVertex>::builder()
+            .vertex_shader(raw::ShaderSource::Src(TEXTURED_VERTEX_SHADER.into()))
+            .fragment_shader(raw::ShaderSource::Src(SOLID_GREEN_FRAGMENT_SHADER.into()));
+        let inherited = spec.clone().build(&window)?;
+        assert_eq!(
+            inherited.color_blend_config_value(),
+            context.raw_color_blend_config()
+        );
+        let partial = spec
+            .clone()
+            .color_blend_overrides(ColorBlendOverrides::default().with_blend_enabled(false))
+            .build(&window)?;
+        assert_eq!(
+            partial.color_blend_config_value(),
+            ColorBlendConfig::straight_alpha().with_blend_enabled(false)
+        );
+        let explicit = spec.blend_mode(raw::BlendMode::Opaque).build(&window)?;
+        assert_eq!(
+            explicit.color_blend_config_value(),
+            ColorBlendConfig::opaque()
+        );
+        assert_eq!(
+            inherited.color_blend_config_value(),
+            ColorBlendConfig::straight_alpha()
+        );
+        assert_eq!(context.clone().raw_color_blend_defaults(), defaults);
+        Ok(())
+    }
+
+    #[test]
+    #[ignore = "Requires Vulkan + GLFW display."]
     fn raw_frame_preflight_rejects_resources_from_another_pipeline() -> VMNLResult<()> {
         use super::acquire::ACQUIRE_ATTEMPTS;
 
@@ -1348,6 +1386,87 @@ mod tests {
             &[0, 0, 255, 255]
         );
 
+        Ok(())
+    }
+
+    #[test]
+    #[ignore = "Requires Vulkan + GLFW display."]
+    fn texture_and_explicit_view_resolve_context_defaults_at_build() -> VMNLResult<()> {
+        let _guard = crate::test_support::gpu_test_guard();
+        let interpretation = TextureViewInterpretation::new(ColorEncoding::Srgb, AlphaMode::Opaque);
+        let mapping = TextureComponentMapping::new(
+            TextureComponent::Blue,
+            TextureComponent::Green,
+            TextureComponent::Red,
+            TextureComponent::Alpha,
+        );
+        let defaults = TextureDefaults::default()
+            .with_mutable_format_views(Some(true))
+            .with_view_format(Some(TextureFormat::Rgba8Srgb))
+            .with_view_component_mapping(Some(mapping))
+            .with_view_interpretation(Some(interpretation));
+        let context = Context::builder().texture_defaults(defaults).build()?;
+        assert_eq!(context.texture_defaults(), defaults);
+
+        let pixels = [128, 0, 0, 255];
+        let source = PixelSource::new(1, 1, TextureFormat::Rgba8Unorm, &pixels)?;
+        let builder = Texture2D::from_pixels(&context, source).with_mutable_format_views(false);
+        assert_eq!(builder.mutable_format_views_override(), Some(false));
+        let fixed = builder.build()?;
+        assert!(!fixed.mutable_format_views_enabled());
+        let default_view = fixed.view();
+        assert_eq!(default_view.effective_format(), TextureFormat::Rgba8Unorm);
+        assert_eq!(
+            default_view.effective_component_mapping(),
+            TextureComponentMapping::identity()
+        );
+        assert_invalid_state_contains(
+            TextureView2D::builder(&fixed).build(),
+            "was not enabled when the image was created",
+        );
+        let local = TextureView2D::builder(&fixed)
+            .format(TextureFormat::Rgba8Unorm)
+            .component_mapping(TextureComponentMapping::identity())
+            .build()?;
+        assert_eq!(local.requested_interpretation(), None);
+        assert_eq!(local.sampled_interpretation(), Some(interpretation));
+
+        let builder = Texture2D::from_pixels(
+            &context,
+            PixelSource::new(1, 1, TextureFormat::Rgba8Unorm, &pixels)?,
+        );
+        assert_eq!(builder.mutable_format_views_override(), None);
+        if !supports_mutable_rgba8_srgb_view(&context) {
+            assert!(builder.prepare().is_err());
+            return Ok(());
+        }
+        let inherited = builder.build()?;
+        assert!(inherited.mutable_format_views_enabled());
+        let view = TextureView2D::builder(&inherited)
+            .component_mapping(TextureComponentMapping::identity())
+            .use_default_interpretation()
+            .build()?;
+        assert_eq!(view.requested_format(), None);
+        assert_eq!(view.effective_format(), TextureFormat::Rgba8Srgb);
+        assert!(view.uses_default_interpretation());
+        assert_eq!(view.sampled_interpretation(), None);
+        if context
+            .inner
+            .device
+            .enabled_extensions()
+            .khr_portability_subset
+            && !context.is_device_feature_enabled(DeviceFeature::ImageViewFormatSwizzle)
+        {
+            assert_invalid_state_contains(
+                TextureView2D::builder(&inherited).build(),
+                "requires enabled ImageViewFormatSwizzle",
+            );
+        } else {
+            let view = TextureView2D::builder(&inherited).build()?;
+            assert_eq!(view.requested_component_mapping(), None);
+            assert_eq!(view.effective_component_mapping(), mapping);
+            assert_eq!(view.sampled_interpretation(), Some(interpretation));
+        }
         Ok(())
     }
 

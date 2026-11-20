@@ -17,6 +17,9 @@ keyboard metadata queries.
 |---|---|
 | `Context::new()` | Initialize Vulkan state and return `VMNLResult<Context>`; adopt an active `InputRuntime` configuration or use GLFW defaults. |
 | `Context::builder()` | Prepare a default CPU-only `ContextBuilder`. |
+| `Context::texture_defaults()` | Copy the immutable [texture policies](texture/texture_defaults.md). |
+| `Context::raw_color_blend_defaults()` | Copy the explicitly configured context blend fields. |
+| `Context::raw_color_blend_config()` | Copy the complete context blend configuration resolved against the opaque preset. |
 | `Context::line_width_limits()` | Copy the selected GPU's line-width range and granularity; this does not activate `WideLines`. |
 | `Context::device_name()` | Borrow the selected GPU's diagnostic name, without allocation. |
 | `Context::is_device_feature_supported(DeviceFeature)` | Read feature support on the selected physical device. |

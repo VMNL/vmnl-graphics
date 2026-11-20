@@ -14,7 +14,13 @@ Variants: `Opaque` and `Alpha`. Derives `Clone`, `Copy`, `Debug`, `PartialEq`, `
 
 ## Construction, defaults, and validation
 
-`PipelineSpec` defaults to `Opaque`, which disables blending. `Alpha` is retained as the original exhaustive enum variant. It computes RGB as `Cs * As + Cd * (1 - As)` and alpha as `As * As + Ad * (1 - As)`, matching the previous `AttachmentBlend::alpha()` state exactly. Use [`ColorBlendConfig::straight_alpha`](../../common/color_blend_config.md) for conventional source-over alpha (`As + Ad * (1 - As)`).
+`PipelineSpec::blend_mode_value()` reports `Opaque` if omitted. Without a local
+blend request, pipeline build resolves context defaults against the opaque preset.
+Explicit `Opaque` disables blending regardless of the context. `Alpha` preserves
+the original equations `Cs * As + Cd * (1 - As)` for RGB and
+`As * As + Ad * (1 - As)` for alpha. Use
+[`ColorBlendConfig::straight_alpha`](../../common/color_blend_config.md) for conventional
+source-over alpha (`As + Ad * (1 - As)`).
 
 `PipelineSpec::blend_mode` stores the legacy request and clears an explicit color-blend override. `blend_mode_value` continues to return that request even if a later `color_blend` overrides the built state. The built [`Pipeline`](pipeline.md) exposes its effective configuration through `color_blend_config_value`. No variants are added to this enum.
 

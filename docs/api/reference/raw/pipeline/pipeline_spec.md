@@ -16,7 +16,15 @@ Configures shaders, topology, blending, triangle culling, front-face winding, po
 
 Defaults: no shaders, `TriangleList`, legacy `BlendMode::Opaque` resolving to `ColorBlendConfig::opaque()`, `CullMode::None`, `FrontFace::CounterClockwise`, `PolygonMode::Fill`, line width `1.0`. Both shaders are required. Build requires `TVertex: BufferContents + Vertex + 'static`; entry point `main`; compatible vertex inputs; scalar uniform-buffer, combined image-sampler, sampled-image, or sampler descriptors; no descriptor arrays, including length-one arrays, or push constants. Cross-stage descriptor conflicts return `InvalidState` before Vulkano layout merging. Sampling compatibility is checked when the matching `Resources` are built; samplerless `texelFetch` is outside the raw texture-sampling contract. All culling/winding combinations are valid and require no optional device feature. Setters/getters do not allocate or submit GPU work. `build` first validates rasterization against the window's logical device, before reading or compiling shaders. Non-solid modes require enabled `FillModeNonSolid`; any width other than `1.0` requires enabled `WideLines`, even for a topology that does not use that state. Support alone is insufficient. No feature is activated or GPU reselected.
 
-`color_blend(config)` overrides the legacy mode without changing `blend_mode_value()`. A later `blend_mode(mode)` clears the explicit override; calling `color_blend` afterward selects it again. The old getter continues to report the stored legacy request. `color_blend_config_value()` resolves the current selection before build; the built [`Pipeline`](pipeline.md) reports the effective state actually passed to Vulkan. The default is blending-disabled `Opaque`. `BlendMode::Alpha` preserves its historical RGB and alpha equations. See [`ColorBlendConfig`](../../common/color_blend_config.md) for the formulas, factor/operation choices, constant factors, and GPU format/device prerequisites.
+`color_blend(config)` and `blend_mode(mode)` set complete configurations. A later
+`color_blend_overrides(ColorBlendOverrides)` replaces the active selection with a partial request.
+Each unset field inherits from the window's context, then from VMNL's opaque preset.
+`color_blend_overrides_value()` reports the active local settings. The old `blend_mode_value()`
+reports the stored legacy request or `Opaque` if omitted. `BlendMode::Alpha` preserves its
+historical equations. The spec's `color_blend_config_value()` previews the local request against
+the opaque preset without a context. The built [`Pipeline`](pipeline.md) reports the actual state
+used by Vulkan. See [`ColorBlendConfig`](../../common/color_blend_config.md) and
+[`ColorBlendOverrides`](../../common/color_blend_overrides.md).
 
 Viewport and scissor both default to `FullFramebuffer`. Build validates their numbers and viewport device limits before shader I/O. Each raw draw resolves both policies against the actual acquired image extent, after any swapchain recreation. One viewport and one scissor are supported.
 
