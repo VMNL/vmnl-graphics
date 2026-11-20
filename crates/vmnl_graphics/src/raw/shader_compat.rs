@@ -41,6 +41,8 @@ pub(super) struct ShaderStageContract {
     pub(super) descriptors: BTreeMap<BindingPoint, DescriptorBindingRequirements>,
     pub(super) descriptor_arrays: BTreeSet<BindingPoint>,
     pub(super) sampler_uses: Vec<SamplerUse>,
+    #[cfg(test)]
+    function_visits: usize,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -125,21 +127,22 @@ pub(super) fn reflect_stage_contract(
         }
     }
 
-    let mut sampler_uses = Vec::new();
+    let mut analysis = FunctionAnalysis::default();
     analyze_function(
         &spirv,
         entry_point,
-        &[],
+        Vec::new(),
         &global_descriptors,
         stage_name,
-        &mut HashSet::new(),
-        &mut sampler_uses,
+        &mut analysis,
     )?;
 
     let stage = ShaderStageContract {
         descriptors,
         descriptor_arrays,
-        sampler_uses,
+        sampler_uses: analysis.sampler_uses,
+        #[cfg(test)]
+        function_visits: analysis.function_visits,
     };
     validate_reflected_pairs_for_stage(&stage)?;
     Ok(stage)
@@ -238,7 +241,7 @@ fn descriptor_kind(spirv: &Spirv, pointer_type: Id) -> (DescriptorKind, bool) {
     }
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 struct ResourceValue {
     images: BTreeSet<BindingPoint>,
     samplers: BTreeSet<BindingPoint>,
@@ -435,19 +438,39 @@ fn merge_resource_values(
         })
 }
 
+#[derive(Default)]
+struct FunctionAnalysis {
+    call_stack: HashSet<Id>,
+    // Scoped to this stage. A completed call already contributed its sampler uses.
+    completed: HashMap<(Id, Vec<ResourceValue>), ResourceValue>,
+    sampler_uses: Vec<SamplerUse>,
+    #[cfg(test)]
+    function_visits: usize,
+}
+
 fn analyze_function(
     spirv: &Spirv,
     function_id: Id,
-    arguments: &[ResourceValue],
+    arguments: Vec<ResourceValue>,
     descriptors: &HashMap<Id, GlobalDescriptor>,
     stage_name: &str,
-    call_stack: &mut HashSet<Id>,
-    sampler_uses: &mut Vec<SamplerUse>,
+    analysis: &mut FunctionAnalysis,
 ) -> VMNLResult<ResourceValue> {
-    if !call_stack.insert(function_id) {
+    if analysis.call_stack.contains(&function_id) {
         return Err(invalid_shader(format!(
             "raw {stage_name} shader uses recursive functions in descriptor sampling"
         )));
+    }
+
+    let key = (function_id, arguments);
+    if let Some(returned) = analysis.completed.get(&key) {
+        return Ok(returned.clone());
+    }
+    analysis.call_stack.insert(function_id);
+
+    #[cfg(test)]
+    {
+        analysis.function_visits += 1;
     }
 
     let function = spirv.function(function_id);
@@ -459,15 +482,15 @@ fn analyze_function(
             _ => None,
         })
         .collect();
-    if parameter_ids.len() != arguments.len() {
-        call_stack.remove(&function_id);
+    if parameter_ids.len() != key.1.len() {
+        analysis.call_stack.remove(&function_id);
         return Err(invalid_shader(format!(
             "raw {stage_name} shader function parameter reflection is inconsistent"
         )));
     }
     let parameters: HashMap<_, _> = parameter_ids
         .into_iter()
-        .zip(arguments.iter().cloned())
+        .zip(key.1.iter().cloned())
         .collect();
 
     let mut call_results = HashMap::new();
@@ -496,11 +519,10 @@ fn analyze_function(
                 let returned = analyze_function(
                     spirv,
                     *called_function,
-                    &arguments,
+                    arguments,
                     descriptors,
                     stage_name,
-                    call_stack,
-                    sampler_uses,
+                    analysis,
                 )?;
                 call_results.insert(*result_id, returned);
             }
@@ -521,12 +543,16 @@ fn analyze_function(
                 &call_results,
                 descriptors,
                 stage_name,
-                sampler_uses,
+                &mut analysis.sampler_uses,
             )?,
         }
     }
 
-    call_stack.remove(&function_id);
+    analysis.call_stack.remove(&function_id);
+    // The entry point has no caller, so it is never reused.
+    if !analysis.call_stack.is_empty() {
+        analysis.completed.insert(key, return_value.clone());
+    }
     Ok(return_value)
 }
 
@@ -803,6 +829,27 @@ mod tests {
     }
 
     #[test]
+    fn repeated_calls_only_analyze_each_non_texture_helper_once() {
+        use std::fmt::Write;
+
+        const DEPTH: usize = 12;
+        let mut helpers = String::from("vec4 level0(vec2 uv) { return vec4(uv, 0.0, 1.0); }\n");
+        for level in 1..=DEPTH {
+            let next = level - 1;
+            writeln!(
+                helpers,
+                "vec4 level{level}(vec2 uv) {{ return level{next}(uv) + level{next}(uv * 0.5); }}"
+            )
+            .expect("formatting a String should succeed");
+        }
+        let contract = reflect_fragment(&fragment_shader(&format!("level{DEPTH}(uv)"), &helpers));
+
+        assert!(contract.descriptors.is_empty());
+        assert!(contract.sampler_uses.is_empty());
+        assert_eq!(contract.function_visits, DEPTH + 2); // main plus level0 through level12
+    }
+
+    #[test]
     fn separate_descriptor_pairs_follow_helper_parameters_across_sets() {
         let shader = r"
             #version 450
@@ -819,10 +866,14 @@ mod tests {
             }
             void main() {
                 color = sample_with(color_image, nearest_sampler, uv)
+                    + sample_with(color_image, linear_sampler, uv)
+                    + sample_with(color_image, nearest_sampler, uv * 0.5)
                     + sample_at_lod(color_image, linear_sampler, uv);
             }
         ";
         let contract = reflect_fragment(shader);
+        assert_eq!(contract.function_visits, 4);
+        assert_eq!(contract.sampler_uses.len(), 3);
         let pairs: BTreeSet<_> = contract
             .sampler_uses
             .iter()

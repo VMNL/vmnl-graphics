@@ -1025,6 +1025,11 @@ needs only a native GLFW window            -> platform test
 demonstrates visual user workflow         -> example
 ```
 
+The headless SPIR-V reflection tests compile a fragment shader whose helpers call the preceding
+helper twice. They count analyzed function bodies to check reuse of identical calls. A second
+fixture checks that calls to the same helper with distinct image/sampler bindings are analyzed
+separately and that identical calls contribute a sampling use once.
+
 ## GPU Tests
 
 GPU tests are separated because they depend on the machine:
