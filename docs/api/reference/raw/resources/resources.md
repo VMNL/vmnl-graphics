@@ -14,7 +14,7 @@ Owns descriptor resources compatible with one raw pipeline layout for `draw_raw_
 
 ## Construction, defaults, and validation
 
-Builder captures the pipeline device/layout. Every required supported binding must be supplied before build. Supported bindings are scalar uniform buffers, combined image samplers from `Texture2D` plus `Sampler`, and separate sampled-image and sampler descriptors. Shader image/sampler pairs are reflected from SPIR-V sampling instructions, including helper-function resource arguments; an image may pair with multiple samplers. If any binding uses `FrameUniform`, every `FrameUniform` in the same `Resources` must have the same swapchain image count. Texture and sampler handles must share the pipeline's `Context` identity and satisfy sampled usage and shader/sampler compatibility.
+Builder captures the pipeline device/layout. Every required supported binding must be supplied before build. Supported bindings are scalar uniform buffers, combined image samplers from `Texture2D` or `TextureView2D` plus `Sampler`, and separate sampled-image and sampler descriptors. Shader image/sampler pairs are reflected from SPIR-V sampling instructions, including helper-function resource arguments; an image may pair with multiple views and samplers. If any binding uses `FrameUniform`, every `FrameUniform` in the same `Resources` must have the same swapchain image count. Texture, view and sampler handles must share the pipeline's `Context` identity and satisfy sampled usage and shader/sampler compatibility.
 
 ## Units, coordinates, and valid ranges
 
@@ -30,11 +30,11 @@ Builder entry is infallible; resource build/submission can reject device, layout
 
 ## Allocation, transfers, synchronization, and GPU cost
 
-Static resources allocate descriptor sets at build. `FrameUniform` resources keep shared frame-uniform slots and allocate descriptor sets during frame recording so the acquired image uses the latest slot. Texture resources retain the default image view, sampler, and upload dependency; a pending initial upload joins each consuming frame without a host wait. Exact cost is unspecified.
+Static resources allocate descriptor sets at build. `FrameUniform` resources keep shared frame-uniform slots and allocate descriptor sets during frame recording so the acquired image uses the latest slot. Texture resources retain their selected image view, sampler, and upload dependency; a pending initial upload joins each consuming frame without a host wait. Exact cost is unspecified.
 
 ## Platform, Vulkan, and display constraints
 
-Current surface supports scalar uniform-buffer, combined image-sampler, sampled-image, and sampler descriptors. Resources bind only the default single-layer, single-mip 2D texture view. Arrays, custom views, storage buffers, and push constants remain unsupported.
+Current surface supports scalar uniform-buffer, combined image-sampler, sampled-image, and sampler descriptors. Texture resources use full-range, single-layer, single-mip 2D views; explicit views can select a compatible RGBA8 UNORM/sRGB format and component mapping on the same storage. Arrays, storage buffers, mip-range selection, and push constants remain unsupported.
 
 ## Example and related types
 

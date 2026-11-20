@@ -55,6 +55,19 @@ fn raw_separate_texture_and_sampler_bindings_are_public_from_vmnl() -> VMNLResul
         u32,
         &vmnl_graphics::texture::Sampler,
     ) -> raw::ResourcesBuilder = raw::ResourcesBuilder::sampler;
+    let _sampled_texture_view: fn(
+        raw::ResourcesBuilder,
+        u32,
+        u32,
+        &vmnl_graphics::texture::TextureView2D,
+        &vmnl_graphics::texture::Sampler,
+    ) -> raw::ResourcesBuilder = raw::ResourcesBuilder::sampled_texture_view;
+    let _texture_view: fn(
+        raw::ResourcesBuilder,
+        u32,
+        u32,
+        &vmnl_graphics::texture::TextureView2D,
+    ) -> raw::ResourcesBuilder = raw::ResourcesBuilder::texture_view;
 
     Ok(())
 }

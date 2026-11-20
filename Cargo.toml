@@ -9,6 +9,7 @@ members = [
     "examples/d2/circles",
     "examples/raw/d2_composition",
     "examples/raw/pipeline",
+    "examples/raw/texture",
     "examples/raw/triangle",
     "examples/raw/uniform",
     "examples/window/custom_shaders",
