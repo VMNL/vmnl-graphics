@@ -1068,8 +1068,10 @@ from the same `Context`. The latter uses a separate raw pipeline and `FrameUnifo
 resources for each window, submits both frames before readback, and checks their independently
 tinted pixels. Another readback combines a static `Uniform` with a texture, draws a raw color-only
 pass after the texture pass, and drops the resource handles after submission before reading pixels.
-A foreign `Context` texture is rejected during resource construction. These tests do not inject
-Vulkan upload/device-loss failures or prove behavior on
+A foreign `Context` texture is rejected during resource construction. A renderer fixture injects
+a known initial upload failure after resource construction and verifies that both descriptor paths
+return `TextureUploadFailed` with zero swapchain acquisitions, then submits a valid frame on the
+same window. These tests do not inject Vulkan upload/device-loss failures or prove behavior on
 unavailable GPUs and display servers. A separate fixture exercises the
 context-shutdown drain. `just test-gpu` and
 `just test-gpu-compile` include both the private library fixtures and `tests/gpu` integration tests.

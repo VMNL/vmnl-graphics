@@ -54,7 +54,7 @@ impl VMNLWindow {
     /// - `previous_frame_end`: Mutable reference to the previous frame future.
     /// - `acquire_future`: Future for image acquisition.
     /// - `command_buffer`: Command buffer for current frame.
-    /// - `upload_dependencies`: Texture upload futures needed by raw draws in this frame.
+    /// - `upload_dependencies`: Unique texture uploads validated before acquisition.
     /// - `image_index`: Index of the acquired image.
     /// - `graphics_queue`: Queue to execute command buffer.
     /// - `swapchain`: Swapchain used for presentation.
@@ -72,17 +72,8 @@ impl VMNLWindow {
             .take()
             .ok_or_else(|| VMNLError::new(VMNLErrorKind::VulkanUnknownError))?;
         let mut before_execute = previous.join(acquire_future).boxed_send_sync();
-        let mut joined_upload_dependencies: Vec<TextureUploadDependency> = Vec::new();
         for dependency in upload_dependencies {
-            if joined_upload_dependencies
-                .iter()
-                .any(|joined| Arc::ptr_eq(joined, &dependency))
-            {
-                continue;
-            }
-
-            before_execute = before_execute.join(dependency.clone()).boxed_send_sync();
-            joined_upload_dependencies.push(dependency);
+            before_execute = before_execute.join(dependency.future()).boxed_send_sync();
         }
         let after_exec = before_execute
             .then_execute(graphics_queue.clone(), command_buffer)

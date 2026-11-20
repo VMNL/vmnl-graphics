@@ -23,6 +23,7 @@
 | Viewport/scissor policy resolution | `InvalidState` for invalid viewport numbers/ranges/full dimensions or signed scissor sum overflow | Correct framebuffer-pixel values; headless resolution does not validate device viewport limits |
 | Raw geometry/uniform build | invalid counts/indices or buffer allocation | Correct data/reduce allocation |
 | Raw resources build | context/device/layout/set/binding/type/array/duplicate/missing mismatch; unsampleable texture or incompatible sampler; descriptor allocation | Align shader, resource usage, and sampler contract |
+| Frame submit with sampled textures | `TextureUploadFailed` before acquisition when a referenced initial upload has a recorded failure or its fence status query fails | Submit a subsequent frame with valid resources on the same window if the device remains usable |
 | Frame submit | device/render-pass/resource mismatch; `VulkanOutOfDate` during acquisition, presentation, or zero-size recreation; record/submit/present/device errors | Keep processing events and retry with the same window after its framebuffer is renderable; rebuild/terminate on hard device failure |
 | GLFW callbacks/infallible setters | No typed result; routed through callback/default backend handling | Log/classify callback and reconcile observed state |
 

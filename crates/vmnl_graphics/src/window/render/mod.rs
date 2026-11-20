@@ -25,6 +25,26 @@ pub(crate) enum RenderPassCommand {
     Raw { items: Vec<RenderItemRaw> },
 }
 
+fn prepare_texture_uploads(
+    commands: &[RenderPassCommand],
+) -> VMNLResult<Vec<TextureUploadDependency>> {
+    let uploads = commands.iter().flat_map(|command| match command {
+        RenderPassCommand::Raw { items } => items.as_slice(),
+        RenderPassCommand::D2 { .. } => &[],
+    });
+    let mut dependencies = Vec::new();
+    for dependency in uploads.flat_map(RenderItemRaw::upload_dependencies) {
+        if !dependencies
+            .iter()
+            .any(|seen| Arc::ptr_eq(seen, &dependency))
+        {
+            dependency.check_for_failure()?;
+            dependencies.push(dependency);
+        }
+    }
+    Ok(dependencies)
+}
+
 impl VMNLWindow {
     pub(crate) fn render_commands(
         &mut self,
@@ -44,6 +64,7 @@ impl VMNLWindow {
         commands: &[RenderPassCommand],
         frame_uniform_writes: Vec<PendingFrameUniformWrite<'_>>,
     ) -> VMNLResult<()> {
+        let upload_dependencies = prepare_texture_uploads(commands)?;
         if self.state.swapchain_recreation_requested {
             self.recreate_swapchain()?;
         }
@@ -85,14 +106,6 @@ impl VMNLWindow {
 
         let command_buffer: Arc<PrimaryAutoCommandBuffer> =
             self.build_command_buffer(image_index, commands)?;
-        let upload_dependencies = commands
-            .iter()
-            .filter_map(|command| match command {
-                RenderPassCommand::Raw { items } => Some(items),
-                RenderPassCommand::D2 { .. } => None,
-            })
-            .flat_map(|items| items.iter().flat_map(RenderItemRaw::upload_dependencies))
-            .collect::<Vec<TextureUploadDependency>>();
         let frame_sync = Self::frame_sync(
             &mut self.handle.previous_frame_end,
             acquire_future,
@@ -919,6 +932,70 @@ mod tests {
             // Nearest therefore returns red; Linear would blend the two texels.
             assert_eq!(&readback[8..12], &[255, 0, 0, 255]);
         }
+
+        Ok(())
+    }
+
+    #[test]
+    #[ignore = "Requires Vulkan + GLFW display."]
+    fn raw_failed_upload_rejections_leave_swapchain_available() -> VMNLResult<()> {
+        use super::acquire::ACQUIRE_ATTEMPTS;
+
+        let _guard = crate::test_support::gpu_test_guard();
+        let context = Context::new()?;
+        let mut window = Window::builder().build(&context)?;
+        let pipeline = raw_texture_pipeline(&window, TEXTURED_FRAME_UNIFORM_FRAGMENT_SHADER)?;
+        let sampler = Sampler::builder(&context)
+            .config(SamplerConfig::nearest())
+            .build()?;
+        let tint = TextureTint { tint: [1.0; 4] };
+        let uniform = raw::Uniform::builder(tint).build(&context)?;
+        let frame_uniform = raw::FrameUniform::builder(tint).build(&window)?;
+        let failed = raw_test_texture(&context)?;
+        let valid = raw_test_texture(&context)?;
+        let failed_static = raw::Resources::builder(&pipeline)
+            .sampled_texture(0, 0, &failed, &sampler)
+            .uniform(0, 1, &uniform)
+            .build(&context)?;
+        let failed_dynamic = raw::Resources::builder(&pipeline)
+            .sampled_texture(0, 0, &failed, &sampler)
+            .frame_uniform(0, 1, &frame_uniform)
+            .build(&context)?;
+        let valid_resources = raw::Resources::builder(&pipeline)
+            .sampled_texture(0, 0, &valid, &sampler)
+            .uniform(0, 1, &uniform)
+            .build(&context)?;
+        let geometry = raw::Geometry::builder(textured_quad()).build(&context)?;
+
+        // Inject the status after Resources construction, without losing the Vulkan device.
+        let message = "simulated initial upload failure";
+        failed.simulate_initial_upload_failure(message);
+        let attempts_before = ACQUIRE_ATTEMPTS.get();
+        for resources in [&failed_static, &failed_dynamic] {
+            let error = window
+                .render()
+                .draw_raw_2d_with(&pipeline, resources, [&geometry])
+                .submit()
+                .expect_err("known upload failure must reject submission");
+            assert!(matches!(
+                error.kind(),
+                VMNLErrorKind::TextureUploadFailed(reason) if reason == message
+            ));
+            assert_eq!(ACQUIRE_ATTEMPTS.get(), attempts_before);
+        }
+        let error = failed
+            .initial_upload()
+            .is_complete()
+            .expect_err("the ticket must observe the same failure");
+        assert!(matches!(
+            error.kind(),
+            VMNLErrorKind::TextureUploadFailed(reason) if reason == message
+        ));
+        window
+            .render()
+            .draw_raw_2d_with(&pipeline, &valid_resources, [&geometry])
+            .submit()?;
+        assert!(ACQUIRE_ATTEMPTS.get() > attempts_before);
 
         Ok(())
     }
