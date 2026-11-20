@@ -1068,7 +1068,9 @@ from the same `Context`. The latter uses a separate raw pipeline and `FrameUnifo
 resources for each window, submits both frames before readback, and checks their independently
 tinted pixels. Another readback combines a static `Uniform` with a texture, draws a raw color-only
 pass after the texture pass, and drops the resource handles after submission before reading pixels.
-A foreign `Context` texture is rejected during resource construction. A renderer fixture injects
+A foreign `Context` texture is rejected during resource construction. A depth-gather fixture checks
+`InvalidState` with the sampler set and binding for both coordinate modes, using a combined
+binding and separate bindings passed through a GLSL helper. A renderer fixture injects
 a known initial upload failure after resource construction and verifies that both descriptor paths
 return `TextureUploadFailed` with zero swapchain acquisitions, then submits a valid frame on the
 same window. These tests do not inject Vulkan upload/device-loss failures or prove behavior on

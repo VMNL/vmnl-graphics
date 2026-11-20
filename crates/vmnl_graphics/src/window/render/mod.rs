@@ -315,6 +315,30 @@ mod tests {
         }
     ";
 
+    const COMBINED_DEPTH_GATHER_SHADER: &str = r"
+        #version 450
+        layout(set = 0, binding = 0) uniform sampler2DShadow shadow_image;
+        layout(location = 0) in vec2 texture_uv;
+        layout(location = 0) out vec4 out_color;
+        void main() {
+            out_color = textureGather(shadow_image, texture_uv, 0.5);
+        }
+    ";
+
+    const SEPARATE_DEPTH_GATHER_SHADER: &str = r"
+        #version 450
+        layout(set = 0, binding = 0) uniform texture2D shadow_image;
+        layout(set = 1, binding = 0) uniform samplerShadow shadow_sampler;
+        layout(location = 0) in vec2 texture_uv;
+        layout(location = 0) out vec4 out_color;
+        vec4 gather_shadow(texture2D image, samplerShadow state, vec2 uv) {
+            return textureGather(sampler2DShadow(image, state), uv, 0.5);
+        }
+        void main() {
+            out_color = gather_shadow(shadow_image, shadow_sampler, texture_uv);
+        }
+    ";
+
     const SEPARATE_IMPLICIT_FRAGMENT_SHADER: &str = r"
         #version 450
         layout(set = 0, binding = 0) uniform texture2D color_image;
@@ -1532,6 +1556,40 @@ mod tests {
                     "linear sample channel {channel}: expected {expected} ±1, got {actual}"
                 );
             }
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    #[ignore = "Requires Vulkan + GLFW display."]
+    fn raw_depth_gather_rejects_both_sampler_coordinate_modes() -> VMNLResult<()> {
+        let _guard = crate::test_support::gpu_test_guard();
+        let context = Context::new()?;
+        let window = Window::builder().build(&context)?;
+        let texture = raw_test_texture(&context)?;
+        let combined = raw_texture_pipeline(&window, COMBINED_DEPTH_GATHER_SHADER)?;
+        let separate = raw_texture_pipeline(&window, SEPARATE_DEPTH_GATHER_SHADER)?;
+        for config in [
+            SamplerConfig::nearest(),
+            SamplerConfig::nearest()
+                .with_coordinate_mode(SamplerCoordinateMode::Texel)
+                .with_max_lod(SamplerLodLimit::Value(0.0)),
+        ] {
+            let sampler = Sampler::builder(&context).config(config).build()?;
+            assert_invalid_state_contains(
+                raw::Resources::builder(&combined)
+                    .sampled_texture(0, 0, &texture, &sampler)
+                    .build(&context),
+                "set 0 binding 0 requires depth comparison",
+            );
+            assert_invalid_state_contains(
+                raw::Resources::builder(&separate)
+                    .texture(0, 0, &texture)
+                    .sampler(1, 0, &sampler)
+                    .build(&context),
+                "set 1 binding 0 requires depth comparison",
+            );
         }
 
         Ok(())
