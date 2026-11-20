@@ -16,7 +16,11 @@ Presets: `opaque()`, `straight_alpha()`, and `premultiplied_alpha()`. Configurat
 
 `opaque()` disables blending and writes the fragment output directly. `straight_alpha()` configures RGB source-over as `Cs * As + Cd * (1 - As)` and alpha as `As + Ad * (1 - As)`. `premultiplied_alpha()` configures RGB as `Cs + Cd * (1 - As)` and alpha as `As + Ad * (1 - As)`; the shader must output premultiplied RGB. Each preset can be changed through the `with_*` methods.
 
-Pass the copied configuration to `raw::PipelineSpec::color_blend`. A later `blend_mode` call clears the explicit configuration; a later `color_blend` call replaces it. `PipelineSpec::color_blend_config_value` reports the configuration selected for build. `Pipeline::color_blend_config_value` reports the effective configuration used to create a successfully built pipeline.
+Pass the copied configuration to `raw::PipelineSpec::color_blend` to set all fields explicitly.
+A later `blend_mode` call selects the complete legacy preset.
+Use [`ColorBlendOverrides`](color_blend_overrides.md) for per-field inheritance.
+`PipelineSpec::color_blend_config_value` previews the local request against the opaque preset.
+`Pipeline::color_blend_config_value` reports the effective configuration used by the built pipeline.
 
 Configuration is CPU-only and does not query the device or allocate GPU resources. Pipeline construction checks Vulkan and render-target compatibility. No fallback or automatic rewrite is performed.
 

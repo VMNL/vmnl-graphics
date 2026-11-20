@@ -36,9 +36,10 @@ allocation. `view` returns the full single-layer, single-mip identity view and
 inherits the texture's encoding and alpha declarations.
 
 `Texture2DBuilder::with_mutable_format_views(true)` requests at image creation
-that the image support both RGBA8 UNORM and RGBA8 sRGB views. It defaults to
-`false`; unsupported format/usage/extent combinations fail during `prepare`
-before image allocation. Inspect the request on the builder and the resolved
+that the image support both RGBA8 UNORM and RGBA8 sRGB views. An omitted request
+uses [`TextureDefaults`](texture_defaults.md) from the context, then `false`.
+Unsupported format/usage/extent combinations fail in `prepare` before image allocation.
+Inspect the local request via `mutable_format_views_override` and the resolved
 creation policy on `PreparedTexture2D` or `Texture2D`. `supports_view_format`
 reports whether a texture's creation policy permits a format; it does not
 replace view construction or sampler validation.
@@ -46,12 +47,14 @@ replace view construction or sampler validation.
 `TextureView2D::builder` creates a view of the same image storage. The builder
 can request an exact compatible format, an output-to-source RGBA component
 mapping (including zero/one constants), and a `TextureViewInterpretation` for
-managed-color consumers. The mapping and format are inspectable as requested
+managed-color consumers. Unset fields use context requests before the standard
+defaults. `use_default_interpretation()` bypasses the context declaration.
+The mapping and format are inspectable as requested
 and effective values. The unchanged identity view reuses the existing Vulkan
 view; a changed format or mapping creates one additional Vulkan image-view
 object, retains the same image allocation and upload dependency, and has no
-view cache. A changed format or non-identity mapping has no inherited sampled
-interpretation unless one is supplied. Building an identity view does not
+view cache. With no local or context declaration, a changed format or
+non-identity mapping has unspecified interpretation. Building an identity view does not
 change the texture's color/alpha declarations. These declarations do not
 transform stored bytes; an sRGB Vulkan view still applies Vulkan's native RGB
 decode while sampling. Raw shaders may sample a view with no declared
@@ -101,8 +104,9 @@ The view retains its parent `Texture2D`, so image storage outlives the view.
 Cloning a view shares its Vulkan image-view object. `texture`,
 `shares_storage_with`, `extent`, and `effective_format` inspect ownership and
 the resolved view. `requested_format`, `requested_component_mapping`, and
-`requested_interpretation` preserve explicit inputs (`None` means the field was
-inherited); the corresponding effective getters expose the selected mapping,
+`requested_interpretation` preserve local inputs (`None` means no local value).
+`uses_default_interpretation` identifies a view that bypassed the context declaration.
+The corresponding effective getters expose the selected mapping,
 format, and optional sampled interpretation. `format` remains an alias for the
 effective view format. `validate_sampler` rejects cross-context pairs,
 unsampleable images, unsupported linear filtering, integer border colors for

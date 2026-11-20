@@ -3,11 +3,13 @@
 
 //! Texture sources, GPU resources, pixel preparation, and sampler configuration.
 
+mod defaults;
 mod gpu;
 mod pixel;
 mod png;
 mod sampler;
 
+pub use defaults::TextureDefaults;
 pub(crate) use gpu::{
     validate_sampled_image_sampler, SampledImageBinding, SampledSamplerBinding,
     SampledTextureBinding, TextureRetirementRegistry, TextureUploadDependency,

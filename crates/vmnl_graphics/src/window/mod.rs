@@ -150,6 +150,10 @@ impl Window {
         self.inner.handle.vmnl_instance.device.clone()
     }
 
+    pub(crate) fn raw_color_blend_defaults(&self) -> crate::common::ColorBlendOverrides {
+        self.inner.handle.vmnl_instance.raw_color_blend_defaults
+    }
+
     pub(crate) fn memory_allocator(&self) -> Arc<StandardMemoryAllocator> {
         self.inner.handle.vmnl_instance.memory_allocator.clone()
     }

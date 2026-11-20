@@ -123,7 +123,7 @@ pub struct Texture2DBuilder<'a> {
     source: TextureSource<'a>,
     png_options: PngDecodeOptions,
     usage_override: Option<TextureUsageRequest>,
-    mutable_format_views: bool,
+    mutable_format_views: Option<bool>,
     retirement_policy: TextureRetirementPolicy,
 }
 
@@ -136,7 +136,7 @@ impl<'a> Texture2DBuilder<'a> {
             source: TextureSource::Pixels(source),
             png_options: PngDecodeOptions::default(),
             usage_override: None,
-            mutable_format_views: false,
+            mutable_format_views: None,
             retirement_policy: TextureRetirementPolicy::Wait,
         }
     }
@@ -149,7 +149,7 @@ impl<'a> Texture2DBuilder<'a> {
             source: TextureSource::Png(bytes),
             png_options: PngDecodeOptions::default(),
             usage_override: None,
-            mutable_format_views: false,
+            mutable_format_views: None,
             retirement_policy: TextureRetirementPolicy::Wait,
         }
     }
@@ -162,7 +162,7 @@ impl<'a> Texture2DBuilder<'a> {
             source: TextureSource::File(path.into()),
             png_options: PngDecodeOptions::default(),
             usage_override: None,
-            mutable_format_views: false,
+            mutable_format_views: None,
             retirement_policy: TextureRetirementPolicy::Wait,
         }
     }
@@ -189,20 +189,27 @@ impl<'a> Texture2DBuilder<'a> {
     /// When enabled, this RGBA8 image may be viewed as either RGBA8 UNORM or RGBA8 sRGB.
     /// The request is exact: unsupported mutable-image or sampled-format combinations return an
     /// error from [`prepare`](Self::prepare) instead of silently creating a fixed-format image.
-    /// The default is `false`.
+    /// An omitted request inherits the context setting, then defaults to `false`.
     ///
     /// # Errors
     /// `prepare` returns `InvalidState` when the requested image configuration is unsupported, or
     /// `VulkanValidationFailed` when the device capability query fails.
     #[must_use]
     pub const fn with_mutable_format_views(mut self, enabled: bool) -> Self {
-        self.mutable_format_views = enabled;
+        self.mutable_format_views = Some(enabled);
         self
     }
 
-    /// Returns the mutable-format-view request configured on this builder.
+    /// Returns whether mutable-format views were explicitly enabled on this builder.
+    /// Use `mutable_format_views_override` to distinguish unset from explicit `false`.
     #[must_use]
     pub const fn mutable_format_views_requested(&self) -> bool {
+        matches!(self.mutable_format_views, Some(true))
+    }
+
+    /// Returns the exact local mutable-format setting, if supplied.
+    #[must_use]
+    pub const fn mutable_format_views_override(&self) -> Option<bool> {
         self.mutable_format_views
     }
 
@@ -223,6 +230,10 @@ impl<'a> Texture2DBuilder<'a> {
     /// # Errors
     /// Returns a source, descriptor, image, staging-buffer, image-view, or command-buffer error.
     pub fn prepare(self) -> VMNLResult<PreparedTexture2D> {
+        let mutable_format_views = self
+            .mutable_format_views
+            .or(self.context.texture_defaults().mutable_format_views())
+            .unwrap_or(false);
         let (pixels, source_usage) = self.prepare_source()?;
         let usage_request = self.usage_override.unwrap_or(source_usage);
         let usage = match usage_request {
@@ -237,7 +248,7 @@ impl<'a> Texture2DBuilder<'a> {
 
         let format = vulkan_format(pixels.format());
         let image_usage = vulkan_image_usage(usage);
-        if self.mutable_format_views {
+        if mutable_format_views {
             validate_mutable_view_format_support(
                 &self.context,
                 format,
@@ -247,12 +258,12 @@ impl<'a> Texture2DBuilder<'a> {
                 image_usage,
             )?;
         }
-        let flags = if self.mutable_format_views {
+        let flags = if mutable_format_views {
             ImageCreateFlags::MUTABLE_FORMAT
         } else {
             ImageCreateFlags::empty()
         };
-        let view_formats = if self.mutable_format_views
+        let view_formats = if mutable_format_views
             && (self.context.inner.device.api_version() >= Version::V1_2
                 || self
                     .context
@@ -314,7 +325,7 @@ impl<'a> Texture2DBuilder<'a> {
             encoding: pixels.encoding(),
             alpha_mode: pixels.alpha_mode(),
             usage,
-            mutable_format_views: self.mutable_format_views,
+            mutable_format_views,
             retirement_policy: self.retirement_policy,
         })
     }
@@ -503,6 +514,7 @@ impl Texture2D {
             requested_component_mapping: None,
             effective_component_mapping: TextureComponentMapping::identity(),
             requested_interpretation: None,
+            use_default_interpretation: true,
             sampled_interpretation: Some(TextureViewInterpretation::new(
                 self.storage.encoding,
                 self.storage.alpha_mode,
@@ -550,6 +562,7 @@ pub struct TextureView2D {
     requested_component_mapping: Option<TextureComponentMapping>,
     effective_component_mapping: TextureComponentMapping,
     requested_interpretation: Option<TextureViewInterpretation>,
+    use_default_interpretation: bool,
     sampled_interpretation: Option<TextureViewInterpretation>,
 }
 
@@ -703,6 +716,7 @@ pub struct TextureView2DBuilder {
     format: Option<TextureFormat>,
     component_mapping: Option<TextureComponentMapping>,
     interpretation: Option<TextureViewInterpretation>,
+    use_default_interpretation: bool,
 }
 
 impl TextureView2DBuilder {
@@ -714,7 +728,8 @@ impl TextureView2DBuilder {
         self
     }
 
-    /// Requests an exact sampled-component mapping. The identity mapping is the default.
+    /// Requests an exact sampled-component mapping. Omit it to inherit the context setting
+    /// or use identity if the context has none.
     #[must_use]
     pub const fn component_mapping(mut self, mapping: TextureComponentMapping) -> Self {
         self.component_mapping = Some(mapping);
@@ -723,12 +738,22 @@ impl TextureView2DBuilder {
 
     /// Declares the sampled color and alpha interpretation for managed-color consumers.
     ///
-    /// A non-identity mapping or changed view format has no inherited interpretation unless this
-    /// method is called. Raw shaders may still sample such a view because their values remain
-    /// shader-owned data.
+    /// This overrides a context declaration. With no declaration, only an identity view in
+    /// the storage format inherits the texture declarations. Raw shaders may also sample views
+    /// whose interpretation is unspecified.
     #[must_use]
     pub const fn interpretation(mut self, interpretation: TextureViewInterpretation) -> Self {
         self.interpretation = Some(interpretation);
+        self.use_default_interpretation = false;
+        self
+    }
+
+    /// Bypasses the context interpretation and uses the standard texture-derived rule.
+    /// A changed format or a non-identity view then has unspecified interpretation.
+    #[must_use]
+    pub const fn use_default_interpretation(mut self) -> Self {
+        self.interpretation = None;
+        self.use_default_interpretation = true;
         self
     }
 
@@ -743,9 +768,14 @@ impl TextureView2DBuilder {
     /// device format-property query fails; or `VulkanImageViewCreationFailed` when Vulkan rejects
     /// view creation.
     pub fn build(self) -> VMNLResult<TextureView2D> {
-        let effective_format = self.format.unwrap_or(self.texture.format());
+        let defaults = self.texture.storage.context.texture_defaults();
+        let effective_format = self
+            .format
+            .or(defaults.view_format())
+            .unwrap_or(self.texture.format());
         let effective_component_mapping = self
             .component_mapping
+            .or(defaults.view_component_mapping())
             .unwrap_or_else(TextureComponentMapping::identity);
         validate_texture_view_request(
             &self.texture,
@@ -756,7 +786,12 @@ impl TextureView2DBuilder {
         let view_format_changed = effective_format != self.texture.format();
         let interpretation_required =
             view_format_changed || !effective_component_mapping.is_identity();
-        let sampled_interpretation = self.interpretation.or_else(|| {
+        let context_interpretation = if self.use_default_interpretation {
+            None
+        } else {
+            defaults.view_interpretation()
+        };
+        let sampled_interpretation = self.interpretation.or(context_interpretation).or_else(|| {
             (!interpretation_required).then(|| {
                 TextureViewInterpretation::new(self.texture.encoding(), self.texture.alpha_mode())
             })
@@ -780,6 +815,7 @@ impl TextureView2DBuilder {
             requested_component_mapping: self.component_mapping,
             effective_component_mapping,
             requested_interpretation: self.interpretation,
+            use_default_interpretation: self.use_default_interpretation,
             sampled_interpretation,
         })
     }
@@ -794,6 +830,7 @@ impl TextureView2D {
             format: None,
             component_mapping: None,
             interpretation: None,
+            use_default_interpretation: false,
         }
     }
 
@@ -821,7 +858,7 @@ impl TextureView2D {
         self.effective_format
     }
 
-    /// Returns the exact view-format request, or `None` when it inherited the image format.
+    /// Returns the local view-format request, or `None` when the format was inherited.
     #[must_use]
     pub const fn requested_format(&self) -> Option<TextureFormat> {
         self.requested_format
@@ -833,7 +870,7 @@ impl TextureView2D {
         self.effective_format
     }
 
-    /// Returns the exact component-mapping request, or `None` when identity was inherited.
+    /// Returns the local component-mapping request, or `None` when the mapping was inherited.
     #[must_use]
     pub const fn requested_component_mapping(&self) -> Option<TextureComponentMapping> {
         self.requested_component_mapping
@@ -851,11 +888,17 @@ impl TextureView2D {
         self.requested_interpretation
     }
 
+    /// Returns whether this view bypasses context interpretation.
+    #[must_use]
+    pub const fn uses_default_interpretation(&self) -> bool {
+        self.use_default_interpretation
+    }
+
     /// Returns the effective sampled interpretation, if it is known.
     ///
-    /// The identity view in the texture's storage format inherits the texture declarations.
-    /// A changed format or non-identity mapping returns `None` unless the builder supplied an
-    /// explicit interpretation.
+    /// Explicit views check their local request, then the context declaration when enabled.
+    /// Without a declaration, only identity views in the storage format inherit the texture's
+    /// declarations.
     #[must_use]
     pub const fn sampled_interpretation(&self) -> Option<TextureViewInterpretation> {
         self.sampled_interpretation

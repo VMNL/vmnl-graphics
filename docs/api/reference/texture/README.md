@@ -10,3 +10,4 @@ a later texture step.
 - [Static PNG decoding](png_decode.md)
 - [Sampler configuration](sampler_config.md)
 - [GPU resources and upload lifecycle](gpu_resources.md)
+- [TextureDefaults](texture_defaults.md)

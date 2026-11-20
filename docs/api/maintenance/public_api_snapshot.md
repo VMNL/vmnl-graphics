@@ -141,6 +141,43 @@ impl core::marker::Unpin for vmnl_graphics::common::ColorBlendConfig
 impl core::marker::UnsafeUnpin for vmnl_graphics::common::ColorBlendConfig
 impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::common::ColorBlendConfig
 impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::common::ColorBlendConfig
+pub struct vmnl_graphics::common::ColorBlendOverrides
+impl vmnl_graphics::common::ColorBlendOverrides
+pub const fn vmnl_graphics::common::ColorBlendOverrides::alpha_destination_factor(self) -> core::option::Option<vmnl_graphics::common::ColorBlendFactor>
+pub const fn vmnl_graphics::common::ColorBlendOverrides::alpha_operation(self) -> core::option::Option<vmnl_graphics::common::ColorBlendOperation>
+pub const fn vmnl_graphics::common::ColorBlendOverrides::alpha_source_factor(self) -> core::option::Option<vmnl_graphics::common::ColorBlendFactor>
+pub const fn vmnl_graphics::common::ColorBlendOverrides::blend_constants(self) -> core::option::Option<[f32; 4]>
+pub const fn vmnl_graphics::common::ColorBlendOverrides::blend_enabled(self) -> core::option::Option<bool>
+pub const fn vmnl_graphics::common::ColorBlendOverrides::color_destination_factor(self) -> core::option::Option<vmnl_graphics::common::ColorBlendFactor>
+pub const fn vmnl_graphics::common::ColorBlendOverrides::color_operation(self) -> core::option::Option<vmnl_graphics::common::ColorBlendOperation>
+pub const fn vmnl_graphics::common::ColorBlendOverrides::color_source_factor(self) -> core::option::Option<vmnl_graphics::common::ColorBlendFactor>
+pub const fn vmnl_graphics::common::ColorBlendOverrides::from_config(vmnl_graphics::common::ColorBlendConfig) -> Self
+pub const fn vmnl_graphics::common::ColorBlendOverrides::resolve(self, vmnl_graphics::common::ColorBlendConfig) -> vmnl_graphics::common::ColorBlendConfig
+pub const fn vmnl_graphics::common::ColorBlendOverrides::with_alpha_destination_factor(self, vmnl_graphics::common::ColorBlendFactor) -> Self
+pub const fn vmnl_graphics::common::ColorBlendOverrides::with_alpha_operation(self, vmnl_graphics::common::ColorBlendOperation) -> Self
+pub const fn vmnl_graphics::common::ColorBlendOverrides::with_alpha_source_factor(self, vmnl_graphics::common::ColorBlendFactor) -> Self
+pub const fn vmnl_graphics::common::ColorBlendOverrides::with_blend_constants(self, [f32; 4]) -> Self
+pub const fn vmnl_graphics::common::ColorBlendOverrides::with_blend_enabled(self, bool) -> Self
+pub const fn vmnl_graphics::common::ColorBlendOverrides::with_color_destination_factor(self, vmnl_graphics::common::ColorBlendFactor) -> Self
+pub const fn vmnl_graphics::common::ColorBlendOverrides::with_color_operation(self, vmnl_graphics::common::ColorBlendOperation) -> Self
+pub const fn vmnl_graphics::common::ColorBlendOverrides::with_color_source_factor(self, vmnl_graphics::common::ColorBlendFactor) -> Self
+impl core::clone::Clone for vmnl_graphics::common::ColorBlendOverrides
+pub fn vmnl_graphics::common::ColorBlendOverrides::clone(&self) -> vmnl_graphics::common::ColorBlendOverrides
+impl core::cmp::PartialEq for vmnl_graphics::common::ColorBlendOverrides
+pub fn vmnl_graphics::common::ColorBlendOverrides::eq(&self, &vmnl_graphics::common::ColorBlendOverrides) -> bool
+impl core::default::Default for vmnl_graphics::common::ColorBlendOverrides
+pub fn vmnl_graphics::common::ColorBlendOverrides::default() -> vmnl_graphics::common::ColorBlendOverrides
+impl core::fmt::Debug for vmnl_graphics::common::ColorBlendOverrides
+pub fn vmnl_graphics::common::ColorBlendOverrides::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::common::ColorBlendOverrides
+impl core::marker::StructuralPartialEq for vmnl_graphics::common::ColorBlendOverrides
+impl core::marker::Freeze for vmnl_graphics::common::ColorBlendOverrides
+impl core::marker::Send for vmnl_graphics::common::ColorBlendOverrides
+impl core::marker::Sync for vmnl_graphics::common::ColorBlendOverrides
+impl core::marker::Unpin for vmnl_graphics::common::ColorBlendOverrides
+impl core::marker::UnsafeUnpin for vmnl_graphics::common::ColorBlendOverrides
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::common::ColorBlendOverrides
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::common::ColorBlendOverrides
 #[repr(C)] pub struct vmnl_graphics::common::Rgba
 pub vmnl_graphics::common::Rgba::a: u8
 pub vmnl_graphics::common::Rgba::b: u8
@@ -936,6 +973,8 @@ pub const fn vmnl_graphics::raw::PipelineSpec<TVertex>::blend_mode_value(&self) 
 pub fn vmnl_graphics::raw::PipelineSpec<TVertex>::build(self, &vmnl_graphics::Window) -> vmnl_graphics::VMNLResult<vmnl_graphics::raw::Pipeline<TVertex>> where TVertex: vmnl_graphics::raw::BufferContents + vmnl_graphics::raw::Vertex + 'static
 pub fn vmnl_graphics::raw::PipelineSpec<TVertex>::color_blend(self, vmnl_graphics::common::ColorBlendConfig) -> Self
 pub const fn vmnl_graphics::raw::PipelineSpec<TVertex>::color_blend_config_value(&self) -> vmnl_graphics::common::ColorBlendConfig
+pub fn vmnl_graphics::raw::PipelineSpec<TVertex>::color_blend_overrides(self, vmnl_graphics::common::ColorBlendOverrides) -> Self
+pub const fn vmnl_graphics::raw::PipelineSpec<TVertex>::color_blend_overrides_value(&self) -> vmnl_graphics::common::ColorBlendOverrides
 pub fn vmnl_graphics::raw::PipelineSpec<TVertex>::cull_mode(self, vmnl_graphics::raw::CullMode) -> Self
 pub const fn vmnl_graphics::raw::PipelineSpec<TVertex>::cull_mode_value(&self) -> vmnl_graphics::raw::CullMode
 pub fn vmnl_graphics::raw::PipelineSpec<TVertex>::depth(self, vmnl_graphics::raw::DepthState) -> Self
@@ -1561,6 +1600,7 @@ pub fn vmnl_graphics::texture::Texture2DBuilder<'a>::build(self) -> vmnl_graphic
 pub fn vmnl_graphics::texture::Texture2DBuilder<'a>::from_file(&vmnl_graphics::Context, impl core::convert::Into<std::path::PathBuf>) -> Self
 pub fn vmnl_graphics::texture::Texture2DBuilder<'a>::from_pixels(&vmnl_graphics::Context, vmnl_graphics::texture::PixelSource<'a>) -> Self
 pub fn vmnl_graphics::texture::Texture2DBuilder<'a>::from_png(&vmnl_graphics::Context, &'a [u8]) -> Self
+pub const fn vmnl_graphics::texture::Texture2DBuilder<'a>::mutable_format_views_override(&self) -> core::option::Option<bool>
 pub const fn vmnl_graphics::texture::Texture2DBuilder<'a>::mutable_format_views_requested(&self) -> bool
 pub fn vmnl_graphics::texture::Texture2DBuilder<'a>::prepare(self) -> vmnl_graphics::VMNLResult<vmnl_graphics::texture::PreparedTexture2D>
 pub const fn vmnl_graphics::texture::Texture2DBuilder<'a>::retirement_policy(self, vmnl_graphics::texture::TextureRetirementPolicy) -> Self
@@ -1599,6 +1639,34 @@ impl core::marker::Unpin for vmnl_graphics::texture::TextureComponentMapping
 impl core::marker::UnsafeUnpin for vmnl_graphics::texture::TextureComponentMapping
 impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::TextureComponentMapping
 impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::TextureComponentMapping
+pub struct vmnl_graphics::texture::TextureDefaults
+impl vmnl_graphics::texture::TextureDefaults
+pub const fn vmnl_graphics::texture::TextureDefaults::mutable_format_views(self) -> core::option::Option<bool>
+pub const fn vmnl_graphics::texture::TextureDefaults::view_component_mapping(self) -> core::option::Option<vmnl_graphics::texture::TextureComponentMapping>
+pub const fn vmnl_graphics::texture::TextureDefaults::view_format(self) -> core::option::Option<vmnl_graphics::texture::TextureFormat>
+pub const fn vmnl_graphics::texture::TextureDefaults::view_interpretation(self) -> core::option::Option<vmnl_graphics::texture::TextureViewInterpretation>
+pub const fn vmnl_graphics::texture::TextureDefaults::with_mutable_format_views(self, core::option::Option<bool>) -> Self
+pub const fn vmnl_graphics::texture::TextureDefaults::with_view_component_mapping(self, core::option::Option<vmnl_graphics::texture::TextureComponentMapping>) -> Self
+pub const fn vmnl_graphics::texture::TextureDefaults::with_view_format(self, core::option::Option<vmnl_graphics::texture::TextureFormat>) -> Self
+pub const fn vmnl_graphics::texture::TextureDefaults::with_view_interpretation(self, core::option::Option<vmnl_graphics::texture::TextureViewInterpretation>) -> Self
+impl core::clone::Clone for vmnl_graphics::texture::TextureDefaults
+pub fn vmnl_graphics::texture::TextureDefaults::clone(&self) -> vmnl_graphics::texture::TextureDefaults
+impl core::cmp::Eq for vmnl_graphics::texture::TextureDefaults
+impl core::cmp::PartialEq for vmnl_graphics::texture::TextureDefaults
+pub fn vmnl_graphics::texture::TextureDefaults::eq(&self, &vmnl_graphics::texture::TextureDefaults) -> bool
+impl core::default::Default for vmnl_graphics::texture::TextureDefaults
+pub fn vmnl_graphics::texture::TextureDefaults::default() -> vmnl_graphics::texture::TextureDefaults
+impl core::fmt::Debug for vmnl_graphics::texture::TextureDefaults
+pub fn vmnl_graphics::texture::TextureDefaults::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::texture::TextureDefaults
+impl core::marker::StructuralPartialEq for vmnl_graphics::texture::TextureDefaults
+impl core::marker::Freeze for vmnl_graphics::texture::TextureDefaults
+impl core::marker::Send for vmnl_graphics::texture::TextureDefaults
+impl core::marker::Sync for vmnl_graphics::texture::TextureDefaults
+impl core::marker::Unpin for vmnl_graphics::texture::TextureDefaults
+impl core::marker::UnsafeUnpin for vmnl_graphics::texture::TextureDefaults
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::TextureDefaults
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::TextureDefaults
 pub struct vmnl_graphics::texture::TextureUsage(_)
 impl vmnl_graphics::texture::TextureUsage
 pub const vmnl_graphics::texture::TextureUsage::INITIAL_UPLOAD: Self
@@ -1639,6 +1707,7 @@ pub const fn vmnl_graphics::texture::TextureView2D::requested_interpretation(&se
 pub const fn vmnl_graphics::texture::TextureView2D::sampled_interpretation(&self) -> core::option::Option<vmnl_graphics::texture::TextureViewInterpretation>
 pub fn vmnl_graphics::texture::TextureView2D::shares_storage_with(&self, &vmnl_graphics::texture::Texture2D) -> bool
 pub const fn vmnl_graphics::texture::TextureView2D::texture(&self) -> &vmnl_graphics::texture::Texture2D
+pub const fn vmnl_graphics::texture::TextureView2D::uses_default_interpretation(&self) -> bool
 pub fn vmnl_graphics::texture::TextureView2D::validate_sampler(&self, &vmnl_graphics::texture::Sampler) -> vmnl_graphics::VMNLResult<()>
 impl core::clone::Clone for vmnl_graphics::texture::TextureView2D
 pub fn vmnl_graphics::texture::TextureView2D::clone(&self) -> vmnl_graphics::texture::TextureView2D
@@ -1655,6 +1724,7 @@ pub fn vmnl_graphics::texture::TextureView2DBuilder::build(self) -> vmnl_graphic
 pub const fn vmnl_graphics::texture::TextureView2DBuilder::component_mapping(self, vmnl_graphics::texture::TextureComponentMapping) -> Self
 pub const fn vmnl_graphics::texture::TextureView2DBuilder::format(self, vmnl_graphics::texture::TextureFormat) -> Self
 pub const fn vmnl_graphics::texture::TextureView2DBuilder::interpretation(self, vmnl_graphics::texture::TextureViewInterpretation) -> Self
+pub const fn vmnl_graphics::texture::TextureView2DBuilder::use_default_interpretation(self) -> Self
 impl core::marker::Freeze for vmnl_graphics::texture::TextureView2DBuilder
 impl !core::marker::Send for vmnl_graphics::texture::TextureView2DBuilder
 impl !core::marker::Sync for vmnl_graphics::texture::TextureView2DBuilder
@@ -2389,6 +2459,9 @@ pub fn vmnl_graphics::Context::is_device_feature_supported(&self, vmnl_graphics:
 pub fn vmnl_graphics::Context::is_raw_mouse_motion_supported(&self) -> bool
 pub fn vmnl_graphics::Context::line_width_limits(&self) -> vmnl_graphics::LineWidthLimits
 pub fn vmnl_graphics::Context::new() -> vmnl_graphics::VMNLResult<Self>
+pub fn vmnl_graphics::Context::raw_color_blend_config(&self) -> vmnl_graphics::common::ColorBlendConfig
+pub fn vmnl_graphics::Context::raw_color_blend_defaults(&self) -> vmnl_graphics::common::ColorBlendOverrides
+pub fn vmnl_graphics::Context::texture_defaults(&self) -> vmnl_graphics::texture::TextureDefaults
 impl core::clone::Clone for vmnl_graphics::Context
 pub fn vmnl_graphics::Context::clone(&self) -> vmnl_graphics::Context
 impl core::marker::Freeze for vmnl_graphics::Context
@@ -2403,6 +2476,10 @@ impl vmnl_graphics::ContextBuilder
 pub fn vmnl_graphics::ContextBuilder::build(self) -> vmnl_graphics::VMNLResult<vmnl_graphics::Context>
 pub fn vmnl_graphics::ContextBuilder::device(self, vmnl_graphics::DeviceConfig) -> Self
 pub const fn vmnl_graphics::ContextBuilder::device_config(&self) -> &vmnl_graphics::DeviceConfig
+pub const fn vmnl_graphics::ContextBuilder::raw_color_blend(self, vmnl_graphics::common::ColorBlendOverrides) -> Self
+pub const fn vmnl_graphics::ContextBuilder::raw_color_blend_defaults(&self) -> vmnl_graphics::common::ColorBlendOverrides
+pub const fn vmnl_graphics::ContextBuilder::texture_defaults(self, vmnl_graphics::texture::TextureDefaults) -> Self
+pub const fn vmnl_graphics::ContextBuilder::texture_defaults_config(&self) -> vmnl_graphics::texture::TextureDefaults
 impl core::clone::Clone for vmnl_graphics::ContextBuilder
 pub fn vmnl_graphics::ContextBuilder::clone(&self) -> vmnl_graphics::ContextBuilder
 impl core::default::Default for vmnl_graphics::ContextBuilder
