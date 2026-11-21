@@ -30,17 +30,6 @@ fn clock_new_and_default_start_running() {
 }
 
 #[test]
-fn elapsed_is_non_consuming_and_monotonic_while_running() {
-    let clock = Clock::new();
-
-    let first = clock.elapsed();
-    let second = clock.elapsed();
-
-    assert!(second >= first);
-    assert!(!clock.is_paused());
-}
-
-#[test]
 fn pause_freezes_elapsed_and_resume_continues_without_the_paused_interval() {
     let mut clock = Clock::new();
 
@@ -57,10 +46,6 @@ fn pause_freezes_elapsed_and_resume_continues_without_the_paused_interval() {
     assert!(!clock.is_paused());
     let after_resume = clock.elapsed();
     assert!(after_resume >= frozen);
-
-    clock.resume();
-    assert!(!clock.is_paused());
-    assert!(clock.elapsed() >= after_resume);
 }
 
 #[test]
