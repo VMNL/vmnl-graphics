@@ -27,4 +27,8 @@ collection or context shutdown. Context clones share the same retirement registr
 and sampler pairs from distinct `Context` instances are rejected, even when both selected the same
 physical device.
 
+`time::Clock` is an owned `Send + Sync` value with no backend or thread affinity; mutation follows
+ordinary Rust borrowing, and each clock's measurement is independent of event processing, rendering,
+and other clocks.
+
 VMNL does not publish a general cross-thread guarantee for window, event-loop, renderer, or GPU-resource types. Treat them as confined to the creating thread unless Rust's auto-trait system and the platform backend permit a narrower use. Platform window systems may impose main-thread requirements.

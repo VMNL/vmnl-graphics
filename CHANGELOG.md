@@ -12,6 +12,10 @@ Notable user-facing changes are recorded here.
 ### Added
 
 - Circle builder getters expose the selected fill mode and stored inner/outer offsets.
+- `vmnl_graphics::time::{Clock, Duration}`: an owned elapsed-time `Clock` for independent
+  measurements such as frame deltas, with explicit `pause`/`resume`/`restart`, backed by
+  `std::time::Instant` and re-exporting the standard `Duration` unchanged. It runs without
+  a `Context`, window, GLFW initialization, or GPU.
 
 ### Fixed
 

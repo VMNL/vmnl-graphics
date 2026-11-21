@@ -125,3 +125,4 @@
 | struct | `vmnl_graphics::texture::TextureView2D` | [TextureView2D](../reference/texture/gpu_resources.md#textureview2d) | [Rustdoc](../../../target/doc/vmnl_graphics/texture/struct.TextureView2D.html) |
 | struct | `vmnl_graphics::texture::UploadTicket` | [UploadTicket](../reference/texture/gpu_resources.md#uploadticket-and-uploadwaitoutcome) | [Rustdoc](../../../target/doc/vmnl_graphics/texture/struct.UploadTicket.html) |
 | enum | `vmnl_graphics::texture::UploadWaitOutcome` | [UploadWaitOutcome](../reference/texture/gpu_resources.md#uploadticket-and-uploadwaitoutcome) | [Rustdoc](../../../target/doc/vmnl_graphics/texture/enum.UploadWaitOutcome.html) |
+| struct | `vmnl_graphics::time::Clock` | [Clock](../reference/time/clock.md) | [Rustdoc](../../../target/doc/vmnl_graphics/time/struct.Clock.html) |

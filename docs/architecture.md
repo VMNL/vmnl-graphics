@@ -140,6 +140,7 @@ compatibility baseline; their present behavior remains documented in the API boo
 - `raw` exposes lower-level VMNL pipeline, geometry, and resource control in `0.1.0`; backend-coupled traits remain explicitly unstable. Polygon rasterization and line width are fixed at pipeline creation and validated against enabled features and inspectable GPU limits.
 - `WindowBuilder::render_target(RenderTargetConfig)` optionally allocates depth-only attachments per swapchain image, recreated on resize. Defaults remain color-only. `RenderTargetInfo` exposes actual color format, samples and depth; raw target preflight retains the exact originating window's device/render-pass identity, including across resize. Matching descriptions do not allow cross-window pipeline sharing. Raw pipelines opt into immutable depth comparison/writes; high-level 2D always disables them. Submission waits for the acquired image's previous depth-use fence before reuse, without a device-wide wait.
 - 2D rendering is available.
+- `time::Clock` measures active elapsed time from `std::time::Instant` without GLFW initialization, a Vulkan device, heap allocation, global locks, or blocking; each clock's pause/resume/restart transitions are explicit and independent of event processing, rendering, and other clocks.
 - Internal backend details stay private unless they are deliberate public API.
 
 ## Public API Maturity
@@ -153,6 +154,7 @@ backend independence, and native qualification remain separate from the version 
 | `window` and input | Available | Window lifecycle, events, monitors, keyboard, and mouse. |
 | `d2` | Available | 2D shapes and rendering primitives. |
 | `raw` | Available within limits | Lower-level pipeline and geometry control; backend-coupled traits remain unstable. |
+| `time` | Accepted for 0.2.0 | Owned elapsed-time `Clock` on `std::time::Instant` plus the standard `Duration` re-export; no window, GPU, or backend dependency. |
 
 Rustdoc defines the contract of a public item. This table only describes the current subsystem maturity.
 
@@ -179,7 +181,7 @@ workflow. Broader engine facilities require a concrete use case and remain optio
 ## Development Order
 
 1. Maintain the current `0.1.0` window/input, raw graphics, and 2D baseline, including its documented limits.
-2. Add textures for `0.2.0` without breaking the published `0.1.0` contracts.
+2. Add textures and the accepted `time::Clock` elapsed-time API for `0.2.0` without breaking the published `0.1.0` contracts.
 3. Develop text and batching from the public graphics primitives.
 4. Add optional graphics composition helpers from existing public primitives.
 5. Complete the stable Rust surface, C ABI, C++ wrapper, platform qualification, and reference

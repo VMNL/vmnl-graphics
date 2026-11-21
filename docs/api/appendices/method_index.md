@@ -764,3 +764,10 @@
 | `vmnl_graphics::texture::UploadWaitOutcome` | `clone` | [UploadWaitOutcome](../reference/texture/gpu_resources.md#uploadticket-and-uploadwaitoutcome) | [`clone`](../../../target/doc/vmnl_graphics/texture/enum.UploadWaitOutcome.html#method.clone) |
 | `vmnl_graphics::texture::UploadWaitOutcome` | `eq` | [UploadWaitOutcome](../reference/texture/gpu_resources.md#uploadticket-and-uploadwaitoutcome) | [`eq`](../../../target/doc/vmnl_graphics/texture/enum.UploadWaitOutcome.html#method.eq) |
 | `vmnl_graphics::texture::UploadWaitOutcome` | `fmt` | [UploadWaitOutcome](../reference/texture/gpu_resources.md#uploadticket-and-uploadwaitoutcome) | [`fmt`](../../../target/doc/vmnl_graphics/texture/enum.UploadWaitOutcome.html#method.fmt) |
+| `vmnl_graphics::time::Clock` | `default` | [Clock](../reference/time/clock.md) | [`default`](../../../target/doc/vmnl_graphics/time/struct.Clock.html#method.default) |
+| `vmnl_graphics::time::Clock` | `elapsed` | [Clock](../reference/time/clock.md) | [`elapsed`](../../../target/doc/vmnl_graphics/time/struct.Clock.html#method.elapsed) |
+| `vmnl_graphics::time::Clock` | `is_paused` | [Clock](../reference/time/clock.md) | [`is_paused`](../../../target/doc/vmnl_graphics/time/struct.Clock.html#method.is_paused) |
+| `vmnl_graphics::time::Clock` | `new` | [Clock](../reference/time/clock.md) | [`new`](../../../target/doc/vmnl_graphics/time/struct.Clock.html#method.new) |
+| `vmnl_graphics::time::Clock` | `pause` | [Clock](../reference/time/clock.md) | [`pause`](../../../target/doc/vmnl_graphics/time/struct.Clock.html#method.pause) |
+| `vmnl_graphics::time::Clock` | `restart` | [Clock](../reference/time/clock.md) | [`restart`](../../../target/doc/vmnl_graphics/time/struct.Clock.html#method.restart) |
+| `vmnl_graphics::time::Clock` | `resume` | [Clock](../reference/time/clock.md) | [`resume`](../../../target/doc/vmnl_graphics/time/struct.Clock.html#method.resume) |

@@ -22,6 +22,9 @@ Drives the native event queue, updates input snapshots, controls GLFW time, wake
 | `input()` | Borrow the updated `Input` snapshot. |
 | `clear_input_transitions()` | Clear press/release flags without changing held controls or pending events. |
 
+GLFW's global time base is separate from owned clocks: `get_time`/`set_time` never change a
+[`time::Clock`](../../time/clock.md), and polling, drawing, or presenting never changes one either.
+
 ## Construction, defaults, and validation
 
 Window creation configures common event sources by default. Timeout/time values are forwarded as `f64`; VMNL adds no validation beyond the backend contract. The callback is `'static` and receives `(VMNLErrorKind, String)`.
@@ -78,4 +81,5 @@ fn main() -> vmnl_graphics::VMNLResult<()> {
 }
 ```
 
-Related: [`Event`](event.md), [`Input`](../input/input.md), and [polling configuration](../polling.md).
+Related: [`Event`](event.md), [`Input`](../input/input.md), [polling configuration](../polling.md),
+and [`time::Clock`](../../time/clock.md).

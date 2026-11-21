@@ -6,6 +6,7 @@
 | `ContextBuilder` / `DeviceConfig` | automatic compatible GPU/graphics queue selection; no optional feature request |
 | `Rgba` | `(0, 0, 0, 0)`; named colors are opaque |
 | `Vector2f`, `Vertex2D` | Component/field zero defaults |
+| `Clock` | Running from construction; accumulated active time `Duration::ZERO` |
 | `WindowBuilder` | title `VMNL Window`, `800x600`, common event delivery enabled, joystick event delivery/tracking disabled, zero-dead-zone `Math2D` left/right sticks, built-in 2D shaders, opaque black clear, no size limits, automatic present mode |
 | `PresentMode` | `Auto`: `Mailbox` → `Immediate` → `FifoRelaxed` → `Fifo` among supported modes |
 | Resolved window attachments | one color attachment, automatic `B8G8R8A8_SRGB` + sRGB nonlinear preference then first surface format fallback; one sample per pixel; no MSAA selection |
