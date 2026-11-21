@@ -14,6 +14,11 @@ use vulkano::{
     Validated, VulkanError,
 };
 
+#[cfg(test)]
+thread_local! {
+    pub(super) static ACQUIRE_ATTEMPTS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+}
+
 impl VMNLWindow {
     /// Prepares the GPU for rendering a new frame by ensuring previous frame operations have completed.
     ///
@@ -38,6 +43,9 @@ impl VMNLWindow {
         swapchain: &Arc<Swapchain>,
         timeout: Option<std::time::Duration>,
     ) -> VMNLResult<(u32, bool, SwapchainAcquireFuture)> {
+        #[cfg(test)]
+        ACQUIRE_ATTEMPTS.set(ACQUIRE_ATTEMPTS.get() + 1);
+
         match swapchain::acquire_next_image(swapchain.clone(), timeout) {
             Ok(result) => Ok(result),
             Err(Validated::Error(VulkanError::OutOfDate)) => {

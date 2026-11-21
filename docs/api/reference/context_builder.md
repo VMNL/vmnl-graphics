@@ -12,9 +12,16 @@ Prepares graphics-context initialization with explicit device feature requiremen
 
 `device(DeviceConfig) -> Self`, `device_config() -> &DeviceConfig`, and `build() -> VMNLResult<Context>`. Implements `Default`; derives `Clone` and `Debug`. `Context::builder()` constructs the default builder.
 
+`texture_defaults(TextureDefaults)` sets the [texture default requests](texture/texture_defaults.md).
+`raw_color_blend(ColorBlendOverrides)` sets [raw blend defaults](common/color_blend_overrides.md).
+Inspect requests with `texture_defaults_config()` and `raw_color_blend_defaults()`.
+
 ## Construction, defaults, and validation
 
 Defaults to `DeviceConfig::default()` with no optional feature request. `device` replaces the entire device configuration. Build requires the baseline device extensions and a graphics queue plus every requested feature on one physical device. Candidates are filtered before the existing type-based ranking; equal ranks remain dependent on backend enumeration order. No requirement is silently discarded.
+
+Texture and blend fields start unset. Context build captures their CPU values. Resource and pipeline
+builders validate their resolved configurations at their respective build boundaries.
 
 ## Units, coordinates, and valid ranges
 

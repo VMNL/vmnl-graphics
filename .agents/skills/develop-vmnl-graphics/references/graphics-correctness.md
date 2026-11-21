@@ -24,6 +24,33 @@ Before changing synchronization, identify:
 
 Use a device-wide wait only as temporary diagnosis unless a narrower guarantee is impossible and explicitly justified.
 
+## Native Vulkan Interoperability
+
+- **Establish the gap.** Name the affected contract and the limitation of the pinned Vulkano
+  version. Check the relevant high-level and low-level APIs. Use upstream source for an API gap,
+  a focused probe for a runtime limitation, or comparable measurements for a performance claim.
+  Use the smallest private boundary that can own the affected operation and its invariants.
+- **Reuse the existing Vulkan context.** Prefer the owning instance or device's loaded function
+  table, for example `Device::fns()`. When direct Rust bindings are needed, use the same resolved
+  `ash` version as Vulkano. [`Cargo.lock`](../../../../Cargo.lock) currently pairs
+  Vulkano `0.35.2` with `ash` `0.38.0+1.3.281`. Recheck this pairing when updating either crate
+  and follow the [dependency rules](../../../../AGENTS.md).
+  Verify API version, enabled features and extensions, device limits, and applicable portability
+  restrictions. Preserve VMNL's validation and structured errors for unsupported requests.
+- **Assign ownership and lifetime.** Identify each handle's owner, the lifetime of borrowed FFI
+  data, the allocator used for creation and destruction, and what stays alive until GPU completion.
+  Define cleanup and ownership on submission rejection, partial failure, device loss, and teardown.
+- **Account for every access across the boundary.** Share the synchronization used by Vulkano
+  for host access to the same queue or other externally synchronized objects. For a Vulkano queue,
+  use its existing guard where applicable. Define GPU execution and memory dependencies separately,
+  including queue family ownership, stage and access scopes, and image layouts per affected
+  subresource. State which path tracks each access and state transition, and how state and
+  completion are handed back before Vulkano uses the resource again.
+- **Validate the actual path.** Apply the unsafe-code rules below and exercise the affected VMNL
+  entry point, including relevant rejection and cleanup cases. For GPU work, check the affected
+  operations on Vulkan and use synchronization validation when applicable and available. Record
+  the evidence and any remaining platform or runtime limitations.
+
 ## Window and Swapchain Lifecycle
 
 Cover the applicable states:

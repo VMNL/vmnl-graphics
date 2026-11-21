@@ -4,6 +4,7 @@
 //! Low-level raw rendering API.
 
 mod depth;
+mod shader_compat;
 mod viewport;
 pub use depth::{CompareOp, DepthState};
 pub(crate) use viewport::resolve_viewport_scissor;
@@ -23,8 +24,10 @@ use vulkano::descriptor_set::allocator::StandardDescriptorSetAllocator;
 use vulkano::descriptor_set::layout::{
     DescriptorSetLayout, DescriptorSetLayoutCreateInfo, DescriptorType,
 };
-use vulkano::descriptor_set::{DescriptorSet, WriteDescriptorSet};
+use vulkano::descriptor_set::{DescriptorImageViewInfo, DescriptorSet, WriteDescriptorSet};
 use vulkano::device::{Device, DeviceFeatures};
+use vulkano::format::NumericType;
+use vulkano::image::ImageLayout;
 use vulkano::memory::allocator::StandardMemoryAllocator;
 use vulkano::pipeline::graphics::color_blend::{
     AttachmentBlend, ColorBlendAttachmentState, ColorBlendState,
@@ -47,14 +50,20 @@ use vulkano::pipeline::{
     PipelineShaderStageCreateInfo,
 };
 use vulkano::render_pass::{RenderPass, Subpass};
-use vulkano::shader::{ShaderModule, ShaderModuleCreateInfo};
+use vulkano::shader::{EntryPoint, ShaderModule, ShaderModuleCreateInfo};
 use vulkano::sync::HostAccessError;
 
 use crate::common::{
-    checked_draw_counts, BufferMemoryPreference, GraphicsResourceFactory, IndexBuffer, VertexBuffer,
+    checked_draw_counts, BufferMemoryPreference, ColorBlendConfig, ColorBlendOverrides,
+    GraphicsResourceFactory, IndexBuffer, VertexBuffer,
 };
 use crate::exception::{VMNLError, VMNLErrorKind, VMNLResult};
+use crate::texture::{
+    validate_sampled_image_sampler, SampledImageBinding, SampledSamplerBinding,
+    SampledTextureBinding, Sampler, Texture2D, TextureUploadDependency, TextureView2D,
+};
 use crate::{Context, DeviceFeature, LineWidthLimits, RenderTargetInfo, Window};
+use shader_compat::{BindingPoint, SamplerOperation, ShaderContract, ShaderStageContract};
 
 const FRAME_UNIFORM_IMAGE_COUNT_MISMATCH: &str =
     "raw frame uniform image count is incompatible with current swapchain image count";
@@ -133,9 +142,13 @@ impl From<PrimitiveTopology> for VulkanoPrimitiveTopology {
 /// Blend mode used by a raw pipeline.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BlendMode {
-    /// No blending.
+    /// Disable blending and write fragment output directly.
     Opaque,
-    /// Standard source-alpha blending.
+    /// Preserve the original source-alpha blend equation.
+    ///
+    /// RGB is `Cs * As + Cd * (1 - As)`; alpha is
+    /// `As * As + Ad * (1 - As)`. Use [`ColorBlendConfig::straight_alpha`]
+    /// for the common source-over alpha equation `As + Ad * (1 - As)`.
     Alpha,
 }
 
@@ -194,7 +207,8 @@ pub struct PipelineSpec<TVertex> {
     vertex_shader: Option<ShaderSource>,
     fragment_shader: Option<ShaderSource>,
     topology: PrimitiveTopology,
-    blend_mode: BlendMode,
+    blend_mode: Option<BlendMode>,
+    color_blend: Option<ColorBlendOverrides>,
     cull_mode: CullMode,
     front_face: FrontFace,
     polygon_mode: PolygonMode,
@@ -211,7 +225,8 @@ impl<TVertex> Default for PipelineSpec<TVertex> {
             vertex_shader: None,
             fragment_shader: None,
             topology: PrimitiveTopology::TriangleList,
-            blend_mode: BlendMode::Opaque,
+            blend_mode: None,
+            color_blend: None,
             cull_mode: CullMode::None,
             front_face: FrontFace::CounterClockwise,
             polygon_mode: PolygonMode::Fill,
@@ -262,10 +277,35 @@ impl<TVertex> PipelineSpec<TVertex> {
         self
     }
 
-    /// Sets the blend mode.
+    /// Sets the legacy blend mode and clears any explicit color blend override.
+    ///
+    /// This preserves the original `BlendMode` request and equation. Call
+    /// [`Self::color_blend`] afterward to select an explicit configuration.
     #[must_use]
     pub fn blend_mode(mut self, blend_mode: BlendMode) -> Self {
-        self.blend_mode = blend_mode;
+        self.blend_mode = Some(blend_mode);
+        self.color_blend = None;
+        self
+    }
+
+    /// Sets an explicit, editable color and alpha blend configuration.
+    ///
+    /// This overrides the legacy mode for pipeline creation without changing the
+    /// value returned by [`Self::blend_mode_value`]. A later [`Self::blend_mode`]
+    /// call clears this override.
+    #[must_use]
+    pub fn color_blend(mut self, config: ColorBlendConfig) -> Self {
+        self.color_blend = Some(ColorBlendOverrides::from_config(config));
+        self
+    }
+
+    /// Replaces the active blend request with per-field overrides.
+    ///
+    /// Unset fields use the window's context defaults at build. The legacy
+    /// inspector still reports the last legacy selection, or `Opaque`.
+    #[must_use]
+    pub fn color_blend_overrides(mut self, overrides: ColorBlendOverrides) -> Self {
+        self.color_blend = Some(overrides);
         self
     }
 
@@ -359,7 +399,35 @@ impl<TVertex> PipelineSpec<TVertex> {
     /// Returns the configured blend mode.
     #[must_use]
     pub const fn blend_mode_value(&self) -> BlendMode {
-        self.blend_mode
+        match self.blend_mode {
+            Some(mode) => mode,
+            None => BlendMode::Opaque,
+        }
+    }
+
+    /// Resolves the specification against VMNL's opaque default, without a window.
+    /// Use the built pipeline's getter for the actual state inherited from a context.
+    #[must_use]
+    pub const fn color_blend_config_value(&self) -> ColorBlendConfig {
+        self.color_blend_overrides_value()
+            .resolve(ColorBlendConfig::opaque())
+    }
+
+    /// Returns active local blend requests. A legacy mode or complete preset fixes every field.
+    #[must_use]
+    pub const fn color_blend_overrides_value(&self) -> ColorBlendOverrides {
+        match self.color_blend {
+            Some(config) => config,
+            None => match self.blend_mode {
+                Some(BlendMode::Opaque) => {
+                    ColorBlendOverrides::from_config(ColorBlendConfig::opaque())
+                }
+                Some(BlendMode::Alpha) => {
+                    ColorBlendOverrides::from_config(ColorBlendConfig::legacy_alpha())
+                }
+                None => ColorBlendOverrides::EMPTY,
+            },
+        }
     }
 
     /// Returns the configured triangle culling mode.
@@ -403,6 +471,11 @@ impl<TVertex> PipelineSpec<TVertex> {
         let depth_stencil_state = self
             .depth
             .resolve(window.render_target_config().depth_value().is_some())?;
+        let color_blend = self.color_blend_overrides_value().resolve(
+            window
+                .raw_color_blend_defaults()
+                .resolve(ColorBlendConfig::opaque()),
+        );
 
         let vertex_shader = self.vertex_shader.ok_or_else(|| {
             VMNLError::new(VMNLErrorKind::InvalidState(
@@ -417,19 +490,8 @@ impl<TVertex> PipelineSpec<TVertex> {
 
         let render_pass = window.render_pass();
 
-        let vs = compile_shader(device.clone(), &vertex_shader, shaderc::ShaderKind::Vertex)?;
-        let fs = compile_shader(
-            device.clone(),
-            &fragment_shader,
-            shaderc::ShaderKind::Fragment,
-        )?;
-
-        let vs = vs
-            .entry_point("main")
-            .ok_or_else(|| VMNLError::new(VMNLErrorKind::VulkanShaderCompilationFailed))?;
-        let fs = fs
-            .entry_point("main")
-            .ok_or_else(|| VMNLError::new(VMNLErrorKind::VulkanShaderCompilationFailed))?;
+        let (vs, fs, shader_contract) =
+            compile_raw_shader_stages(device.clone(), &vertex_shader, &fragment_shader)?;
 
         let stages = [
             PipelineShaderStageCreateInfo::new(vs.clone()),
@@ -472,7 +534,7 @@ impl<TVertex> PipelineSpec<TVertex> {
                 )),
                 multisample_state: Some(MultisampleState::default()),
                 depth_stencil_state,
-                color_blend_state: Some(color_blend_state(self.blend_mode)),
+                color_blend_state: Some(color_blend_state(color_blend)),
                 dynamic_state: [DynamicState::Viewport, DynamicState::Scissor]
                     .into_iter()
                     .collect(),
@@ -492,6 +554,8 @@ impl<TVertex> PipelineSpec<TVertex> {
             viewport: self.viewport,
             scissor: self.scissor,
             depth: self.depth,
+            color_blend,
+            shader_contract,
             _vertex: PhantomData,
         })
     }
@@ -508,6 +572,8 @@ pub struct Pipeline<TVertex> {
     viewport: ViewportPolicy,
     scissor: ScissorPolicy,
     depth: DepthState,
+    color_blend: ColorBlendConfig,
+    shader_contract: Arc<ShaderContract>,
     _vertex: PhantomData<TVertex>,
 }
 
@@ -552,6 +618,16 @@ impl<TVertex> Pipeline<TVertex> {
     #[must_use]
     pub const fn depth_value(&self) -> DepthState {
         self.depth
+    }
+
+    /// Returns the effective color and alpha blend state used by this pipeline.
+    ///
+    /// This is the configuration passed to Vulkan when the pipeline was built,
+    /// including any explicit override or legacy preset resolution. It performs
+    /// no allocation or GPU access.
+    #[must_use]
+    pub const fn color_blend_config_value(&self) -> ColorBlendConfig {
+        self.color_blend
     }
 
     /// Starts a raw pipeline builder.
@@ -953,6 +1029,10 @@ impl<TData> FrameUniformBuilder<TData> {
 impl<TData> GraphicsResourceFactory for FrameUniformBuilder<TData> {}
 
 /// Descriptor resources bound by a raw draw call.
+///
+/// This handle implements `Send + Sync` and may be moved or shared between Rust threads. This
+/// does not make [`Context`] or [`Window`] thread-safe; operations that use them remain subject to
+/// their thread-affinity requirements.
 pub struct Resources {
     device: Arc<Device>,
     pipeline_layout: Arc<PipelineLayout>,
@@ -968,6 +1048,7 @@ impl Resources {
             pipeline_device: pipeline.device.clone(),
             pipeline_layout: pipeline_layout.clone(),
             set_layouts: pipeline_layout.set_layouts().to_vec(),
+            shader_contract: pipeline.shader_contract.clone(),
             bindings: BTreeMap::new(),
             duplicate_binding: None,
             frame_uniform_image_count: None,
@@ -981,10 +1062,15 @@ impl Resources {
 }
 
 /// Builder for raw descriptor resources.
+///
+/// This handle implements `Send + Sync` and may be moved or shared between Rust threads. This
+/// does not make [`Context`] or [`Window`] thread-safe; building or using resources still requires
+/// the owning context and window on their permitted threads.
 pub struct ResourcesBuilder {
     pipeline_device: Arc<Device>,
     pipeline_layout: Arc<PipelineLayout>,
     set_layouts: Vec<Arc<DescriptorSetLayout>>,
+    shader_contract: Arc<ShaderContract>,
     bindings: BTreeMap<u32, BTreeMap<u32, ResourceBinding>>,
     duplicate_binding: Option<(u32, u32)>,
     frame_uniform_image_count: Option<usize>,
@@ -1042,6 +1128,130 @@ impl ResourcesBuilder {
         self
     }
 
+    /// Binds a texture's default view and sampler to a combined image-sampler descriptor.
+    ///
+    /// The texture image must include sampled usage, and the texture and sampler must
+    /// belong to the same `Context` as the pipeline. A pending initial upload is joined
+    /// into each frame that consumes these resources; this adds no CPU wait for that upload.
+    ///
+    /// # Errors
+    /// [`Self::build`] returns `InvalidState` with set/binding detail for a context,
+    /// descriptor-type, sampled-usage, or sampler-compatibility mismatch, or when a
+    /// required descriptor is missing or duplicated.
+    #[must_use]
+    pub fn sampled_texture(
+        mut self,
+        set: u32,
+        binding: u32,
+        texture: &Texture2D,
+        sampler: &Sampler,
+    ) -> Self {
+        let old = self.bindings.entry(set).or_default().insert(
+            binding,
+            ResourceBinding::SampledTexture(texture.sampled_binding(sampler)),
+        );
+        if old.is_some() && self.duplicate_binding.is_none() {
+            self.duplicate_binding = Some((set, binding));
+        }
+        self
+    }
+
+    /// Binds an explicit texture view and sampler to a combined image-sampler descriptor.
+    ///
+    /// Use [`Texture2D::view`] through [`Self::sampled_texture`] to select the default identity
+    /// view. An explicit view keeps the same image storage and upload dependency. The view, sampler,
+    /// and pipeline must belong to the same `Context`.
+    ///
+    /// # Errors
+    /// [`Self::build`] returns `InvalidState` with set/binding detail for a context,
+    /// descriptor-type, sampled-usage, shader/view, or sampler-compatibility mismatch, or when a
+    /// required descriptor is missing or duplicated.
+    #[must_use]
+    pub fn sampled_texture_view(
+        mut self,
+        set: u32,
+        binding: u32,
+        view: &TextureView2D,
+        sampler: &Sampler,
+    ) -> Self {
+        let old = self.bindings.entry(set).or_default().insert(
+            binding,
+            ResourceBinding::SampledTexture(view.sampled_binding(sampler)),
+        );
+        if old.is_some() && self.duplicate_binding.is_none() {
+            self.duplicate_binding = Some((set, binding));
+        }
+        self
+    }
+
+    /// Binds a texture's default view to a scalar sampled-image descriptor.
+    ///
+    /// Pair the image with [`Self::sampler`] at the bindings selected by the shader.
+    /// The texture image must include sampled usage. The image and pipeline must belong
+    /// to the same `Context`. A pending initial upload is joined into each consuming
+    /// frame without adding a host wait.
+    ///
+    /// # Errors
+    /// [`Self::build`] returns `InvalidState` with set/binding detail for a context,
+    /// descriptor-type, image-view/shader compatibility, or sampled-usage mismatch, or
+    /// when a required descriptor is missing or duplicated.
+    #[must_use]
+    pub fn texture(mut self, set: u32, binding: u32, texture: &Texture2D) -> Self {
+        let old = self.bindings.entry(set).or_default().insert(
+            binding,
+            ResourceBinding::SampledImage(texture.sampled_image_binding()),
+        );
+        if old.is_some() && self.duplicate_binding.is_none() {
+            self.duplicate_binding = Some((set, binding));
+        }
+        self
+    }
+
+    /// Binds an explicit texture view to a scalar sampled-image descriptor.
+    ///
+    /// Pair the image with [`Self::sampler`] at the bindings selected by the shader. The view's
+    /// image must include sampled usage, and the view and pipeline must belong to the same
+    /// `Context`. A pending initial upload is joined into each consuming frame without a host wait.
+    ///
+    /// # Errors
+    /// [`Self::build`] returns `InvalidState` with set/binding detail for a context,
+    /// descriptor-type, image-view/shader compatibility, or sampled-usage mismatch, or when a
+    /// required descriptor is missing or duplicated.
+    #[must_use]
+    pub fn texture_view(mut self, set: u32, binding: u32, view: &TextureView2D) -> Self {
+        let old = self.bindings.entry(set).or_default().insert(
+            binding,
+            ResourceBinding::SampledImage(view.sampled_image_binding()),
+        );
+        if old.is_some() && self.duplicate_binding.is_none() {
+            self.duplicate_binding = Some((set, binding));
+        }
+        self
+    }
+
+    /// Binds a sampler to a scalar sampler descriptor.
+    ///
+    /// Pair it with [`Self::texture`] according to the shader's actual sampling
+    /// instructions. The sampler and pipeline must belong to the same `Context`.
+    /// Shader/sampler coordinate-mode compatibility is checked by [`Self::build`].
+    ///
+    /// # Errors
+    /// [`Self::build`] returns `InvalidState` with set/binding detail for a context,
+    /// descriptor-type, shader/sampler compatibility, or unrepresentable depth-compare
+    /// mismatch, or when a required descriptor is missing or duplicated.
+    #[must_use]
+    pub fn sampler(mut self, set: u32, binding: u32, sampler: &Sampler) -> Self {
+        let old = self
+            .bindings
+            .entry(set)
+            .or_default()
+            .insert(binding, ResourceBinding::Sampler(sampler.sampled_binding()));
+        if old.is_some() && self.duplicate_binding.is_none() {
+            self.duplicate_binding = Some((set, binding));
+        }
+        self
+    }
+
     /// Builds descriptor resources compatible with the pipeline used by this builder.
     ///
     /// # Errors
@@ -1055,6 +1265,7 @@ impl ResourcesBuilder {
             pipeline_device,
             pipeline_layout,
             set_layouts,
+            shader_contract,
             bindings,
             duplicate_binding,
             frame_uniform_image_count,
@@ -1073,8 +1284,14 @@ impl ResourcesBuilder {
             ))));
         }
 
-        validate_supplied_resource_bindings(&pipeline_device, &set_layouts, &bindings)?;
+        validate_supplied_resource_bindings(
+            &pipeline_device,
+            &set_layouts,
+            &bindings,
+            &shader_contract,
+        )?;
         let required_set_count = required_descriptor_set_count_from_layouts(&set_layouts);
+        let upload_dependencies = collect_upload_dependencies(&bindings);
         let descriptor_sets = match frame_uniform_image_count {
             Some(image_count) => RawDescriptorSets::FrameUniforms {
                 image_count,
@@ -1082,14 +1299,17 @@ impl ResourcesBuilder {
                 bindings,
                 required_set_count,
             },
-            None => RawDescriptorSets::Static(build_descriptor_sets(
-                &context.inner.descriptor_set_allocator,
-                &context.inner.device,
-                &set_layouts,
-                &bindings,
-                required_set_count,
-                None,
-            )?),
+            None => RawDescriptorSets::Static {
+                sets: build_descriptor_sets(
+                    &context.inner.descriptor_set_allocator,
+                    &context.inner.device,
+                    &set_layouts,
+                    &bindings,
+                    required_set_count,
+                    None,
+                )?,
+                upload_dependencies,
+            },
         };
 
         Ok(Resources {
@@ -1111,6 +1331,9 @@ enum ResourceBinding {
         buffer: Subbuffer<[u8]>,
         device: Arc<Device>,
     },
+    SampledTexture(SampledTextureBinding),
+    SampledImage(SampledImageBinding),
+    Sampler(SampledSamplerBinding),
 }
 
 #[derive(Clone)]
@@ -1121,39 +1344,70 @@ enum RawDescriptorSets {
         bindings: BTreeMap<u32, BTreeMap<u32, ResourceBinding>>,
         required_set_count: usize,
     },
-    Static(Vec<Arc<DescriptorSet>>),
+    Static {
+        sets: Vec<Arc<DescriptorSet>>,
+        upload_dependencies: Vec<TextureUploadDependency>,
+    },
+}
+
+fn collect_upload_dependencies(
+    bindings: &BTreeMap<u32, BTreeMap<u32, ResourceBinding>>,
+) -> Vec<TextureUploadDependency> {
+    bindings
+        .values()
+        .flat_map(BTreeMap::values)
+        .filter_map(|resource| match resource {
+            ResourceBinding::SampledTexture(texture) => {
+                Some(texture.image.upload_dependency.clone())
+            }
+            ResourceBinding::SampledImage(image) => Some(image.upload_dependency.clone()),
+            ResourceBinding::Sampler(_) => None,
+            ResourceBinding::FrameUniformBuffer { .. } | ResourceBinding::UniformBuffer { .. } => {
+                None
+            }
+        })
+        .collect()
 }
 
 impl RawDescriptorSets {
     fn empty() -> Self {
-        Self::Static(Vec::new())
+        Self::Static {
+            sets: Vec::new(),
+            upload_dependencies: Vec::new(),
+        }
+    }
+
+    fn upload_dependencies(&self) -> Vec<TextureUploadDependency> {
+        match self {
+            Self::Static {
+                upload_dependencies,
+                ..
+            } => upload_dependencies.clone(),
+            Self::FrameUniforms { bindings, .. } => collect_upload_dependencies(bindings),
+        }
     }
 
     fn for_image(
         &self,
         image_index: usize,
-        current_image_count: usize,
         descriptor_set_allocator: &Arc<StandardDescriptorSetAllocator>,
         expected_device: &Arc<Device>,
     ) -> VMNLResult<Vec<Arc<DescriptorSet>>> {
         match self {
-            Self::Static(sets) => Ok(sets.clone()),
+            Self::Static { sets, .. } => Ok(sets.clone()),
             Self::FrameUniforms {
-                image_count,
                 set_layouts,
                 bindings,
                 required_set_count,
-            } => {
-                validate_frame_uniform_image_count(*image_count, current_image_count)?;
-                build_descriptor_sets(
-                    descriptor_set_allocator,
-                    expected_device,
-                    set_layouts,
-                    bindings,
-                    *required_set_count,
-                    Some(image_index),
-                )
-            }
+                ..
+            } => build_descriptor_sets(
+                descriptor_set_allocator,
+                expected_device,
+                set_layouts,
+                bindings,
+                *required_set_count,
+                Some(image_index),
+            ),
         }
     }
 }
@@ -1176,8 +1430,11 @@ impl<'a> PendingFrameUniformWrite<'a> {
         }
     }
 
-    pub(crate) fn write(self, image_index: usize, current_image_count: usize) -> VMNLResult<()> {
-        validate_frame_uniform_image_count(self.image_count, current_image_count)?;
+    pub(crate) fn validate_image_count(&self, current_image_count: usize) -> VMNLResult<()> {
+        validate_frame_uniform_image_count(self.image_count, current_image_count)
+    }
+
+    pub(crate) fn write(self, image_index: usize) -> VMNLResult<()> {
         (self.write)(image_index)
     }
 }
@@ -1201,19 +1458,41 @@ pub(crate) struct RenderItemRaw {
 }
 
 impl RenderItemRaw {
+    pub(crate) fn upload_dependencies(&self) -> Vec<TextureUploadDependency> {
+        self.descriptor_sets.upload_dependencies()
+    }
+
+    pub(crate) fn validate_descriptor_sets_for_frame(
+        &self,
+        current_image_count: usize,
+    ) -> VMNLResult<()> {
+        let set_count = match &self.descriptor_sets {
+            RawDescriptorSets::Static { sets, .. } => sets.len(),
+            RawDescriptorSets::FrameUniforms {
+                image_count,
+                required_set_count,
+                ..
+            } => {
+                validate_frame_uniform_image_count(*image_count, current_image_count)?;
+                *required_set_count
+            }
+        };
+        if set_count != self.required_descriptor_set_count {
+            return Err(VMNLError::new(VMNLErrorKind::InvalidState(
+                "raw pipeline descriptor resources are incomplete".into(),
+            )));
+        }
+        Ok(())
+    }
+
     pub(crate) fn descriptor_sets_for_image(
         &self,
         image_index: usize,
-        current_image_count: usize,
         descriptor_set_allocator: &Arc<StandardDescriptorSetAllocator>,
         expected_device: &Arc<Device>,
     ) -> VMNLResult<Vec<Arc<DescriptorSet>>> {
-        self.descriptor_sets.for_image(
-            image_index,
-            current_image_count,
-            descriptor_set_allocator,
-            expected_device,
-        )
+        self.descriptor_sets
+            .for_image(image_index, descriptor_set_allocator, expected_device)
     }
 }
 
@@ -1355,6 +1634,7 @@ fn validate_supplied_resource_bindings(
     expected_device: &Arc<Device>,
     set_layouts: &[Arc<DescriptorSetLayout>],
     supplied_sets: &BTreeMap<u32, BTreeMap<u32, ResourceBinding>>,
+    shader_contract: &ShaderContract,
 ) -> VMNLResult<()> {
     for (&set, supplied_bindings) in supplied_sets {
         let set_layout = set_layouts.get(usize::try_from(set).map_err(|_| {
@@ -1399,13 +1679,224 @@ fn validate_supplied_resource_bindings(
             let device = match resource {
                 ResourceBinding::FrameUniformBuffer { device, .. }
                 | ResourceBinding::UniformBuffer { device, .. } => device,
+                ResourceBinding::SampledTexture(texture) => &texture.image.device,
+                ResourceBinding::SampledImage(image) => &image.device,
+                ResourceBinding::Sampler(sampler) => &sampler.device,
             };
             if !Arc::ptr_eq(device, expected_device) {
                 return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
                     "raw resources set {set} binding {binding} must belong to this context"
                 ))));
             }
+
+            let resource_type = match resource {
+                ResourceBinding::FrameUniformBuffer { .. }
+                | ResourceBinding::UniformBuffer { .. } => DescriptorType::UniformBuffer,
+                ResourceBinding::SampledTexture(_) => DescriptorType::CombinedImageSampler,
+                ResourceBinding::SampledImage(_) => DescriptorType::SampledImage,
+                ResourceBinding::Sampler(_) => DescriptorType::Sampler,
+            };
+            if binding_layout.descriptor_type != resource_type {
+                return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+                    "raw resources set {set} binding {binding} resource does not match the pipeline descriptor type"
+                ))));
+            }
+
+            if let ResourceBinding::SampledTexture(texture) = resource {
+                if let Some(reason) = &texture.validation_error {
+                    return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+                        "raw resources set {set} binding {binding}: {reason}"
+                    ))));
+                }
+                validate_sampled_image_binding(
+                    BindingPoint { set, binding },
+                    &texture.image,
+                    shader_contract,
+                )?;
+                validate_sampler_shader_binding(
+                    BindingPoint { set, binding },
+                    &texture.sampler,
+                    shader_contract,
+                )?;
+            }
+            if let ResourceBinding::SampledImage(image) = resource {
+                validate_sampled_image_binding(
+                    BindingPoint { set, binding },
+                    image,
+                    shader_contract,
+                )?;
+            }
+            if let ResourceBinding::Sampler(sampler) = resource {
+                validate_sampler_shader_binding(
+                    BindingPoint { set, binding },
+                    sampler,
+                    shader_contract,
+                )?;
+            }
         }
+    }
+
+    validate_sampled_pairs(supplied_sets, shader_contract)?;
+
+    Ok(())
+}
+
+fn validate_sampled_image_binding(
+    point: BindingPoint,
+    image: &SampledImageBinding,
+    shader_contract: &ShaderContract,
+) -> VMNLResult<()> {
+    if !image.sampled_usage {
+        return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+            "raw resources set {} binding {} image usage does not include shader sampling",
+            point.set, point.binding
+        ))));
+    }
+
+    let Some(requirements) = shader_contract.descriptors.get(&point) else {
+        return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+            "raw resources set {} binding {} has no reflected shader requirements",
+            point.set, point.binding
+        ))));
+    };
+    if requirements
+        .image_view_type
+        .is_some_and(|view_type| view_type != vulkano::image::view::ImageViewType::Dim2d)
+    {
+        return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+            "raw resources set {} binding {} requires an image view type incompatible with Texture2D",
+            point.set, point.binding
+        ))));
+    }
+    if requirements.image_multisampled {
+        return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+            "raw resources set {} binding {} requires a multisampled image",
+            point.set, point.binding
+        ))));
+    }
+    if requirements
+        .image_scalar_type
+        .is_some_and(|scalar_type| scalar_type != NumericType::Float)
+    {
+        return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+            "raw resources set {} binding {} shader scalar type is incompatible with normalized RGBA8 texture data",
+            point.set, point.binding
+        ))));
+    }
+    if requirements
+        .image_format
+        .is_some_and(|format| image.image_view.format() != format)
+    {
+        return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+            "raw resources set {} binding {} shader image format is incompatible with the texture view",
+            point.set, point.binding
+        ))));
+    }
+
+    Ok(())
+}
+
+fn validate_sampler_shader_binding(
+    point: BindingPoint,
+    sampler: &SampledSamplerBinding,
+    shader_contract: &ShaderContract,
+) -> VMNLResult<()> {
+    let requirements = shader_contract.descriptors.get(&point).ok_or_else(|| {
+        VMNLError::new(VMNLErrorKind::InvalidState(format!(
+            "raw resources set {} binding {} has no reflected shader requirements",
+            point.set, point.binding
+        )))
+    })?;
+
+    let sampler_uses = shader_contract
+        .sampler_uses
+        .iter()
+        .filter(|usage| usage.pair.sampler == point);
+
+    // Vulkano 0.35.2 does not flag depth gather as a comparison.
+    if sampler_uses
+        .clone()
+        .any(|usage| usage.operation == SamplerOperation::DepthComparison)
+        || requirements
+            .descriptors
+            .values()
+            .any(|descriptor| descriptor.sampler_compare)
+    {
+        return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+            "raw resources set {} binding {} requires depth comparison, which VMNL samplers do not expose",
+            point.set, point.binding
+        ))));
+    }
+
+    if sampler.config.coordinate_mode() == crate::texture::SamplerCoordinateMode::Texel {
+        if requirements
+            .descriptors
+            .values()
+            .any(|descriptor| descriptor.sampler_no_unnormalized_coordinates)
+        {
+            return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+                "raw resources set {} binding {} shader sampling instructions are incompatible with texel coordinates",
+                point.set, point.binding
+            ))));
+        }
+        for usage in sampler_uses {
+            if let SamplerOperation::TexelIncompatible(reason) = usage.operation {
+                return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+                    "raw resources sampler set {} binding {}: {reason}",
+                    point.set, point.binding
+                ))));
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn validate_sampled_pairs(
+    supplied_sets: &BTreeMap<u32, BTreeMap<u32, ResourceBinding>>,
+    shader_contract: &ShaderContract,
+) -> VMNLResult<()> {
+    for pair in &shader_contract.sampled_pairs {
+        let image_resource = supplied_sets
+            .get(&pair.image.set)
+            .and_then(|bindings| bindings.get(&pair.image.binding));
+        let sampler_resource = supplied_sets
+            .get(&pair.sampler.set)
+            .and_then(|bindings| bindings.get(&pair.sampler.binding));
+
+        let (image, sampler) = match (image_resource, sampler_resource) {
+            (
+                Some(ResourceBinding::SampledTexture(texture)),
+                Some(ResourceBinding::SampledTexture(_)),
+            ) if pair.image == pair.sampler => (&texture.image, &texture.sampler),
+            (
+                Some(ResourceBinding::SampledImage(image)),
+                Some(ResourceBinding::Sampler(sampler)),
+            ) => (image, sampler),
+            _ => {
+                return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+                    "raw shader sampled image set {} binding {} with sampler set {} binding {}, but the resource bindings do not form that pair",
+                    pair.image.set,
+                    pair.image.binding,
+                    pair.sampler.set,
+                    pair.sampler.binding
+                ))));
+            }
+        };
+
+        validate_sampled_image_sampler(
+            &image.image_view,
+            &image.device,
+            image.sampled_usage,
+            &sampler.device,
+            sampler.config,
+        )
+        .map_err(|error| {
+            VMNLError::new(VMNLErrorKind::InvalidState(format!(
+                "raw sampled image set {} binding {} and sampler set {} binding {}: {}",
+                pair.image.set, pair.image.binding, pair.sampler.set, pair.sampler.binding, error
+            )))
+        })?;
     }
 
     Ok(())
@@ -1460,6 +1951,58 @@ fn descriptor_writes_for_set(
                     ))));
                 }
                 writes.push(WriteDescriptorSet::buffer(binding, buffer.clone()));
+            }
+            ResourceBinding::SampledTexture(texture) => {
+                if !Arc::ptr_eq(&texture.image.device, expected_device)
+                    || !Arc::ptr_eq(&texture.sampler.device, expected_device)
+                {
+                    return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+                        "raw resources set {set} binding {binding} must belong to this context"
+                    ))));
+                }
+                if let Some(reason) = &texture.validation_error {
+                    return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+                        "raw resources set {set} binding {binding}: {reason}"
+                    ))));
+                }
+                writes.push(WriteDescriptorSet::image_view_with_layout_sampler(
+                    binding,
+                    DescriptorImageViewInfo {
+                        image_view: texture.image.image_view.clone(),
+                        image_layout: ImageLayout::General,
+                    },
+                    texture.sampler.sampler.clone(),
+                ));
+            }
+            ResourceBinding::SampledImage(image) => {
+                if !Arc::ptr_eq(&image.device, expected_device) {
+                    return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+                        "raw resources set {set} binding {binding} must belong to this context"
+                    ))));
+                }
+                if !image.sampled_usage {
+                    return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+                        "raw resources set {set} binding {binding} image usage does not include shader sampling"
+                    ))));
+                }
+                writes.push(WriteDescriptorSet::image_view_with_layout(
+                    binding,
+                    DescriptorImageViewInfo {
+                        image_view: image.image_view.clone(),
+                        image_layout: ImageLayout::General,
+                    },
+                ));
+            }
+            ResourceBinding::Sampler(sampler) => {
+                if !Arc::ptr_eq(&sampler.device, expected_device) {
+                    return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
+                        "raw resources set {set} binding {binding} must belong to this context"
+                    ))));
+                }
+                writes.push(WriteDescriptorSet::sampler(
+                    binding,
+                    sampler.sampler.clone(),
+                ));
             }
         }
     }
@@ -1576,13 +2119,7 @@ fn validate_raw_descriptor_binding(
     binding: u32,
     descriptor_type: DescriptorType,
 ) -> VMNLResult<()> {
-    if descriptor_type != DescriptorType::UniformBuffer {
-        return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
-            "raw pipeline set {set} binding {binding} only supports uniform buffers for now"
-        ))));
-    }
-
-    Ok(())
+    shader_compat::validate_raw_descriptor_type(set, binding, descriptor_type)
 }
 
 fn required_descriptor_set_count(layout: &PipelineLayout) -> usize {
@@ -1596,11 +2133,53 @@ fn required_descriptor_set_count_from_layouts(set_layouts: &[Arc<DescriptorSetLa
         .map_or(0, |index| index + 1)
 }
 
+struct CompiledRawShader {
+    module: Arc<ShaderModule>,
+    contract: ShaderStageContract,
+}
+
+fn compile_raw_shader_stages(
+    device: Arc<Device>,
+    vertex_source: &ShaderSource,
+    fragment_source: &ShaderSource,
+) -> VMNLResult<(EntryPoint, EntryPoint, Arc<ShaderContract>)> {
+    let vertex_shader = compile_shader(
+        device.clone(),
+        vertex_source,
+        shaderc::ShaderKind::Vertex,
+        vulkano::shader::spirv::ExecutionModel::Vertex,
+        "vertex",
+    )?;
+    let fragment_shader = compile_shader(
+        device,
+        fragment_source,
+        shaderc::ShaderKind::Fragment,
+        vulkano::shader::spirv::ExecutionModel::Fragment,
+        "fragment",
+    )?;
+    let contract = Arc::new(ShaderContract::merge(
+        &vertex_shader.contract,
+        &fragment_shader.contract,
+    )?);
+    let vertex_entry = vertex_shader
+        .module
+        .entry_point("main")
+        .ok_or_else(|| VMNLError::new(VMNLErrorKind::VulkanShaderCompilationFailed))?;
+    let fragment_entry = fragment_shader
+        .module
+        .entry_point("main")
+        .ok_or_else(|| VMNLError::new(VMNLErrorKind::VulkanShaderCompilationFailed))?;
+
+    Ok((vertex_entry, fragment_entry, contract))
+}
+
 fn compile_shader(
     device: Arc<Device>,
     source: &ShaderSource,
     kind: shaderc::ShaderKind,
-) -> VMNLResult<Arc<ShaderModule>> {
+    execution_model: vulkano::shader::spirv::ExecutionModel,
+    stage_name: &str,
+) -> VMNLResult<CompiledRawShader> {
     let (source, name) = match source {
         ShaderSource::Src(source) => (source.clone(), "raw_inline_shader.glsl".to_string()),
         ShaderSource::Path(path) => {
@@ -1622,10 +2201,13 @@ fn compile_shader(
         .compile_into_spirv(&source, kind, &name, "main", None)
         .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanShaderCompilationFailed))?;
 
-    let create_info = ShaderModuleCreateInfo::new(spirv.as_binary());
+    let words = spirv.as_binary().to_vec();
+    let create_info = ShaderModuleCreateInfo::new(&words);
     // SAFETY: shaderc returns valid SPIR-V for the requested stage or an error.
-    unsafe { ShaderModule::new(device, create_info) }
-        .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanShaderModuleCreationFailed))
+    let module = unsafe { ShaderModule::new(device, create_info) }
+        .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanShaderModuleCreationFailed))?;
+    let contract = shader_compat::reflect_stage_contract(&words, execution_model, stage_name)?;
+    Ok(CompiledRawShader { module, contract })
 }
 
 fn validate_raw_rasterization(
@@ -1699,19 +2281,24 @@ fn raw_rasterization_state(
     }
 }
 
-fn color_blend_state(blend_mode: BlendMode) -> ColorBlendState {
-    match blend_mode {
-        BlendMode::Opaque => {
-            ColorBlendState::with_attachment_states(1, ColorBlendAttachmentState::default())
-        }
-        BlendMode::Alpha => ColorBlendState::with_attachment_states(
-            1,
-            ColorBlendAttachmentState {
-                blend: Some(AttachmentBlend::alpha()),
-                ..Default::default()
-            },
-        ),
-    }
+fn color_blend_state(config: ColorBlendConfig) -> ColorBlendState {
+    let blend = config.blend_enabled().then_some(AttachmentBlend {
+        src_color_blend_factor: config.color_source_factor().to_vulkano(),
+        dst_color_blend_factor: config.color_destination_factor().to_vulkano(),
+        color_blend_op: config.color_operation().to_vulkano(),
+        src_alpha_blend_factor: config.alpha_source_factor().to_vulkano(),
+        dst_alpha_blend_factor: config.alpha_destination_factor().to_vulkano(),
+        alpha_blend_op: config.alpha_operation().to_vulkano(),
+    });
+    let mut state = ColorBlendState::with_attachment_states(
+        1,
+        ColorBlendAttachmentState {
+            blend,
+            ..Default::default()
+        },
+    );
+    state.blend_constants = config.blend_constants();
+    state
 }
 
 #[cfg(test)]
@@ -1986,9 +2573,19 @@ mod tests {
     }
 
     #[test]
-    fn raw_pipeline_refuses_unsupported_descriptor_layouts() {
+    fn raw_pipeline_accepts_combined_image_sampler_descriptor_layouts() {
         let layout_info = pipeline_layout_info(vec![descriptor_set_layout(
             DescriptorType::CombinedImageSampler,
+            1,
+        )]);
+
+        assert!(validate_raw_pipeline_layout(&layout_info).is_ok());
+    }
+
+    #[test]
+    fn raw_pipeline_refuses_unsupported_descriptor_layouts() {
+        let layout_info = pipeline_layout_info(vec![descriptor_set_layout(
+            DescriptorType::StorageBuffer,
             1,
         )]);
 
@@ -2097,7 +2694,10 @@ mod tests {
 
     #[test]
     fn raw_descriptor_sets_select_static_and_frame_uniform_modes() {
-        let static_sets = RawDescriptorSets::Static(Vec::new());
+        let static_sets = RawDescriptorSets::Static {
+            sets: Vec::new(),
+            upload_dependencies: Vec::new(),
+        };
         let frame_uniform_sets = RawDescriptorSets::FrameUniforms {
             image_count: 2,
             set_layouts: Vec::new(),
@@ -2107,7 +2707,7 @@ mod tests {
 
         assert!(matches!(
             static_sets,
-            RawDescriptorSets::Static(ref sets) if sets.is_empty()
+            RawDescriptorSets::Static { ref sets, .. } if sets.is_empty()
         ));
         assert!(matches!(
             frame_uniform_sets,

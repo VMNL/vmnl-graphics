@@ -37,6 +37,13 @@ Treat `docs/` as the canonical home for stable architecture, contracts, and proc
 - Read [`references/graphics-correctness.md`](references/graphics-correctness.md) for Vulkan, synchronization, swapchain, window, resource, shader, pipeline, unsafe, platform, or performance work.
 - Read [`references/validation.md`](references/validation.md) for every feature, fix, Rust source change, test/example change, tooling change, dependency change, or validation claim.
 
+## Choose the Vulkan Implementation Path
+
+Use Vulkano where it satisfies the established contract. For any graphics task, direct Vulkan
+calls, including through `ash`, are allowed for an operation when the relevant high-level and
+lower-level Vulkano APIs cannot meet its contract under the repository rules. Keep the native
+path private and follow the [native Vulkan interoperability rules](references/graphics-correctness.md#native-vulkan-interoperability).
+
 ## Preserve Graphics Contracts
 
 - For API design and audits, apply the [explicit client control contract](../../../docs/architecture.md#explicit-client-control)

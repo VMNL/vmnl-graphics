@@ -5,7 +5,7 @@
 | [`Pipeline<TVertex>`](pipeline.md) | Window/render-pass-bound graphics pipeline |
 | [`PipelineSpec<TVertex>`](pipeline_spec.md) | Pipeline builder and defaults |
 | [`PrimitiveTopology`](primitive_topology.md) | Input assembly topology |
-| [`BlendMode`](blend_mode.md) | Color attachment blending |
+| [`BlendMode`](blend_mode.md) | Legacy color attachment blending |
 | [`CullMode`](cull_mode.md) | Triangle faces discarded during rasterization |
 | [`CompareOp`](compare_op.md) | Incoming/stored depth comparison |
 | [`DepthState`](depth_state.md) | Disabled or explicit depth test/write state |

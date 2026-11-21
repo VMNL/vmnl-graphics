@@ -6,6 +6,7 @@
 //! This module chains image acquisition, command execution, presentation,
 //! and fence signaling for a rendered frame.
 
+use crate::texture::TextureUploadDependency;
 use crate::window::runtime::FrameCompletion;
 use crate::{window::inner::VMNLWindow, VMNLError, VMNLErrorKind, VMNLResult};
 use std::sync::Arc;
@@ -53,6 +54,7 @@ impl VMNLWindow {
     /// - `previous_frame_end`: Mutable reference to the previous frame future.
     /// - `acquire_future`: Future for image acquisition.
     /// - `command_buffer`: Command buffer for current frame.
+    /// - `upload_dependencies`: Unique texture uploads validated before acquisition.
     /// - `image_index`: Index of the acquired image.
     /// - `graphics_queue`: Queue to execute command buffer.
     /// - `swapchain`: Swapchain used for presentation.
@@ -61,6 +63,7 @@ impl VMNLWindow {
         previous_frame_end: &mut Option<Box<dyn GpuFuture + Send + Sync>>,
         acquire_future: SwapchainAcquireFuture,
         command_buffer: Arc<PrimaryAutoCommandBuffer>,
+        upload_dependencies: Vec<TextureUploadDependency>,
         image_index: u32,
         graphics_queue: Arc<Queue>,
         swapchain: Arc<Swapchain>,
@@ -68,8 +71,11 @@ impl VMNLWindow {
         let previous = previous_frame_end
             .take()
             .ok_or_else(|| VMNLError::new(VMNLErrorKind::VulkanUnknownError))?;
-        let after_exec = previous
-            .join(acquire_future)
+        let mut before_execute = previous.join(acquire_future).boxed_send_sync();
+        for dependency in upload_dependencies {
+            before_execute = before_execute.join(dependency.future()).boxed_send_sync();
+        }
+        let after_exec = before_execute
             .then_execute(graphics_queue.clone(), command_buffer)
             .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanValidationFailed))?;
         let after_present = after_exec.then_swapchain_present(

@@ -549,6 +549,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "raw_texture"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
 name = "raw_triangle"
 version = "0.1.0"
 dependencies = [

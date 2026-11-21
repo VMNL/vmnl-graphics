@@ -66,6 +66,18 @@ fn pipeline(
     spec.build(window)
 }
 
+fn color_pipeline(
+    window: &Window,
+    config: vmnl_graphics::common::ColorBlendConfig,
+) -> VMNLResult<raw::Pipeline<RawVertex>> {
+    raw::Pipeline::<RawVertex>::builder()
+        .vertex_shader(shader_source(VERT_PATH))
+        .fragment_shader(shader_source(FRAG_PATH))
+        .topology(raw::PrimitiveTopology::TriangleList)
+        .color_blend(config)
+        .build(window)
+}
+
 fn triangle_pipelines(
     window: &Window,
     widths: &[f32],
@@ -190,6 +202,14 @@ fn main() -> VMNLResult<()> {
         raw::PrimitiveTopology::TriangleStrip,
         raw::BlendMode::Opaque,
     )?;
+    let straight_alpha_pipeline = color_pipeline(
+        &window,
+        vmnl_graphics::common::ColorBlendConfig::straight_alpha(),
+    )?;
+    let premultiplied_alpha_pipeline = color_pipeline(
+        &window,
+        vmnl_graphics::common::ColorBlendConfig::premultiplied_alpha(),
+    )?;
 
     let points = raw::Geometry::builder([
         vertex(-0.85, 0.75, [1.0, 0.0, 0.0, 1.0]),
@@ -234,8 +254,22 @@ fn main() -> VMNLResult<()> {
     ])
     .build(&context)?;
 
+    let straight_alpha_sample = raw::Geometry::builder([
+        vertex(-0.96, -0.58, [1.0, 0.3, 0.08, 0.65]),
+        vertex(-0.76, -0.58, [1.0, 0.3, 0.08, 0.65]),
+        vertex(-0.86, -0.80, [1.0, 0.3, 0.08, 0.65]),
+    ])
+    .build(&context)?;
+    let premultiplied_alpha_sample = raw::Geometry::builder([
+        vertex(-0.68, -0.58, [0.65, 0.195, 0.052, 0.65]),
+        vertex(-0.48, -0.58, [0.65, 0.195, 0.052, 0.65]),
+        vertex(-0.58, -0.80, [0.65, 0.195, 0.052, 0.65]),
+    ])
+    .build(&context)?;
+
     let mut selection = PipelineSelection::default();
     println!("C: culling; F: winding; P: fill/wireframe; W: line width; Escape: close.");
+    println!("Bottom-left samples: straight-alpha (left), premultiplied-alpha (right).");
     println!(
         "All pipeline combinations are built before the loop; widths may be rounded by the driver."
     );
@@ -255,6 +289,8 @@ fn main() -> VMNLResult<()> {
                 [&triangle_list],
             )
             .draw_raw_2d(&triangle_strip_pipeline, [&triangle_strip])
+            .draw_raw_2d(&straight_alpha_pipeline, [&straight_alpha_sample])
+            .draw_raw_2d(&premultiplied_alpha_pipeline, [&premultiplied_alpha_sample])
             .submit()?;
     }
 

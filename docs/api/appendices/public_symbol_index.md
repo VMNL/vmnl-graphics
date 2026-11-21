@@ -54,6 +54,10 @@
 | struct | `vmnl_graphics::Window` | [Window](../reference/window/window.md) | [Rustdoc](../../../target/doc/vmnl_graphics/struct.Window.html) |
 | struct | `vmnl_graphics::WindowBuilder` | [WindowBuilder](../reference/window/window_builder.md) | [Rustdoc](../../../target/doc/vmnl_graphics/struct.WindowBuilder.html) |
 | enum | `vmnl_graphics::common::BufferMemoryPreference` | [BufferMemoryPreference](../reference/common/buffer_memory_preference.md) | [Rustdoc](../../../target/doc/vmnl_graphics/common/enum.BufferMemoryPreference.html) |
+| struct | `vmnl_graphics::common::ColorBlendConfig` | [ColorBlendConfig](../reference/common/color_blend_config.md) | [Rustdoc](../../../target/doc/vmnl_graphics/common/struct.ColorBlendConfig.html) |
+| enum | `vmnl_graphics::common::ColorBlendFactor` | [ColorBlendFactor](../reference/common/color_blend_factor.md) | [Rustdoc](../../../target/doc/vmnl_graphics/common/enum.ColorBlendFactor.html) |
+| enum | `vmnl_graphics::common::ColorBlendOperation` | [ColorBlendOperation](../reference/common/color_blend_operation.md) | [Rustdoc](../../../target/doc/vmnl_graphics/common/enum.ColorBlendOperation.html) |
+| struct | `vmnl_graphics::common::ColorBlendOverrides` | [ColorBlendOverrides](../reference/common/color_blend_overrides.md) | [Rustdoc](../../../target/doc/vmnl_graphics/common/struct.ColorBlendOverrides.html) |
 | struct | `vmnl_graphics::common::Rgba` | [Rgba](../reference/common/rgba.md) | [Rustdoc](../../../target/doc/vmnl_graphics/common/struct.Rgba.html) |
 | enum | `vmnl_graphics::common::ShaderSource` | [ShaderSource](../reference/common/shader_source.md) | [Rustdoc](../../../target/doc/vmnl_graphics/common/enum.ShaderSource.html) |
 | enum | `vmnl_graphics::d2::Anchor` | [Anchor](../reference/d2/shapes/anchor.md) | [Rustdoc](../../../target/doc/vmnl_graphics/d2/enum.Anchor.html) |
@@ -118,11 +122,16 @@
 | enum | `vmnl_graphics::texture::SamplerLodLimit` | [SamplerLodLimit](../reference/texture/sampler_config.md#samplerlodlimit) | [Rustdoc](../../../target/doc/vmnl_graphics/texture/enum.SamplerLodLimit.html) |
 | struct | `vmnl_graphics::texture::Texture2D` | [Texture2D](../reference/texture/gpu_resources.md#texture2d-and-texture2dbuilder) | [Rustdoc](../../../target/doc/vmnl_graphics/texture/struct.Texture2D.html) |
 | struct | `vmnl_graphics::texture::Texture2DBuilder` | [Texture2DBuilder](../reference/texture/gpu_resources.md#texture2d-and-texture2dbuilder) | [Rustdoc](../../../target/doc/vmnl_graphics/texture/struct.Texture2DBuilder.html) |
+| enum | `vmnl_graphics::texture::TextureComponent` | [TextureComponent](../reference/texture/gpu_resources.md#textureview2d) | [Rustdoc](../../../target/doc/vmnl_graphics/texture/enum.TextureComponent.html) |
+| struct | `vmnl_graphics::texture::TextureComponentMapping` | [TextureComponentMapping](../reference/texture/gpu_resources.md#textureview2d) | [Rustdoc](../../../target/doc/vmnl_graphics/texture/struct.TextureComponentMapping.html) |
+| struct | `vmnl_graphics::texture::TextureDefaults` | [TextureDefaults](../reference/texture/texture_defaults.md) | [Rustdoc](../../../target/doc/vmnl_graphics/texture/struct.TextureDefaults.html) |
 | enum | `vmnl_graphics::texture::TextureFormat` | [TextureFormat](../reference/texture/descriptors.md#textureformat) | [Rustdoc](../../../target/doc/vmnl_graphics/texture/enum.TextureFormat.html) |
 | enum | `vmnl_graphics::texture::TextureRetirementPolicy` | [Texture retirement](../reference/texture/gpu_resources.md#texture2d-and-texture2dbuilder) | [Rustdoc](../../../target/doc/vmnl_graphics/texture/enum.TextureRetirementPolicy.html) |
 | struct | `vmnl_graphics::texture::TextureUsage` | [TextureUsage](../reference/texture/descriptors.md#textureusage) | [Rustdoc](../../../target/doc/vmnl_graphics/texture/struct.TextureUsage.html) |
 | enum | `vmnl_graphics::texture::TextureUsageRequest` | [TextureUsageRequest](../reference/texture/descriptors.md#textureusagerequest) | [Rustdoc](../../../target/doc/vmnl_graphics/texture/enum.TextureUsageRequest.html) |
 | struct | `vmnl_graphics::texture::TextureView2D` | [TextureView2D](../reference/texture/gpu_resources.md#textureview2d) | [Rustdoc](../../../target/doc/vmnl_graphics/texture/struct.TextureView2D.html) |
+| struct | `vmnl_graphics::texture::TextureView2DBuilder` | [TextureView2DBuilder](../reference/texture/gpu_resources.md#textureview2d) | [Rustdoc](../../../target/doc/vmnl_graphics/texture/struct.TextureView2DBuilder.html) |
+| struct | `vmnl_graphics::texture::TextureViewInterpretation` | [TextureViewInterpretation](../reference/texture/gpu_resources.md#textureview2d) | [Rustdoc](../../../target/doc/vmnl_graphics/texture/struct.TextureViewInterpretation.html) |
 | struct | `vmnl_graphics::texture::UploadTicket` | [UploadTicket](../reference/texture/gpu_resources.md#uploadticket-and-uploadwaitoutcome) | [Rustdoc](../../../target/doc/vmnl_graphics/texture/struct.UploadTicket.html) |
 | enum | `vmnl_graphics::texture::UploadWaitOutcome` | [UploadWaitOutcome](../reference/texture/gpu_resources.md#uploadticket-and-uploadwaitoutcome) | [Rustdoc](../../../target/doc/vmnl_graphics/texture/enum.UploadWaitOutcome.html) |
 | struct | `vmnl_graphics::time::Clock` | [Clock](../reference/time/clock.md) | [Rustdoc](../../../target/doc/vmnl_graphics/time/struct.Clock.html) |

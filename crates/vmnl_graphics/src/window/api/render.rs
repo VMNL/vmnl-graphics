@@ -177,6 +177,7 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     /// Errors are reported by [`FrameRenderer::submit`] if the current
     /// swapchain image count no longer matches the uniform, or if the backend
     /// buffer allocation, descriptor set allocation, or buffer write fails.
+    /// The image count is checked before acquiring a swapchain image.
     #[must_use]
     pub fn write_frame_uniform<TData>(
         mut self,
@@ -228,6 +229,13 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     /// ```
     ///
     /// # Errors
+    /// Raw pipeline, geometry, and resource compatibility, raw viewport/scissor
+    /// validity, and frame-uniform image counts are checked before acquisition.
+    /// If acquisition requires swapchain recreation, these checks run again for
+    /// the replacement swapchain before retrying.
+    ///
+    /// Returns `TextureUploadFailed` before acquiring a swapchain image if an initial
+    /// upload used by a raw draw has a known failure or its fence status query fails.
     /// Returns an error if frame-uniform allocation/write/binding, frame acquisition,
     /// command recording, submission, or presentation fails. An out-of-date swapchain
     /// during acquisition or presentation returns `VMNLErrorKind::VulkanOutOfDate`.

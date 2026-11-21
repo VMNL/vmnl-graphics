@@ -4,7 +4,7 @@
 //! CPU-side context configuration and device feature requirements.
 
 use super::{Context, VMNLInstance};
-use crate::VMNLResult;
+use crate::{common::ColorBlendOverrides, texture::TextureDefaults, VMNLResult};
 use std::rc::Rc;
 use vulkano::device::DeviceFeatures;
 
@@ -142,6 +142,8 @@ impl DeviceConfig {
 #[derive(Clone, Debug, Default)]
 pub struct ContextBuilder {
     device: DeviceConfig,
+    textures: TextureDefaults,
+    raw_color_blend: ColorBlendOverrides,
 }
 
 impl ContextBuilder {
@@ -156,6 +158,32 @@ impl ContextBuilder {
     #[must_use]
     pub const fn device_config(&self) -> &DeviceConfig {
         &self.device
+    }
+
+    /// Sets exact context defaults for texture creation and explicit views.
+    #[must_use]
+    pub const fn texture_defaults(mut self, defaults: TextureDefaults) -> Self {
+        self.textures = defaults;
+        self
+    }
+
+    /// Returns the texture defaults requested for this context.
+    #[must_use]
+    pub const fn texture_defaults_config(&self) -> TextureDefaults {
+        self.textures
+    }
+
+    /// Sets per-field defaults for new raw pipelines. Unset fields use VMNL's opaque preset.
+    #[must_use]
+    pub const fn raw_color_blend(mut self, defaults: ColorBlendOverrides) -> Self {
+        self.raw_color_blend = defaults;
+        self
+    }
+
+    /// Returns the blend fields explicitly configured as context defaults.
+    #[must_use]
+    pub const fn raw_color_blend_defaults(&self) -> ColorBlendOverrides {
+        self.raw_color_blend
     }
 
     /// Builds the complete context, enabling every requested device feature.
@@ -188,7 +216,11 @@ impl ContextBuilder {
     /// ```
     pub fn build(self) -> VMNLResult<Context> {
         Ok(Context {
-            inner: Rc::new(VMNLInstance::new(&self.device)?),
+            inner: Rc::new(VMNLInstance::new(
+                &self.device,
+                self.textures,
+                self.raw_color_blend,
+            )?),
         })
     }
 }

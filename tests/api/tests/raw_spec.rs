@@ -3,7 +3,10 @@
 
 use std::path::PathBuf;
 
-use vmnl_graphics::{common::BufferMemoryPreference, raw, PresentMode, RenderMode, VMNLResult};
+use vmnl_graphics::{
+    common::{BufferMemoryPreference, ColorBlendConfig, ColorBlendFactor, ColorBlendOperation},
+    raw, PresentMode, RenderMode, VMNLResult,
+};
 
 #[derive(Clone)]
 struct RawSpecVertex;
@@ -132,6 +135,120 @@ fn raw_pipeline_spec_exposes_topology_and_blend_mode() -> VMNLResult<()> {
     assert_eq!(spec.blend_mode_value(), raw::BlendMode::Opaque);
 
     Ok(())
+}
+
+#[test]
+fn raw_pipeline_blend_presets_are_editable_and_keep_legacy_selection() {
+    fn exhaustive_legacy_match(mode: raw::BlendMode) -> bool {
+        match mode {
+            raw::BlendMode::Opaque => false,
+            raw::BlendMode::Alpha => true,
+        }
+    }
+
+    let default = raw::Pipeline::<RawSpecVertex>::builder();
+    assert_eq!(default.blend_mode_value(), raw::BlendMode::Opaque);
+    assert_eq!(
+        default.color_blend_config_value(),
+        ColorBlendConfig::opaque()
+    );
+    assert!(!exhaustive_legacy_match(default.blend_mode_value()));
+
+    let straight_alpha = ColorBlendConfig::straight_alpha();
+    assert!(straight_alpha.blend_enabled());
+    assert_eq!(
+        straight_alpha.color_source_factor(),
+        ColorBlendFactor::SourceAlpha
+    );
+    assert_eq!(
+        straight_alpha.color_destination_factor(),
+        ColorBlendFactor::OneMinusSourceAlpha
+    );
+    assert_eq!(straight_alpha.color_operation(), ColorBlendOperation::Add);
+    assert_eq!(straight_alpha.alpha_source_factor(), ColorBlendFactor::One);
+    assert_eq!(
+        straight_alpha.alpha_destination_factor(),
+        ColorBlendFactor::OneMinusSourceAlpha
+    );
+    assert_eq!(straight_alpha.alpha_operation(), ColorBlendOperation::Add);
+
+    let premultiplied_alpha = ColorBlendConfig::premultiplied_alpha();
+    assert_eq!(
+        premultiplied_alpha.color_source_factor(),
+        ColorBlendFactor::One
+    );
+    assert_eq!(
+        premultiplied_alpha.color_destination_factor(),
+        ColorBlendFactor::OneMinusSourceAlpha
+    );
+    assert_eq!(
+        premultiplied_alpha.alpha_source_factor(),
+        ColorBlendFactor::One
+    );
+
+    let customized = ColorBlendConfig::straight_alpha()
+        .with_color_blend(
+            ColorBlendFactor::SourceColor,
+            ColorBlendFactor::OneMinusDestinationColor,
+            ColorBlendOperation::ReverseSubtract,
+        )
+        .with_alpha_blend(
+            ColorBlendFactor::ConstantAlpha,
+            ColorBlendFactor::SourceAlphaSaturate,
+            ColorBlendOperation::Max,
+        )
+        .with_blend_constants([0.1, 0.2, 0.3, 0.4]);
+    assert_eq!(
+        customized.color_source_factor(),
+        ColorBlendFactor::SourceColor
+    );
+    assert_eq!(
+        customized.color_destination_factor(),
+        ColorBlendFactor::OneMinusDestinationColor
+    );
+    assert_eq!(
+        customized.color_operation(),
+        ColorBlendOperation::ReverseSubtract
+    );
+    assert_eq!(
+        customized.alpha_source_factor(),
+        ColorBlendFactor::ConstantAlpha
+    );
+    assert_eq!(
+        customized.alpha_destination_factor(),
+        ColorBlendFactor::SourceAlphaSaturate
+    );
+    assert_eq!(customized.alpha_operation(), ColorBlendOperation::Max);
+    assert_eq!(customized.blend_constants(), [0.1, 0.2, 0.3, 0.4]);
+
+    let explicit_after_legacy = raw::Pipeline::<RawSpecVertex>::builder()
+        .blend_mode(raw::BlendMode::Alpha)
+        .color_blend(customized);
+    assert_eq!(
+        explicit_after_legacy.blend_mode_value(),
+        raw::BlendMode::Alpha
+    );
+    assert!(exhaustive_legacy_match(
+        explicit_after_legacy.blend_mode_value()
+    ));
+    assert_eq!(explicit_after_legacy.color_blend_config_value(), customized);
+
+    let legacy_after_explicit = raw::Pipeline::<RawSpecVertex>::builder()
+        .color_blend(customized)
+        .blend_mode(raw::BlendMode::Alpha);
+    let legacy_alpha = ColorBlendConfig::straight_alpha().with_alpha_blend(
+        ColorBlendFactor::SourceAlpha,
+        ColorBlendFactor::OneMinusSourceAlpha,
+        ColorBlendOperation::Add,
+    );
+    assert_eq!(
+        legacy_after_explicit.blend_mode_value(),
+        raw::BlendMode::Alpha
+    );
+    assert_eq!(
+        legacy_after_explicit.color_blend_config_value(),
+        legacy_alpha
+    );
 }
 
 #[test]

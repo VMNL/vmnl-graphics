@@ -14,6 +14,7 @@ examples/d2/shapes
 examples/input/joystick_runtime
 examples/raw/d2_composition
 examples/raw/pipeline
+examples/raw/texture
 examples/raw/triangle
 examples/raw/uniform
 examples/window/custom_shaders
@@ -30,6 +31,7 @@ just run d2_advanced_geometry
 just run joystick_runtime
 just run window_wait_events
 just run raw_d2_composition
+just run raw_texture
 just build raw_pipeline
 ```
 
@@ -37,6 +39,11 @@ just build raw_pipeline
 with round caps. On the right, cyan filled circles and yellow outlined circles compare both
 orders of the fill and width setters. The [circle builder contract](api/reference/d2/shapes/circle_builder.md)
 defines fill and width configuration, angles, and the required sector/cap pair.
+
+`raw_texture` draws the same half-alpha 2×2 texture through combined bindings on the left and
+separate image/sampler bindings on the right. Press `F` to switch nearest/linear filtering, `V` to
+swap red and blue through an explicit view, and `B` to cycle opaque, straight-alpha, and
+premultiplied-alpha pipelines. The title reports the active choices.
 
 Current limitation: `d2_shapes` configures a sector without `.cap(...)`, so its shape construction
 returns `InvalidState` before entering the render loop. Use `d2_circles` for the circle-family

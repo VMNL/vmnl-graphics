@@ -20,7 +20,12 @@ mod vulkan_instance;
 #[cfg(test)]
 mod tests;
 
-use crate::{glfw_runtime::GlfwRuntime, texture::TextureRetirementRegistry, VMNLResult};
+use crate::{
+    common::ColorBlendOverrides,
+    glfw_runtime::GlfwRuntime,
+    texture::{TextureDefaults, TextureRetirementRegistry},
+    VMNLResult,
+};
 pub use config::{ContextBuilder, DeviceConfig, DeviceFeature, LineWidthLimits};
 pub use context::Context;
 use std::{cell::Cell, rc::Rc, sync::Arc};
@@ -61,6 +66,8 @@ pub(crate) struct VMNLInstance {
     pub(crate) keyboard_name_queries_ready: Cell<bool>,
     /// Deferred texture images remain alive here until upload completion is observed.
     pub(crate) texture_retirements: TextureRetirementRegistry,
+    pub(crate) texture_defaults: TextureDefaults,
+    pub(crate) raw_color_blend_defaults: ColorBlendOverrides,
 }
 
 impl VMNLInstance {
@@ -73,7 +80,11 @@ impl VMNLInstance {
     /// # Source
     /// <https://vulkano.rs/02-initialization/01-initialization.html#creating-an-instance>
     #[must_use = "VMNLInstance is required for Context initialization"]
-    pub(crate) fn new(device_config: &DeviceConfig) -> VMNLResult<Self> {
+    pub(crate) fn new(
+        device_config: &DeviceConfig,
+        texture_defaults: TextureDefaults,
+        raw_color_blend_defaults: ColorBlendOverrides,
+    ) -> VMNLResult<Self> {
         log::debug!("initializing VMNL instance");
         let glfw = GlfwRuntime::acquire(None)?;
         log::debug!(
@@ -121,6 +132,8 @@ impl VMNLInstance {
             glfw,
             keyboard_name_queries_ready,
             texture_retirements: TextureRetirementRegistry::default(),
+            texture_defaults,
+            raw_color_blend_defaults,
         })
     }
 }

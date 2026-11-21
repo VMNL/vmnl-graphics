@@ -57,6 +57,8 @@ action.
 - Check invalid and boundary inputs, partial failure, cancellation or shutdown, and resource lifetime.
 - At FFI and `unsafe` boundaries, verify preconditions before crossing the boundary and confirm that
   each safety claim states a checkable invariant.
+- For native Vulkan calls, verify the Vulkano limitation and the lifetime, state, and synchronization
+  handoff against the [native Vulkan interoperability rules](../develop-vmnl-graphics/references/graphics-correctness.md#native-vulkan-interoperability).
 - For concurrent or callback code, verify ownership, ordering, thread affinity, bounded work, and
   destruction or shutdown synchronization.
 - Treat panic removal, error propagation, determinism, allocation, zero-copy, non-blocking, and
