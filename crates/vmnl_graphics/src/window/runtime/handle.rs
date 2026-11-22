@@ -6,12 +6,13 @@
 
 use crate::{
     glfw_runtime::{JoystickEventQueue, JoystickEventSubscription},
+    texture::TextureUpload,
     vmnl_instance::VMNLInstance,
     window::inner::VMNLWindow,
     window::{event::EventQueue, input::ALL_JOYSTICK_IDS},
     Cursor, CursorMode, Event, EventKind, Input, VMNLErrorKind,
 };
-use std::sync::Arc;
+use std::sync::{Arc, Weak};
 use std::{cell::RefCell, rc::Rc};
 use vulkano::{
     pipeline::GraphicsPipeline,
@@ -43,6 +44,10 @@ pub(crate) struct WindowHandle {
     pub(crate) pipeline_2d_alpha: Arc<GraphicsPipeline>,
     /// Synchronization primitive representing the completion of the previous frame.
     pub(crate) previous_frame_end: Option<Box<dyn GpuFuture + Send + Sync>>,
+    /// Uploads of textures sampled by the last submitted frame, without extending their lifetime.
+    pub(crate) previous_frame_uploads: Vec<Weak<TextureUpload>>,
+    #[cfg(test)]
+    pub(crate) skip_frame_cleanup: bool,
     /// Last depth-attachment use per swapchain image; empty for color-only targets.
     pub(crate) depth_frame_completions: Vec<Option<FrameCompletion>>,
     /// Vulkan surface representing the OS window for presentation.

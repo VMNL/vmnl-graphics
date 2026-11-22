@@ -72,7 +72,7 @@ impl VMNLWindow {
             self.recreate_swapchain()?;
         }
         let mut raw_draw_states = self.preflight_frame(commands, &frame_uniform_writes)?;
-        Self::begin_frame(&mut self.handle.previous_frame_end);
+        self.begin_frame();
         let (image_index, suboptimal, acquire_future): (u32, bool, SwapchainAcquireFuture) =
             match Self::acquire_next_image_from_swapchain(&self.handle.swapchain, None) {
                 Ok(acquisition) => acquisition,
@@ -110,23 +110,37 @@ impl VMNLWindow {
 
         let command_buffer: Arc<PrimaryAutoCommandBuffer> =
             self.build_command_buffer(image_index, commands, raw_draw_states)?;
+        let previous_uploads = &self.handle.previous_frame_uploads;
+        // The previous draw on this queue can grant access to its sampled images. Joining
+        // the same uploads again gives Vulkano two claims to exclusive image access.
+        // Vulkano can stop its access check at a command buffer that omits the image,
+        // so keep the explicit upload dependency after a frame that did not sample it.
+        let new_uploads = upload_dependencies.iter().filter(|upload| {
+            !previous_uploads
+                .iter()
+                .any(|previous| std::ptr::eq(previous.as_ptr(), Arc::as_ptr(upload)))
+        });
         let frame_sync = Self::frame_sync(
             &mut self.handle.previous_frame_end,
             acquire_future,
             command_buffer,
-            upload_dependencies,
+            new_uploads,
             image_index,
             self.handle.vmnl_instance.graphics_queue.clone(),
             self.handle.swapchain.clone(),
         );
         let device = self.handle.vmnl_instance.device.clone();
         let handle = &mut self.handle;
+        handle.previous_frame_uploads.clear();
         sync::finalize_frame_sync(
             frame_sync,
             &mut self.state.swapchain_recreation_requested,
             |completion| {
                 if let Some(completion) = completion {
                     handle.previous_frame_end = Some(completion.clone().boxed_send_sync());
+                    handle
+                        .previous_frame_uploads
+                        .extend(upload_dependencies.iter().map(Arc::downgrade));
                     if let Some(slot) = handle.depth_frame_completions.get_mut(framebuffer_index) {
                         *slot = Some(completion);
                     }
@@ -821,6 +835,7 @@ mod tests {
             .wait(None)
             .expect("readback should complete");
         window.inner.handle.previous_frame_end = Some(sync::now(device).boxed_send_sync());
+        window.inner.handle.previous_frame_uploads.clear();
 
         let pixels = buffer.read().expect("readback buffer should map").to_vec();
         pixels
@@ -854,6 +869,39 @@ mod tests {
         for pixel in observed {
             assert_eq!(pixel, expected);
         }
+    }
+
+    #[test]
+    #[ignore = "Requires Vulkan + GLFW display."]
+    fn consecutive_raw_frames_reuse_the_same_texture_upload() -> VMNLResult<()> {
+        let _guard = crate::test_support::gpu_test_guard();
+        let context = Context::new()?;
+        let mut window = Window::builder().build(&context)?;
+        let pipeline = raw_texture_pipeline(&window, TEXTURED_FRAGMENT_SHADER)?;
+        let geometry = raw::Geometry::builder(textured_quad_at_uv([0.5, 0.5])).build(&context)?;
+        let sampler = Sampler::builder(&context).build()?;
+        let texture = Texture2D::from_pixels(
+            &context,
+            PixelSource::new(1, 1, TextureFormat::Rgba8Unorm, &[255, 0, 0, 255])?,
+        )
+        .build()?;
+        let resources = raw::Resources::builder(&pipeline)
+            .sampled_texture(0, 0, &texture, &sampler)
+            .build(&context)?;
+
+        // Keep the first frame and upload in Vulkano's access tracking regardless of GPU timing.
+        window.inner.handle.skip_frame_cleanup = true;
+        for _ in 0..2 {
+            window
+                .render()
+                .draw_raw_2d_with(&pipeline, &resources, [&geometry])
+                .submit()?;
+        }
+        window.render().submit()?;
+        window
+            .render()
+            .draw_raw_2d_with(&pipeline, &resources, [&geometry])
+            .submit()
     }
 
     #[test]

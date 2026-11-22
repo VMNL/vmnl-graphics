@@ -136,6 +136,9 @@ impl VMNLWindow {
                 pipeline_2d_opaque,
                 pipeline_2d_alpha,
                 previous_frame_end,
+                previous_frame_uploads: Vec::new(),
+                #[cfg(test)]
+                skip_frame_cleanup: false,
                 swapchain,
                 input,
                 joystick_events: Rc::default(),

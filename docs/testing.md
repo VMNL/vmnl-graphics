@@ -1071,8 +1071,11 @@ and verify RGBA8 UNORM/sRGB reinterpretation on devices that support it. They ex
 pending upload shared by two windows
 from the same `Context`. The latter uses a separate raw pipeline and `FrameUniform`-plus-texture
 resources for each window, submits both frames before readback, and checks their independently
-tinted pixels. Another readback combines a static `Uniform` with a texture, draws a raw color-only
-pass after the texture pass, and drops the resource handles after submission before reading pixels.
+tinted pixels. A same-window fixture keeps completed futures in Vulkano's access tracking so it
+can verify repeated use of one upload across successive textured frames and across an intervening
+frame without that texture. Another readback combines a static `Uniform` with a texture, draws a
+raw color-only pass after the texture pass, and drops the resource handles after submission before
+reading pixels.
 A foreign `Context` texture is rejected during resource construction. A depth-gather fixture checks
 `InvalidState` with the sampler set and binding for both coordinate modes, using a combined
 binding and separate bindings passed through a GLSL helper. A renderer fixture injects

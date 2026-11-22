@@ -12,7 +12,7 @@ mod sampler;
 pub use defaults::TextureDefaults;
 pub(crate) use gpu::{
     validate_sampled_image_sampler, SampledImageBinding, SampledSamplerBinding,
-    SampledTextureBinding, TextureRetirementRegistry, TextureUploadDependency,
+    SampledTextureBinding, TextureRetirementRegistry, TextureUpload, TextureUploadDependency,
 };
 pub use gpu::{
     PreparedTexture2D, Sampler, SamplerBuilder, Texture2D, Texture2DBuilder, TextureComponent,

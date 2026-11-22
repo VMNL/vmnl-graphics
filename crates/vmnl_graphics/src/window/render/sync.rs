@@ -54,16 +54,16 @@ impl VMNLWindow {
     /// - `previous_frame_end`: Mutable reference to the previous frame future.
     /// - `acquire_future`: Future for image acquisition.
     /// - `command_buffer`: Command buffer for current frame.
-    /// - `upload_dependencies`: Unique texture uploads validated before acquisition.
+    /// - `upload_dependencies`: Validated texture uploads that the previous frame did not use.
     /// - `image_index`: Index of the acquired image.
     /// - `graphics_queue`: Queue to execute command buffer.
     /// - `swapchain`: Swapchain used for presentation.
     ///
-    pub(super) fn frame_sync(
+    pub(super) fn frame_sync<'a>(
         previous_frame_end: &mut Option<Box<dyn GpuFuture + Send + Sync>>,
         acquire_future: SwapchainAcquireFuture,
         command_buffer: Arc<PrimaryAutoCommandBuffer>,
-        upload_dependencies: Vec<TextureUploadDependency>,
+        upload_dependencies: impl IntoIterator<Item = &'a TextureUploadDependency>,
         image_index: u32,
         graphics_queue: Arc<Queue>,
         swapchain: Arc<Swapchain>,
