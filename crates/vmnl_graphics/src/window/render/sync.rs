@@ -6,6 +6,7 @@
 //! This module chains image acquisition, command execution, presentation,
 //! and fence signaling for a rendered frame.
 
+use crate::texture::TextureUploadDependency;
 use crate::window::runtime::FrameCompletion;
 use crate::{window::inner::VMNLWindow, VMNLError, VMNLErrorKind, VMNLResult};
 use std::sync::Arc;
@@ -53,14 +54,16 @@ impl VMNLWindow {
     /// - `previous_frame_end`: Mutable reference to the previous frame future.
     /// - `acquire_future`: Future for image acquisition.
     /// - `command_buffer`: Command buffer for current frame.
+    /// - `upload_dependencies`: Validated texture uploads that the previous frame did not use.
     /// - `image_index`: Index of the acquired image.
     /// - `graphics_queue`: Queue to execute command buffer.
     /// - `swapchain`: Swapchain used for presentation.
     ///
-    pub(super) fn frame_sync(
+    pub(super) fn frame_sync<'a>(
         previous_frame_end: &mut Option<Box<dyn GpuFuture + Send + Sync>>,
         acquire_future: SwapchainAcquireFuture,
         command_buffer: Arc<PrimaryAutoCommandBuffer>,
+        upload_dependencies: impl IntoIterator<Item = &'a TextureUploadDependency>,
         image_index: u32,
         graphics_queue: Arc<Queue>,
         swapchain: Arc<Swapchain>,
@@ -68,22 +71,32 @@ impl VMNLWindow {
         let previous = previous_frame_end
             .take()
             .ok_or_else(|| VMNLError::new(VMNLErrorKind::VulkanUnknownError))?;
-        let after_exec = previous
-            .join(acquire_future)
+        let mut before_execute = previous.join(acquire_future).boxed_send_sync();
+        for dependency in upload_dependencies {
+            before_execute = before_execute.join(dependency.future()).boxed_send_sync();
+        }
+        let after_exec = before_execute
             .then_execute(graphics_queue.clone(), command_buffer)
             .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanValidationFailed))?;
         let after_present = after_exec.then_swapchain_present(
             graphics_queue,
             SwapchainPresentInfo::swapchain_image_index(swapchain, image_index),
         );
-        match after_present
-            .boxed_send_sync()
-            .then_signal_fence_and_flush()
-        {
+        // Mark presentation as flushed before constructing the completion fence,
+        // so destruction cannot retry a failed presentation.
+        let result = after_present.flush().and_then(|()| {
+            after_present
+                .boxed_send_sync()
+                .then_signal_fence_and_flush()
+        });
+        match result {
             Ok(flushed) => Ok(FrameSyncResult::Submitted(Arc::new(flushed))),
+            Err(Validated::Error(VulkanError::DeviceLost)) => {
+                Err(VMNLError::new(VMNLErrorKind::VulkanDeviceLost))
+            }
             Err(Validated::Error(VulkanError::OutOfDate)) => {
-                // In Vulkano 0.35.2, dropping the failed fence future waits for the present
-                // queue and retires its submitted resources before this result is returned.
+                // Dropping the failed presentation future retires its submitted work before
+                // this error is returned.
                 Ok(FrameSyncResult::SwapchainOutOfDate(None))
             }
             Err(error) => {

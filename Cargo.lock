@@ -549,6 +549,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "raw_texture"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
 name = "raw_triangle"
 version = "0.1.0"
 dependencies = [
@@ -806,7 +813,7 @@ dependencies = [
  "shaderc",
  "smallvec",
  "vmnl_macros",
- "vulkano",
+ "vmnl_vulkano",
 ]
 
 [[package]]
@@ -820,10 +827,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "vulkano"
-version = "0.35.2"
+name = "vmnl_vulkano"
+version = "0.35.2-vmnl.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee487adf7c13e5aa46d4d7fac6ffb8e172eb7e6472aaf815e9ade4992f8f2414"
+checksum = "4ecf03c91501099e648e3bb119536ee56d8514cce9fd56cc19ba069bf1f822cb"
 dependencies = [
  "ash",
  "bytemuck",
@@ -846,21 +853,8 @@ dependencies = [
  "smallvec",
  "thread_local",
  "vk-parse",
- "vulkano-macros",
  "x11-dl",
  "x11rb",
-]
-
-[[package]]
-name = "vulkano-macros"
-version = "0.35.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1dc929c42c9336fd082079ac3ea30126e4a0dfe36fd2e2b3581303f7d140d20f"
-dependencies = [
- "proc-macro-crate",
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]

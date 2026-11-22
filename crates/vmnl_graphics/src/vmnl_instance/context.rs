@@ -7,7 +7,11 @@
 //! instance state.
 
 use super::{ContextBuilder, DeviceFeature, LineWidthLimits, VMNLInstance};
-use crate::{Key, KeyboardState, Scancode, VMNLResult};
+use crate::{
+    common::{ColorBlendConfig, ColorBlendOverrides},
+    texture::TextureDefaults,
+    Key, KeyboardState, Scancode, VMNLResult,
+};
 use std::rc::Rc;
 
 fn wayland_scancode_name(
@@ -58,6 +62,25 @@ impl Context {
     #[must_use]
     pub fn builder() -> ContextBuilder {
         ContextBuilder::default()
+    }
+
+    /// Returns the immutable context policies for texture creation and explicit views.
+    #[must_use]
+    pub fn texture_defaults(&self) -> TextureDefaults {
+        self.inner.texture_defaults
+    }
+
+    /// Returns the blend fields explicitly configured on this context.
+    #[must_use]
+    pub fn raw_color_blend_defaults(&self) -> ColorBlendOverrides {
+        self.inner.raw_color_blend_defaults
+    }
+
+    /// Returns the context's complete blend defaults for new raw pipelines.
+    #[must_use]
+    pub fn raw_color_blend_config(&self) -> ColorBlendConfig {
+        self.raw_color_blend_defaults()
+            .resolve(ColorBlendConfig::opaque())
     }
 
     /// Returns the selected physical device's reported name without allocating.

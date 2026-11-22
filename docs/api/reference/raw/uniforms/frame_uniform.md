@@ -29,7 +29,7 @@ Owns Vulkan subbuffers tied to the window/context device. `Resources` stores sha
 
 ## Errors, panics, and failure conditions
 
-Builder creation is infallible. Build can fail if the window has no swapchain image, if an initial slot allocation fails, or if an initial slot write fails. Submission can fail if the swapchain image count no longer matches the `FrameUniform`, or if the selected frame slot cannot be allocated, written, or bound.
+Builder creation is infallible. Build can fail if the window has no swapchain image, if an initial slot allocation fails, or if an initial slot write fails. Submission checks the swapchain image count for bound uniforms and queued writes before acquisition. Allocation, write, or binding of the selected slot can fail after acquisition.
 
 ## Allocation, transfers, synchronization, and GPU cost
 
@@ -37,7 +37,7 @@ Build initializes one uniform slot per current swapchain image. `write_frame_uni
 
 ## Platform, Vulkan, and display constraints
 
-Size/alignment/layout must match the shader and device requirements. Current raw descriptors accept only single uniform buffers.
+Size/alignment/layout must match the shader and device requirements. Raw descriptors also support combined or separate image/sampler bindings through `ResourcesBuilder`; descriptor arrays and storage descriptors remain unsupported.
 
 ## Example and related types
 

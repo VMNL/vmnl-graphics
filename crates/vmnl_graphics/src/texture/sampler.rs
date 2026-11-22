@@ -62,6 +62,8 @@ pub enum SamplerCoordinateMode {
     #[default]
     Normalized,
     /// Use unnormalized texel coordinates with Vulkan's stricter sampler rules.
+    /// Raw shader sampling must use explicit, statically known LOD zero and avoid
+    /// implicit LOD, depth comparison, projection, bias, gradients, and offsets.
     Texel,
 }
 

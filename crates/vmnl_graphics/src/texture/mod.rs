@@ -3,15 +3,21 @@
 
 //! Texture sources, GPU resources, pixel preparation, and sampler configuration.
 
+mod defaults;
 mod gpu;
 mod pixel;
 mod png;
 mod sampler;
 
-pub(crate) use gpu::TextureRetirementRegistry;
+pub use defaults::TextureDefaults;
+pub(crate) use gpu::{
+    validate_sampled_image_sampler, SampledImageBinding, SampledSamplerBinding,
+    SampledTextureBinding, TextureRetirementRegistry, TextureUpload, TextureUploadDependency,
+};
 pub use gpu::{
-    PreparedTexture2D, Sampler, SamplerBuilder, Texture2D, Texture2DBuilder,
-    TextureRetirementPolicy, TextureView2D, UploadTicket, UploadWaitOutcome,
+    PreparedTexture2D, Sampler, SamplerBuilder, Texture2D, Texture2DBuilder, TextureComponent,
+    TextureComponentMapping, TextureRetirementPolicy, TextureView2D, TextureView2DBuilder,
+    TextureViewInterpretation, UploadTicket, UploadWaitOutcome,
 };
 pub use pixel::{
     AlphaMode, ColorEncoding, PixelLayout, PixelOrigin, PixelRect, PixelSource, PreparedPixelData,

@@ -1025,6 +1025,11 @@ needs only a native GLFW window            -> platform test
 demonstrates visual user workflow         -> example
 ```
 
+The headless SPIR-V reflection tests compile a fragment shader whose helpers call the preceding
+helper twice. They count analyzed function bodies to check reuse of identical calls. A second
+fixture checks that calls to the same helper with distinct image/sampler bindings are analyzed
+separately and that identical calls contribute a sampling use once.
+
 ## GPU Tests
 
 GPU tests are separated because they depend on the machine:
@@ -1056,9 +1061,35 @@ completion and deferred collection after the final view drops. A headless unit t
 pending completion that resolves to an upload failure and verifies that polls and waits through
 cloned tickets keep returning the same `TextureUploadFailed`; it also verifies that `Wait` keeps
 polling until completion. No GPU test holds actual queue work pending through final-owner drop.
-These tests do not sample a texture in a renderer, qualify custom views, inject Vulkan
-upload/device-loss failures, or prove behavior on unavailable GPUs and display servers. A separate
-fixture exercises the context-shutdown drain. `just test-gpu` and
+Private ignored renderer GPU tests in `crates/vmnl_graphics/src/window/render/mod.rs` sample
+combined and separate raw image/sampler bindings into an RGBA8 readback target, verify nearest and
+linear filtering plus texel LOD zero. At normalized UV `(0.375, 0.375)`, the four-color fixture
+checks nearest red against the bilinear RGBA result `(0.625, 0.25, 0.25, 1.0)` within one UNORM
+step for both combined and separate bindings. They also sample explicit component-swizzled views through
+combined and separate bindings, reject opaque-black border sampling with a non-identity mapping,
+and verify RGBA8 UNORM/sRGB reinterpretation on devices that support it. They exercise a confirmed
+pending upload shared by two windows
+from the same `Context`. The latter uses a separate raw pipeline and `FrameUniform`-plus-texture
+resources for each window, submits both frames before readback, and checks their independently
+tinted pixels. A same-window fixture keeps completed futures in Vulkano's access tracking so it
+can verify repeated use of one upload across successive textured frames and across an intervening
+frame without that texture. Another readback combines a static `Uniform` with a texture, draws a
+raw color-only pass after the texture pass, and drops the resource handles after submission before
+reading pixels.
+A foreign `Context` texture is rejected during resource construction. A depth-gather fixture checks
+`InvalidState` with the sampler set and binding for both coordinate modes, using a combined
+binding and separate bindings passed through a GLSL helper. A renderer fixture injects
+a known initial upload failure after resource construction and verifies that both descriptor paths
+return `TextureUploadFailed` with zero swapchain acquisitions, then submits a valid frame on the
+same window. These tests do not inject Vulkan upload/device-loss failures or prove behavior on
+unavailable GPUs and display servers. A separate fixture exercises the
+context-shutdown drain. Context defaults tests verify field precedence in a headless client and
+inspect built raw pipelines and explicit texture views on Vulkan. An inherited view format that
+conflicts with a fixed-format image is rejected.
+Renderer preflight tests verify zero acquisition attempts for incompatible
+raw pipeline resources, bound stale frame uniforms, and queued stale frame-uniform writes. They
+then submit a valid frame on the same window. The stale slot count is simulated independently of
+the driver's swapchain image-count decisions. `just test-gpu` and
 `just test-gpu-compile` include both the private library fixtures and `tests/gpu` integration tests.
 
 

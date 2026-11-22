@@ -7,8 +7,8 @@
 //! into the current swapchain framebuffer.
 
 use crate::common::{BlendMode, MaterialKey, PipelineKey};
-use crate::raw::{pipeline_targets_window, resolve_viewport_scissor};
-use crate::window::render::RenderPassCommand;
+use crate::raw::{pipeline_targets_window, resolve_viewport_scissor, PendingFrameUniformWrite};
+use crate::window::render::{raw_draw_items, RenderPassCommand};
 use crate::window::PushConstants;
 use crate::{window::inner::VMNLWindow, VMNLError, VMNLErrorKind, VMNLResult};
 use smallvec::smallvec;
@@ -20,12 +20,70 @@ use vulkano::{
         RenderPassBeginInfo, SubpassBeginInfo, SubpassContents, SubpassEndInfo,
     },
     pipeline::Pipeline,
-    pipeline::{graphics::viewport::Viewport, GraphicsPipeline, PipelineBindPoint},
+    pipeline::{
+        graphics::viewport::{Scissor, Viewport},
+        GraphicsPipeline, PipelineBindPoint,
+    },
     render_pass::Framebuffer,
     swapchain::Swapchain,
 };
 
 impl VMNLWindow {
+    pub(super) fn preflight_frame(
+        &self,
+        commands: &[RenderPassCommand],
+        frame_uniform_writes: &[PendingFrameUniformWrite<'_>],
+    ) -> VMNLResult<Vec<(Viewport, Scissor)>> {
+        let image_count = self.handle.framebuffers.len();
+        for write in frame_uniform_writes {
+            write.validate_image_count(image_count)?;
+        }
+        let device = &self.handle.vmnl_instance.device;
+        let extent = self.handle.swapchain.image_extent();
+        raw_draw_items(commands)
+            .map(|item| {
+                if !pipeline_targets_window(
+                    &item.pipeline_device,
+                    &item.pipeline_render_pass,
+                    device,
+                    &self.handle.render_pass,
+                ) || !Arc::ptr_eq(&item.geometry_device, device)
+                {
+                    return Err(VMNLError::new(VMNLErrorKind::InvalidState(
+                        "raw pipeline and geometry must belong to this window context".into(),
+                    )));
+                }
+                if item
+                    .resources_device
+                    .as_ref()
+                    .is_some_and(|resource_device| !Arc::ptr_eq(resource_device, device))
+                {
+                    return Err(VMNLError::new(VMNLErrorKind::InvalidState(
+                        "raw resources must belong to this window context".into(),
+                    )));
+                }
+                match &item.resources_pipeline_layout {
+                    Some(layout)
+                        if item.required_descriptor_set_count > 0
+                            && !Arc::ptr_eq(layout, item.pipeline.layout()) =>
+                    {
+                        return Err(VMNLError::new(VMNLErrorKind::InvalidState(
+                            "raw resources must be built for this raw pipeline".into(),
+                        )));
+                    }
+                    None if item.required_descriptor_set_count > 0 => {
+                        return Err(VMNLError::new(VMNLErrorKind::InvalidState(
+                            "raw pipeline requires descriptor resources".into(),
+                        )));
+                    }
+                    _ => {}
+                }
+                item.validate_descriptor_sets_for_frame(image_count)?;
+                resolve_viewport_scissor(item.viewport, item.scissor, extent, device)
+            })
+            .collect()
+    }
+
     #[allow(clippy::cast_precision_loss)]
     fn extent_as_f32(extent: [u32; 2]) -> [f32; 2] {
         [extent[0] as f32, extent[1] as f32]
@@ -36,6 +94,7 @@ impl VMNLWindow {
     /// # Arguments
     /// - `image_index`: Index of the swapchain image to render to.
     /// - `commands`: Ordered render commands to record.
+    /// - `raw_draw_states`: Viewport and scissor resolved in raw draw order for this swapchain.
     ///
     /// # Returns
     /// An `Arc<PrimaryAutoCommandBuffer>` containing the built command buffer ready for execution.
@@ -44,7 +103,9 @@ impl VMNLWindow {
         &self,
         image_index: u32,
         commands: &[RenderPassCommand],
+        raw_draw_states: Vec<(Viewport, Scissor)>,
     ) -> VMNLResult<Arc<PrimaryAutoCommandBuffer>> {
+        let mut raw_draw_states = raw_draw_states.into_iter();
         let swapchain: &Arc<Swapchain> = &self.handle.swapchain;
         let allocator: Arc<StandardCommandBufferAllocator> =
             self.handle.vmnl_instance.command_buffer_allocator.clone();
@@ -73,7 +134,7 @@ impl VMNLWindow {
 
         // SAFETY: all resources belong to this window's Vulkan context, remain owned while the
         // command buffer exists, and Vulkano validates each command before recording it.
-        // Raw viewport/device bounds and signed scissor sums are checked for this image;
+        // Preflight checks raw viewport/device bounds and signed scissor sums for this swapchain;
         // both dynamic states are set after each raw pipeline bind, before any draw.
         // Optional depth images are owned by their framebuffer and match its extent;
         // the clear list follows the render pass's color/depth attachment order.
@@ -170,66 +231,15 @@ impl VMNLWindow {
                     RenderPassCommand::Raw { items } => {
                         current_blend_mode = None;
                         for render_item in items {
-                            if !pipeline_targets_window(
-                                &render_item.pipeline_device,
-                                &render_item.pipeline_render_pass,
-                                &self.handle.vmnl_instance.device,
-                                &self.handle.render_pass,
-                            ) || !Arc::ptr_eq(
-                                &render_item.geometry_device,
-                                &self.handle.vmnl_instance.device,
-                            ) {
-                                return Err(VMNLError::new(VMNLErrorKind::InvalidState(
-                                    "raw pipeline and geometry must belong to this window context"
-                                        .into(),
-                                )));
-                            }
-                            if let Some(resources_device) = &render_item.resources_device {
-                                if !Arc::ptr_eq(resources_device, &self.handle.vmnl_instance.device)
-                                {
-                                    return Err(VMNLError::new(VMNLErrorKind::InvalidState(
-                                        "raw resources must belong to this window context".into(),
-                                    )));
-                                }
-                            }
-                            if render_item.required_descriptor_set_count > 0 {
-                                let Some(resources_pipeline_layout) =
-                                    &render_item.resources_pipeline_layout
-                                else {
-                                    return Err(VMNLError::new(VMNLErrorKind::InvalidState(
-                                        "raw pipeline requires descriptor resources".into(),
-                                    )));
-                                };
-                                if !Arc::ptr_eq(
-                                    resources_pipeline_layout,
-                                    render_item.pipeline.layout(),
-                                ) {
-                                    return Err(VMNLError::new(VMNLErrorKind::InvalidState(
-                                        "raw resources must be built for this raw pipeline".into(),
-                                    )));
-                                }
-                            }
                             let descriptor_sets = render_item.descriptor_sets_for_image(
                                 framebuffer_index,
-                                self.handle.framebuffers.len(),
                                 &self.handle.vmnl_instance.descriptor_set_allocator,
                                 &self.handle.vmnl_instance.device,
                             )?;
-                            if render_item.required_descriptor_set_count > 0
-                                && descriptor_sets.len()
-                                    != render_item.required_descriptor_set_count
-                            {
-                                return Err(VMNLError::new(VMNLErrorKind::InvalidState(
-                                    "raw pipeline descriptor resources are incomplete".into(),
-                                )));
-                            }
 
-                            let (viewport, scissor) = resolve_viewport_scissor(
-                                render_item.viewport,
-                                render_item.scissor,
-                                extent,
-                                &self.handle.vmnl_instance.device,
-                            )?;
+                            let (viewport, scissor) = raw_draw_states.next().ok_or_else(|| {
+                                VMNLError::new(VMNLErrorKind::VulkanValidationFailed)
+                            })?;
                             builder
                                 .bind_pipeline_graphics(render_item.pipeline.clone())
                                 .map_err(|_| {

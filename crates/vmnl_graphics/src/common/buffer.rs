@@ -5,6 +5,7 @@
 
 use super::Rgba;
 use crate::{VMNLError, VMNLErrorKind, VMNLResult};
+use bytemuck::{Pod, Zeroable};
 use std::sync::Arc;
 use vulkano::{
     buffer::BufferContents,
@@ -71,7 +72,7 @@ impl IndexBuffer {
 pub(crate) struct VMNLFrameUboBuffer(Subbuffer<VMNLFrameUbo>);
 
 #[repr(C)]
-#[derive(BufferContents, Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Pod, Zeroable, Clone, Copy, Debug, Default, PartialEq)]
 #[allow(dead_code)]
 pub(crate) struct VMNLFrameUbo {
     /// Background color for the frame as `[r, g, b, a]`.

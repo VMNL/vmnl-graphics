@@ -10,7 +10,7 @@ Owns a typed Vulkan graphics pipeline created for one window's device and render
 
 ## Public API
 
-`Pipeline::<TVertex>::builder() -> PipelineSpec<TVertex>`, `polygon_mode_value() -> PolygonMode`, `line_width_value() -> f32`, `viewport_value() -> ViewportPolicy`, `scissor_value() -> ScissorPolicy`, `depth_value() -> DepthState`, `render_target_info() -> RenderTargetInfo`, `validate_target(&Window) -> VMNLResult<()>`. Fields are private; no `Clone`/`Default`.
+`Pipeline::<TVertex>::builder() -> PipelineSpec<TVertex>`, `polygon_mode_value() -> PolygonMode`, `line_width_value() -> f32`, `viewport_value() -> ViewportPolicy`, `scissor_value() -> ScissorPolicy`, `depth_value() -> DepthState`, `color_blend_config_value() -> ColorBlendConfig`, `render_target_info() -> RenderTargetInfo`, `validate_target(&Window) -> VMNLResult<()>`. Fields are private; no `Clone`/`Default`.
 
 ## Construction, defaults, and validation
 
@@ -21,6 +21,8 @@ Use the spec to provide both shaders and build against a `Window`. `TVertex` mus
 Coordinates are defined by the shader and vertex layout. The rasterization getters return the immutable mode and validated width passed at creation. Width is in framebuffer units; the getter reports configuration, not measured pixel coverage or driver rounding. It performs no allocation or GPU operation.
 
 The depth getter returns the immutable [`DepthState`](depth_state.md) passed at construction, without GPU access; `Disabled` is the default even on a depth-enabled target.
+
+`color_blend_config_value()` returns the effective immutable blend configuration captured at build, including whether blending is enabled, all RGB/alpha factors and operations, and the RGBA blend constant. It performs no allocation or GPU access. See [`ColorBlendConfig`](../../common/color_blend_config.md) and [`BlendMode`](blend_mode.md) for legacy resolution and GPU prerequisites.
 
 The viewport/scissor getters return immutable policies. Call `resolve(framebuffer_extent)` to inspect values for a supplied pixel extent; it does not inspect the last submitted image or device limits. Full policies follow the acquired image on each draw; fixed values persist across resize without scaling/clamping. See [`ViewportPolicy`](viewport_policy.md) and [`ScissorPolicy`](scissor_policy.md).
 
@@ -48,4 +50,4 @@ Requires a built window/render pass and device support for selected shader/layou
 
 See the existing [`examples/raw/pipeline`](../../../../../examples/raw/pipeline/src/main.rs) workflow; the [pipeline workflow](../../../workflows/create_raw_pipeline.md) explains the steps without duplicating it.
 
-Related: [`PipelineSpec`](pipeline_spec.md), [`Geometry`](../geometry/geometry.md), and [`FrameRenderer`](../../window/rendering/frame_renderer.md).
+Related: [`PipelineSpec`](pipeline_spec.md), [`ColorBlendConfig`](../../common/color_blend_config.md), [`Geometry`](../geometry/geometry.md), and [`FrameRenderer`](../../window/rendering/frame_renderer.md).

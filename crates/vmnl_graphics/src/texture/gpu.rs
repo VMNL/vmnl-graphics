@@ -15,7 +15,7 @@ use std::{
     fs,
     path::PathBuf,
     rc::Rc,
-    sync::Arc,
+    sync::{Arc, OnceLock},
     thread,
     time::{Duration, Instant},
 };
@@ -25,23 +25,87 @@ use vulkano::{
         AutoCommandBufferBuilder, CommandBufferUsage, CopyBufferToImageInfo,
         PrimaryAutoCommandBuffer,
     },
+    device::Device,
     format::{Format, FormatFeatures},
     image::{
         sampler::{
-            BorderColor, Filter as VulkanFilter, Sampler as VulkanSampler, SamplerAddressMode,
-            SamplerCreateInfo, SamplerMipmapMode, LOD_CLAMP_NONE,
+            BorderColor, ComponentMapping as VulkanComponentMapping,
+            ComponentSwizzle as VulkanComponentSwizzle, Filter as VulkanFilter,
+            Sampler as VulkanSampler, SamplerAddressMode, SamplerCreateInfo, SamplerMipmapMode,
+            LOD_CLAMP_NONE,
         },
-        view::ImageView,
-        Image, ImageCreateInfo, ImageLayout, ImageUsage,
+        view::{ImageView, ImageViewCreateInfo},
+        Image, ImageCreateFlags, ImageCreateInfo, ImageFormatInfo, ImageLayout, ImageTiling,
+        ImageUsage,
     },
     memory::allocator::{AllocationCreateInfo, MemoryTypeFilter},
     sync::future::{FenceSignalFuture, GpuFuture},
     sync::now,
+    Version,
 };
 
 const UPLOAD_POLL_INTERVAL: Duration = Duration::from_millis(1);
 
-type UploadFuture = FenceSignalFuture<Box<dyn GpuFuture + Send + Sync>>;
+type UploadFence = Arc<FenceSignalFuture<Box<dyn GpuFuture + Send + Sync>>>;
+
+pub(crate) type TextureUploadDependency = Arc<TextureUpload>;
+
+pub(crate) struct TextureUpload {
+    future: UploadFence,
+    // Keep the first error visible even after Vulkano cleans the fence.
+    failure: OnceLock<String>,
+}
+
+impl TextureUpload {
+    pub(crate) fn check_for_failure(&self) -> VMNLResult<()> {
+        self.is_signaled().map(|_| ()).map_err(upload_error)
+    }
+
+    pub(crate) fn future(&self) -> UploadFence {
+        self.future.clone()
+    }
+
+    fn record_failure(&self, message: String) -> String {
+        self.failure.get_or_init(|| message).clone()
+    }
+
+    fn is_signaled(&self) -> Result<bool, String> {
+        if let Some(message) = self.failure.get() {
+            return Err(message.clone());
+        }
+        self.future
+            .is_signaled()
+            .map_err(|error| self.record_failure(error.to_string()))
+    }
+
+    fn wait(&self) -> Result<(), String> {
+        self.future
+            .wait(None)
+            .map_err(|error| self.record_failure(error.to_string()))
+    }
+}
+
+#[derive(Clone)]
+pub(crate) struct SampledTextureBinding {
+    pub(crate) image: SampledImageBinding,
+    pub(crate) sampler: SampledSamplerBinding,
+    pub(crate) validation_error: Option<String>,
+}
+
+#[derive(Clone)]
+pub(crate) struct SampledImageBinding {
+    pub(crate) image_view: Arc<ImageView>,
+    pub(crate) device: Arc<Device>,
+    pub(crate) upload_dependency: TextureUploadDependency,
+    pub(crate) sampled_usage: bool,
+}
+
+#[derive(Clone)]
+pub(crate) struct SampledSamplerBinding {
+    pub(crate) sampler: Arc<VulkanSampler>,
+    pub(crate) device: Arc<Device>,
+    pub(crate) config: SamplerConfig,
+}
 
 enum TextureSource<'a> {
     Pixels(PixelSource<'a>),
@@ -59,6 +123,7 @@ pub struct Texture2DBuilder<'a> {
     source: TextureSource<'a>,
     png_options: PngDecodeOptions,
     usage_override: Option<TextureUsageRequest>,
+    mutable_format_views: Option<bool>,
     retirement_policy: TextureRetirementPolicy,
 }
 
@@ -71,6 +136,7 @@ impl<'a> Texture2DBuilder<'a> {
             source: TextureSource::Pixels(source),
             png_options: PngDecodeOptions::default(),
             usage_override: None,
+            mutable_format_views: None,
             retirement_policy: TextureRetirementPolicy::Wait,
         }
     }
@@ -83,6 +149,7 @@ impl<'a> Texture2DBuilder<'a> {
             source: TextureSource::Png(bytes),
             png_options: PngDecodeOptions::default(),
             usage_override: None,
+            mutable_format_views: None,
             retirement_policy: TextureRetirementPolicy::Wait,
         }
     }
@@ -95,6 +162,7 @@ impl<'a> Texture2DBuilder<'a> {
             source: TextureSource::File(path.into()),
             png_options: PngDecodeOptions::default(),
             usage_override: None,
+            mutable_format_views: None,
             retirement_policy: TextureRetirementPolicy::Wait,
         }
     }
@@ -116,6 +184,35 @@ impl<'a> Texture2DBuilder<'a> {
         self
     }
 
+    /// Requests mutable-compatible image views at image creation.
+    ///
+    /// When enabled, this RGBA8 image may be viewed as either RGBA8 UNORM or RGBA8 sRGB.
+    /// The request is exact: unsupported mutable-image or sampled-format combinations return an
+    /// error from [`prepare`](Self::prepare) instead of silently creating a fixed-format image.
+    /// An omitted request inherits the context setting, then defaults to `false`.
+    ///
+    /// # Errors
+    /// `prepare` returns `InvalidState` when the requested image configuration is unsupported, or
+    /// `VulkanValidationFailed` when the device capability query fails.
+    #[must_use]
+    pub const fn with_mutable_format_views(mut self, enabled: bool) -> Self {
+        self.mutable_format_views = Some(enabled);
+        self
+    }
+
+    /// Returns whether mutable-format views were explicitly enabled on this builder.
+    /// Use `mutable_format_views_override` to distinguish unset from explicit `false`.
+    #[must_use]
+    pub const fn mutable_format_views_requested(&self) -> bool {
+        matches!(self.mutable_format_views, Some(true))
+    }
+
+    /// Returns the exact local mutable-format setting, if supplied.
+    #[must_use]
+    pub const fn mutable_format_views_override(&self) -> Option<bool> {
+        self.mutable_format_views
+    }
+
     /// Selects how the final texture owner retires its image resources.
     ///
     /// `Wait` is the default. `DeferToContext` requires explicit collection or context shutdown.
@@ -133,6 +230,10 @@ impl<'a> Texture2DBuilder<'a> {
     /// # Errors
     /// Returns a source, descriptor, image, staging-buffer, image-view, or command-buffer error.
     pub fn prepare(self) -> VMNLResult<PreparedTexture2D> {
+        let mutable_format_views = self
+            .mutable_format_views
+            .or(self.context.texture_defaults().mutable_format_views())
+            .unwrap_or(false);
         let (pixels, source_usage) = self.prepare_source()?;
         let usage_request = self.usage_override.unwrap_or(source_usage);
         let usage = match usage_request {
@@ -147,10 +248,43 @@ impl<'a> Texture2DBuilder<'a> {
 
         let format = vulkan_format(pixels.format());
         let image_usage = vulkan_image_usage(usage);
+        if mutable_format_views {
+            validate_mutable_view_format_support(
+                &self.context,
+                format,
+                pixels.format(),
+                pixels.extent(),
+                usage,
+                image_usage,
+            )?;
+        }
+        let flags = if mutable_format_views {
+            ImageCreateFlags::MUTABLE_FORMAT
+        } else {
+            ImageCreateFlags::empty()
+        };
+        let view_formats = if mutable_format_views
+            && (self.context.inner.device.api_version() >= Version::V1_2
+                || self
+                    .context
+                    .inner
+                    .device
+                    .enabled_extensions()
+                    .khr_image_format_list)
+        {
+            vec![
+                format,
+                vulkan_format(compatible_view_format(pixels.format())),
+            ]
+        } else {
+            Vec::new()
+        };
         let image = Image::new(
             self.context.inner.memory_allocator.clone(),
             ImageCreateInfo {
+                flags,
                 format,
+                view_formats,
                 extent: [pixels.extent()[0], pixels.extent()[1], 1],
                 usage: image_usage,
                 initial_layout: ImageLayout::Undefined,
@@ -191,6 +325,7 @@ impl<'a> Texture2DBuilder<'a> {
             encoding: pixels.encoding(),
             alpha_mode: pixels.alpha_mode(),
             usage,
+            mutable_format_views,
             retirement_policy: self.retirement_policy,
         })
     }
@@ -257,11 +392,13 @@ struct TextureStorage {
     image: Arc<Image>,
     default_view: Arc<ImageView>,
     upload: Rc<UploadState>,
+    upload_dependency: TextureUploadDependency,
     extent: [u32; 2],
     format: TextureFormat,
     encoding: ColorEncoding,
     alpha_mode: AlphaMode,
     usage: TextureUsage,
+    mutable_format_views: bool,
     retirement_policy: TextureRetirementPolicy,
 }
 
@@ -349,12 +486,39 @@ impl Texture2D {
         self.storage.usage.contains(TextureUsage::SAMPLED)
     }
 
+    /// Returns whether image creation enabled compatible mutable-format views.
+    #[must_use]
+    pub fn mutable_format_views_enabled(&self) -> bool {
+        self.storage.mutable_format_views
+    }
+
+    /// Returns whether this texture can create a view with `format`.
+    ///
+    /// The base format is always supported. The current RGBA8 surface additionally supports its
+    /// UNORM/sRGB counterpart when [`Texture2DBuilder::with_mutable_format_views`] was requested.
+    #[must_use]
+    pub fn supports_view_format(&self, format: TextureFormat) -> bool {
+        format == self.storage.format
+            || (self.storage.mutable_format_views
+                && format == compatible_view_format(self.storage.format))
+    }
+
     /// Returns a handle to the default full-range view of the same image storage.
     #[must_use]
     pub fn view(&self) -> TextureView2D {
         TextureView2D {
             texture: self.clone(),
             inner: self.storage.default_view.clone(),
+            requested_format: None,
+            effective_format: self.storage.format,
+            requested_component_mapping: None,
+            effective_component_mapping: TextureComponentMapping::identity(),
+            requested_interpretation: None,
+            use_default_interpretation: true,
+            sampled_interpretation: Some(TextureViewInterpretation::new(
+                self.storage.encoding,
+                self.storage.alpha_mode,
+            )),
         }
     }
 
@@ -366,14 +530,25 @@ impl Texture2D {
         }
     }
 
+    #[cfg(test)]
+    pub(crate) fn simulate_initial_upload_failure(&self, message: &str) {
+        self.storage
+            .upload_dependency
+            .record_failure(message.into());
+    }
+
     /// Returns whether this texture and another handle share the same image allocation.
     #[must_use]
     pub fn shares_storage_with(&self, other: &Self) -> bool {
         Rc::ptr_eq(&self.storage, &other.storage)
     }
 
-    pub(crate) fn belongs_to_context(&self, context: &Context) -> bool {
-        Rc::ptr_eq(&self.storage.context.inner, &context.inner)
+    pub(crate) fn sampled_binding(&self, sampler: &Sampler) -> SampledTextureBinding {
+        self.view().sampled_binding(sampler)
+    }
+
+    pub(crate) fn sampled_image_binding(&self) -> SampledImageBinding {
+        self.view().sampled_image_binding()
     }
 }
 
@@ -382,9 +557,283 @@ impl Texture2D {
 pub struct TextureView2D {
     texture: Texture2D,
     inner: Arc<ImageView>,
+    requested_format: Option<TextureFormat>,
+    effective_format: TextureFormat,
+    requested_component_mapping: Option<TextureComponentMapping>,
+    effective_component_mapping: TextureComponentMapping,
+    requested_interpretation: Option<TextureViewInterpretation>,
+    use_default_interpretation: bool,
+    sampled_interpretation: Option<TextureViewInterpretation>,
+}
+
+/// A source component used for one output channel of a texture view.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum TextureComponent {
+    /// Read the source red channel.
+    Red,
+    /// Read the source green channel.
+    Green,
+    /// Read the source blue channel.
+    Blue,
+    /// Read the source alpha channel.
+    Alpha,
+    /// Return zero for this output channel.
+    Zero,
+    /// Return one for this output channel.
+    One,
+}
+
+impl TextureComponent {
+    fn to_vulkan(self) -> VulkanComponentSwizzle {
+        match self {
+            Self::Red => VulkanComponentSwizzle::Red,
+            Self::Green => VulkanComponentSwizzle::Green,
+            Self::Blue => VulkanComponentSwizzle::Blue,
+            Self::Alpha => VulkanComponentSwizzle::Alpha,
+            Self::Zero => VulkanComponentSwizzle::Zero,
+            Self::One => VulkanComponentSwizzle::One,
+        }
+    }
+}
+
+/// Editable mapping from stored RGBA channels to sampled RGBA channels.
+///
+/// The identity mapping is the default. Mapping changes affect sampled values only; the texture's
+/// stored bytes and source declarations are unchanged.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TextureComponentMapping {
+    red: TextureComponent,
+    green: TextureComponent,
+    blue: TextureComponent,
+    alpha: TextureComponent,
+}
+
+impl TextureComponentMapping {
+    /// Creates a mapping for the sampled red, green, blue and alpha outputs.
+    #[must_use]
+    pub const fn new(
+        red: TextureComponent,
+        green: TextureComponent,
+        blue: TextureComponent,
+        alpha: TextureComponent,
+    ) -> Self {
+        Self {
+            red,
+            green,
+            blue,
+            alpha,
+        }
+    }
+
+    /// Returns the identity mapping, which preserves the stored RGBA channels.
+    #[must_use]
+    pub const fn identity() -> Self {
+        Self::new(
+            TextureComponent::Red,
+            TextureComponent::Green,
+            TextureComponent::Blue,
+            TextureComponent::Alpha,
+        )
+    }
+
+    /// Returns the source selected for sampled red.
+    #[must_use]
+    pub const fn red(self) -> TextureComponent {
+        self.red
+    }
+
+    /// Returns the source selected for sampled green.
+    #[must_use]
+    pub const fn green(self) -> TextureComponent {
+        self.green
+    }
+
+    /// Returns the source selected for sampled blue.
+    #[must_use]
+    pub const fn blue(self) -> TextureComponent {
+        self.blue
+    }
+
+    /// Returns the source selected for sampled alpha.
+    #[must_use]
+    pub const fn alpha(self) -> TextureComponent {
+        self.alpha
+    }
+
+    /// Returns whether this mapping preserves all four channels.
+    #[must_use]
+    pub const fn is_identity(self) -> bool {
+        matches!(self.red, TextureComponent::Red)
+            && matches!(self.green, TextureComponent::Green)
+            && matches!(self.blue, TextureComponent::Blue)
+            && matches!(self.alpha, TextureComponent::Alpha)
+    }
+
+    fn to_vulkan(self) -> VulkanComponentMapping {
+        VulkanComponentMapping {
+            r: self.red.to_vulkan(),
+            g: self.green.to_vulkan(),
+            b: self.blue.to_vulkan(),
+            a: self.alpha.to_vulkan(),
+        }
+    }
+}
+
+/// Color and alpha declarations for the RGBA values returned by a texture view.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TextureViewInterpretation {
+    encoding: ColorEncoding,
+    alpha_mode: AlphaMode,
+}
+
+impl TextureViewInterpretation {
+    /// Creates an interpretation declaration without transforming sampled values.
+    #[must_use]
+    pub const fn new(encoding: ColorEncoding, alpha_mode: AlphaMode) -> Self {
+        Self {
+            encoding,
+            alpha_mode,
+        }
+    }
+
+    /// Returns the declared color encoding of sampled RGB values.
+    #[must_use]
+    pub const fn encoding(self) -> ColorEncoding {
+        self.encoding
+    }
+
+    /// Returns the declared alpha representation of sampled values.
+    #[must_use]
+    pub const fn alpha_mode(self) -> AlphaMode {
+        self.alpha_mode
+    }
+}
+
+/// Builder for another view of a texture's existing image storage.
+pub struct TextureView2DBuilder {
+    texture: Texture2D,
+    format: Option<TextureFormat>,
+    component_mapping: Option<TextureComponentMapping>,
+    interpretation: Option<TextureViewInterpretation>,
+    use_default_interpretation: bool,
+}
+
+impl TextureView2DBuilder {
+    /// Requests an exact view format. The image must have enabled mutable-format views if this
+    /// differs from its storage format.
+    #[must_use]
+    pub const fn format(mut self, format: TextureFormat) -> Self {
+        self.format = Some(format);
+        self
+    }
+
+    /// Requests an exact sampled-component mapping. Omit it to inherit the context setting
+    /// or use identity if the context has none.
+    #[must_use]
+    pub const fn component_mapping(mut self, mapping: TextureComponentMapping) -> Self {
+        self.component_mapping = Some(mapping);
+        self
+    }
+
+    /// Declares the sampled color and alpha interpretation for managed-color consumers.
+    ///
+    /// This overrides a context declaration. With no declaration, only an identity view in
+    /// the storage format inherits the texture declarations. Raw shaders may also sample views
+    /// whose interpretation is unspecified.
+    #[must_use]
+    pub const fn interpretation(mut self, interpretation: TextureViewInterpretation) -> Self {
+        self.interpretation = Some(interpretation);
+        self.use_default_interpretation = false;
+        self
+    }
+
+    /// Bypasses the context interpretation and uses the standard texture-derived rule.
+    /// A changed format or a non-identity view then has unspecified interpretation.
+    #[must_use]
+    pub const fn use_default_interpretation(mut self) -> Self {
+        self.interpretation = None;
+        self.use_default_interpretation = true;
+        self
+    }
+
+    /// Creates the requested view while retaining the same texture storage.
+    ///
+    /// An unchanged identity view reuses the texture's existing default Vulkan view. A changed
+    /// mapping or format creates one additional Vulkan image-view object and no image allocation.
+    ///
+    /// # Errors
+    /// Returns `InvalidState` when the format, format features, image-creation request, or enabled
+    /// portability-subset features do not support this view; `VulkanValidationFailed` when a
+    /// device format-property query fails; or `VulkanImageViewCreationFailed` when Vulkan rejects
+    /// view creation.
+    pub fn build(self) -> VMNLResult<TextureView2D> {
+        let defaults = self.texture.storage.context.texture_defaults();
+        let effective_format = self
+            .format
+            .or(defaults.view_format())
+            .unwrap_or(self.texture.format());
+        let effective_component_mapping = self
+            .component_mapping
+            .or(defaults.view_component_mapping())
+            .unwrap_or_else(TextureComponentMapping::identity);
+        validate_texture_view_request(
+            &self.texture,
+            effective_format,
+            effective_component_mapping,
+        )?;
+
+        let view_format_changed = effective_format != self.texture.format();
+        let interpretation_required =
+            view_format_changed || !effective_component_mapping.is_identity();
+        let context_interpretation = if self.use_default_interpretation {
+            None
+        } else {
+            defaults.view_interpretation()
+        };
+        let sampled_interpretation = self.interpretation.or(context_interpretation).or_else(|| {
+            (!interpretation_required).then(|| {
+                TextureViewInterpretation::new(self.texture.encoding(), self.texture.alpha_mode())
+            })
+        });
+
+        let inner = if interpretation_required {
+            let mut create_info = ImageViewCreateInfo::from_image(&self.texture.storage.image);
+            create_info.format = vulkan_format(effective_format);
+            create_info.component_mapping = effective_component_mapping.to_vulkan();
+            ImageView::new(self.texture.storage.image.clone(), create_info)
+                .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanImageViewCreationFailed))?
+        } else {
+            self.texture.storage.default_view.clone()
+        };
+
+        Ok(TextureView2D {
+            texture: self.texture,
+            inner,
+            requested_format: self.format,
+            effective_format,
+            requested_component_mapping: self.component_mapping,
+            effective_component_mapping,
+            requested_interpretation: self.interpretation,
+            use_default_interpretation: self.use_default_interpretation,
+            sampled_interpretation,
+        })
+    }
 }
 
 impl TextureView2D {
+    /// Starts a builder for another view of `texture`'s existing image storage.
+    #[must_use]
+    pub fn builder(texture: &Texture2D) -> TextureView2DBuilder {
+        TextureView2DBuilder {
+            texture: texture.clone(),
+            format: None,
+            component_mapping: None,
+            interpretation: None,
+            use_default_interpretation: false,
+        }
+    }
+
     /// Returns the texture that owns this view's image storage.
     #[must_use]
     pub const fn texture(&self) -> &Texture2D {
@@ -406,63 +855,293 @@ impl TextureView2D {
     /// Returns the view's format.
     #[must_use]
     pub fn format(&self) -> TextureFormat {
-        self.texture.format()
+        self.effective_format
+    }
+
+    /// Returns the local view-format request, or `None` when the format was inherited.
+    #[must_use]
+    pub const fn requested_format(&self) -> Option<TextureFormat> {
+        self.requested_format
+    }
+
+    /// Returns the view format selected by a successful build.
+    #[must_use]
+    pub const fn effective_format(&self) -> TextureFormat {
+        self.effective_format
+    }
+
+    /// Returns the local component-mapping request, or `None` when the mapping was inherited.
+    #[must_use]
+    pub const fn requested_component_mapping(&self) -> Option<TextureComponentMapping> {
+        self.requested_component_mapping
+    }
+
+    /// Returns the component mapping applied to sampled values.
+    #[must_use]
+    pub const fn effective_component_mapping(&self) -> TextureComponentMapping {
+        self.effective_component_mapping
+    }
+
+    /// Returns the explicit sampled interpretation request, if supplied.
+    #[must_use]
+    pub const fn requested_interpretation(&self) -> Option<TextureViewInterpretation> {
+        self.requested_interpretation
+    }
+
+    /// Returns whether this view bypasses context interpretation.
+    #[must_use]
+    pub const fn uses_default_interpretation(&self) -> bool {
+        self.use_default_interpretation
+    }
+
+    /// Returns the effective sampled interpretation, if it is known.
+    ///
+    /// Explicit views check their local request, then the context declaration when enabled.
+    /// Without a declaration, only identity views in the storage format inherit the texture's
+    /// declarations.
+    #[must_use]
+    pub const fn sampled_interpretation(&self) -> Option<TextureViewInterpretation> {
+        self.sampled_interpretation
     }
 
     /// Checks whether this view can be paired with a sampler on the same context.
     ///
-    /// This validates sampled usage, context identity, linear-filter support, and the border
-    /// color's numeric class. Shader instruction compatibility remains the consumer's
-    /// responsibility.
+    /// This validates sampled usage, context identity, linear-filter support, border-color
+    /// numeric class, and opaque-black border compatibility with component swizzles. It does not
+    /// inspect shader instructions; raw
+    /// [`ResourcesBuilder`](crate::raw::ResourcesBuilder) checks those when resources are built.
     ///
     /// # Errors
     /// Returns `InvalidState` when the view and sampler are incompatible.
     pub fn validate_sampler(&self, sampler: &Sampler) -> VMNLResult<()> {
-        if !self.texture.belongs_to_context(&sampler.context) {
-            return Err(invalid_state(
-                "texture view and sampler belong to different Context instances",
-            ));
-        }
-        if !self.texture.is_sampleable() {
-            return Err(invalid_state(
-                "texture view image usage does not include shader sampling",
-            ));
-        }
+        validate_sampled_image_sampler(
+            &self.inner,
+            &self.texture.storage.context.inner.device,
+            self.texture.is_sampleable(),
+            &sampler.context.inner.device,
+            sampler.config(),
+        )
+    }
 
-        let config = sampler.config();
-        let uses_linear_filter = [
-            config.min_filter(),
-            config.mag_filter(),
-            config.mipmap_filter(),
-        ]
-        .contains(&super::Filter::Linear);
-        if uses_linear_filter
-            && !self
-                .inner
-                .format_features()
-                .contains(FormatFeatures::SAMPLED_IMAGE_FILTER_LINEAR)
+    pub(crate) fn sampled_binding(&self, sampler: &Sampler) -> SampledTextureBinding {
+        let validation_error =
+            self.validate_sampler(sampler)
+                .err()
+                .map(|error| match error.kind() {
+                    VMNLErrorKind::InvalidState(message) => message.clone(),
+                    _ => error.to_string(),
+                });
+
+        SampledTextureBinding {
+            image: self.sampled_image_binding(),
+            sampler: sampler.sampled_binding(),
+            validation_error,
+        }
+    }
+
+    pub(crate) fn sampled_image_binding(&self) -> SampledImageBinding {
+        SampledImageBinding {
+            image_view: self.inner.clone(),
+            device: self.texture.storage.context.inner.device.clone(),
+            upload_dependency: self.texture.storage.upload_dependency.clone(),
+            sampled_usage: self.texture.is_sampleable(),
+        }
+    }
+}
+
+pub(crate) fn validate_sampled_image_sampler(
+    image_view: &ImageView,
+    image_device: &Arc<Device>,
+    sampled_usage: bool,
+    sampler_device: &Arc<Device>,
+    config: SamplerConfig,
+) -> VMNLResult<()> {
+    if !Arc::ptr_eq(image_device, sampler_device) {
+        return Err(invalid_state(
+            "texture view and sampler belong to different Context instances",
+        ));
+    }
+    if !sampled_usage {
+        return Err(invalid_state(
+            "texture view image usage does not include shader sampling",
+        ));
+    }
+
+    let uses_linear_filter = [
+        config.min_filter(),
+        config.mag_filter(),
+        config.mipmap_filter(),
+    ]
+    .contains(&super::Filter::Linear);
+    if uses_linear_filter
+        && !image_view
+            .format_features()
+            .contains(FormatFeatures::SAMPLED_IMAGE_FILTER_LINEAR)
+    {
+        return Err(invalid_state(
+            "texture view format does not support linear filtering",
+        ));
+    }
+
+    let uses_border = [config.address_u(), config.address_v()]
+        .into_iter()
+        .any(|mode| mode == super::AddressMode::ClampToBorder);
+    let integer_border = matches!(
+        config.border_color(),
+        super::SamplerBorderColor::IntTransparentBlack
+            | super::SamplerBorderColor::IntOpaqueBlack
+            | super::SamplerBorderColor::IntOpaqueWhite
+    );
+    if uses_border && integer_border {
+        return Err(invalid_state(
+            "RGBA8 normalized texture views require a floating-point sampler border color",
+        ));
+    }
+
+    if uses_border
+        && !image_view.component_mapping().is_identity()
+        && matches!(
+            config.border_color(),
+            super::SamplerBorderColor::FloatOpaqueBlack | super::SamplerBorderColor::IntOpaqueBlack
+        )
+    {
+        return Err(invalid_state(
+            "opaque-black border sampling with a non-identity texture view mapping is unsupported",
+        ));
+    }
+
+    Ok(())
+}
+
+fn validate_texture_view_request(
+    texture: &Texture2D,
+    view_format: TextureFormat,
+    component_mapping: TextureComponentMapping,
+) -> VMNLResult<()> {
+    if !texture.supports_view_format(view_format) {
+        return Err(invalid_state(format!(
+            "texture view format {view_format:?} was not enabled when the image was created"
+        )));
+    }
+
+    let image_format = texture.storage.image.format();
+    let view_vk_format = vulkan_format(view_format);
+    if image_format.compatibility() != view_vk_format.compatibility() {
+        return Err(invalid_state(
+            "texture view format is not compatible with the image format",
+        ));
+    }
+
+    let physical_device = &texture.storage.context.inner.physical_device;
+    let format_properties = physical_device
+        .format_properties(view_vk_format)
+        .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanValidationFailed))?;
+    if texture.is_sampleable()
+        && !format_properties
+            .optimal_tiling_features
+            .contains(FormatFeatures::SAMPLED_IMAGE)
+    {
+        return Err(invalid_state(
+            "texture view format does not support sampled-image usage",
+        ));
+    }
+
+    let device = &texture.storage.context.inner.device;
+    if device.enabled_extensions().khr_portability_subset {
+        if !component_mapping.is_identity()
+            && !texture
+                .storage
+                .context
+                .is_device_feature_enabled(DeviceFeature::ImageViewFormatSwizzle)
         {
             return Err(invalid_state(
-                "texture view format does not support linear filtering",
+                "non-identity texture view mapping requires enabled ImageViewFormatSwizzle on portability-subset devices",
             ));
         }
 
-        let uses_border = [config.address_u(), config.address_v()]
-            .into_iter()
-            .any(|mode| mode == super::AddressMode::ClampToBorder);
-        let integer_border = matches!(
-            config.border_color(),
-            super::SamplerBorderColor::IntTransparentBlack
-                | super::SamplerBorderColor::IntOpaqueBlack
-                | super::SamplerBorderColor::IntOpaqueWhite
-        );
-        if uses_border && integer_border {
+        if view_vk_format.components() != image_format.components()
+            && !texture
+                .storage
+                .context
+                .is_device_feature_enabled(DeviceFeature::ImageViewFormatReinterpretation)
+        {
             return Err(invalid_state(
-                "RGBA8 normalized texture views require a floating-point sampler border color",
+                "texture view format requires enabled ImageViewFormatReinterpretation on portability-subset devices",
             ));
         }
+    }
 
-        Ok(())
+    Ok(())
+}
+
+fn validate_mutable_view_format_support(
+    context: &Context,
+    image_format: Format,
+    texture_format: TextureFormat,
+    extent: [u32; 2],
+    usage: TextureUsage,
+    image_usage: ImageUsage,
+) -> VMNLResult<()> {
+    let alternate_format = vulkan_format(compatible_view_format(texture_format));
+    if image_format.compatibility() != alternate_format.compatibility() {
+        return Err(invalid_state(
+            "the requested RGBA8 view formats are not in the same compatibility class",
+        ));
+    }
+
+    let alternate_features = context
+        .inner
+        .physical_device
+        .format_properties(alternate_format)
+        .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanValidationFailed))?
+        .optimal_tiling_features;
+    if usage.contains(TextureUsage::SAMPLED)
+        && !alternate_features.contains(FormatFeatures::SAMPLED_IMAGE)
+    {
+        return Err(invalid_state(
+            "the alternate RGBA8 view format does not support sampled-image usage",
+        ));
+    }
+
+    let device = &context.inner.device;
+    let view_formats = if device.api_version() >= Version::V1_2
+        || device.enabled_extensions().khr_image_format_list
+    {
+        vec![image_format, alternate_format]
+    } else {
+        Vec::new()
+    };
+    let properties = context
+        .inner
+        .physical_device
+        .image_format_properties(ImageFormatInfo {
+            flags: ImageCreateFlags::MUTABLE_FORMAT,
+            format: image_format,
+            view_formats,
+            tiling: ImageTiling::Optimal,
+            usage: image_usage,
+            ..Default::default()
+        })
+        .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanValidationFailed))?
+        .ok_or_else(|| {
+            invalid_state("the device does not support this mutable RGBA8 image format and usage")
+        })?;
+    if extent[0] > properties.max_extent[0] || extent[1] > properties.max_extent[1] {
+        return Err(invalid_state(
+            "texture extent exceeds the mutable RGBA8 image format limit",
+        ));
+    }
+
+    Ok(())
+}
+
+impl Sampler {
+    pub(crate) fn sampled_binding(&self) -> SampledSamplerBinding {
+        SampledSamplerBinding {
+            sampler: self.inner.clone(),
+            device: self.context.inner.device.clone(),
+            config: self.config,
+        }
     }
 }
 
@@ -480,6 +1159,7 @@ pub struct PreparedTexture2D {
     encoding: ColorEncoding,
     alpha_mode: AlphaMode,
     usage: TextureUsage,
+    mutable_format_views: bool,
     retirement_policy: TextureRetirementPolicy,
 }
 
@@ -490,6 +1170,12 @@ impl PreparedTexture2D {
         self.extent
     }
 
+    /// Returns whether the prepared image creation enabled compatible mutable-format views.
+    #[must_use]
+    pub const fn mutable_format_views_enabled(&self) -> bool {
+        self.mutable_format_views
+    }
+
     /// Submits the prepared upload and returns a texture with a reusable completion ticket.
     ///
     /// Queue submission is asynchronous. Dropping the final returned texture or ticket handle
@@ -498,18 +1184,24 @@ impl PreparedTexture2D {
     /// # Errors
     /// Returns `TextureUploadFailed` if command execution or queue submission fails.
     pub fn submit(self) -> VMNLResult<Texture2D> {
-        let future = now(self.context.inner.device.clone())
-            .then_execute(
-                self.context.inner.graphics_queue.clone(),
-                self.command_buffer,
-            )
-            .map_err(|error| upload_error(error.to_string()))?
-            .boxed_send_sync()
-            .then_signal_fence_and_flush()
-            .map_err(|error| upload_error(error.to_string()))?;
+        let future = Arc::new(
+            now(self.context.inner.device.clone())
+                .then_execute(
+                    self.context.inner.graphics_queue.clone(),
+                    self.command_buffer,
+                )
+                .map_err(|error| upload_error(error.to_string()))?
+                .boxed_send_sync()
+                .then_signal_fence_and_flush()
+                .map_err(|error| upload_error(error.to_string()))?,
+        );
+        let dependency = Arc::new(TextureUpload {
+            future,
+            failure: OnceLock::new(),
+        });
         let upload = Rc::new(UploadState {
             progress: RefCell::new(UploadProgress::Pending(PendingUpload::Vulkan {
-                future,
+                dependency: dependency.clone(),
                 _staging: self.staging,
             })),
         });
@@ -519,11 +1211,13 @@ impl PreparedTexture2D {
                 image: self.image,
                 default_view: self.view,
                 upload,
+                upload_dependency: dependency,
                 extent: self.extent,
                 format: self.format,
                 encoding: self.encoding,
                 alpha_mode: self.alpha_mode,
                 usage: self.usage,
+                mutable_format_views: self.mutable_format_views,
                 retirement_policy: self.retirement_policy,
             }),
         })
@@ -548,7 +1242,7 @@ enum UploadProgress {
 
 enum PendingUpload {
     Vulkan {
-        future: UploadFuture,
+        dependency: TextureUploadDependency,
         _staging: Subbuffer<[u8]>,
     },
     #[cfg(test)]
@@ -562,7 +1256,7 @@ enum PendingUpload {
 impl PendingUpload {
     fn is_signaled(&mut self) -> Result<bool, String> {
         match self {
-            Self::Vulkan { future, .. } => future.is_signaled().map_err(|error| error.to_string()),
+            Self::Vulkan { dependency, .. } => dependency.is_signaled(),
             #[cfg(test)]
             Self::Simulated {
                 polls_until_signal,
@@ -582,7 +1276,7 @@ impl PendingUpload {
 
     fn wait(&mut self) -> Result<(), String> {
         match self {
-            Self::Vulkan { future, .. } => future.wait(None).map_err(|error| error.to_string()),
+            Self::Vulkan { dependency, .. } => dependency.wait(),
             #[cfg(test)]
             Self::Simulated { completion, .. } => completion.clone(),
         }
@@ -692,7 +1386,7 @@ pub enum UploadWaitOutcome {
 #[derive(Clone)]
 pub struct Sampler {
     context: Context,
-    _inner: Arc<VulkanSampler>,
+    inner: Arc<VulkanSampler>,
     config: SamplerConfig,
 }
 
@@ -875,7 +1569,7 @@ impl SamplerBuilder {
 
         Ok(Sampler {
             context: self.context,
-            _inner: inner,
+            inner,
             config,
         })
     }
@@ -909,6 +1603,13 @@ fn vulkan_format(format: TextureFormat) -> Format {
     match format {
         TextureFormat::Rgba8Unorm => Format::R8G8B8A8_UNORM,
         TextureFormat::Rgba8Srgb => Format::R8G8B8A8_SRGB,
+    }
+}
+
+const fn compatible_view_format(format: TextureFormat) -> TextureFormat {
+    match format {
+        TextureFormat::Rgba8Unorm => TextureFormat::Rgba8Srgb,
+        TextureFormat::Rgba8Srgb => TextureFormat::Rgba8Unorm,
     }
 }
 
@@ -963,20 +1664,25 @@ fn upload_error(message: impl Into<String>) -> VMNLError {
 
 #[cfg(test)]
 mod tests {
-    #![allow(clippy::expect_used, clippy::unwrap_used)]
+    #![allow(clippy::expect_used, clippy::panic, clippy::unwrap_used)]
 
     use super::*;
     use crate::{
+        raw,
         texture::{AddressMode, PixelLayout, PixelOrigin, SamplerBorderColor},
-        Window,
+        Context, Window,
     };
-    use std::sync::{Mutex, MutexGuard, OnceLock};
     use vulkano::{
         buffer::BufferUsage, command_buffer::CopyImageToBufferInfo,
         memory::allocator::MemoryTypeFilter,
     };
 
-    static GPU_TEST_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+    #[test]
+    fn upload_future_can_be_shared_with_raw_resources() {
+        fn assert_send_sync<T: Send + Sync>() {}
+
+        assert_send_sync::<TextureUploadDependency>();
+    }
 
     fn simulated_upload(
         polls_until_signal: usize,
@@ -1033,11 +1739,93 @@ mod tests {
         assert!(!deferred.get());
     }
 
-    fn gpu_test_guard() -> MutexGuard<'static, ()> {
-        GPU_TEST_LOCK
-            .get_or_init(|| Mutex::new(()))
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
+    fn gpu_test_guard() -> std::sync::MutexGuard<'static, ()> {
+        crate::test_support::gpu_test_guard()
+    }
+
+    #[repr(C)]
+    #[derive(Clone, Copy, raw::Vertex, raw::Pod, raw::Zeroable)]
+    struct RawTextureVertex {
+        #[format(R32G32_SFLOAT)]
+        position: [f32; 2],
+    }
+
+    #[test]
+    #[ignore = "Requires Vulkan + GLFW display."]
+    fn raw_sampled_resources_reject_image_without_sampled_usage() -> VMNLResult<()> {
+        let _guard = gpu_test_guard();
+        let context = Context::new()?;
+        let window = Window::builder().build(&context)?;
+        let pipeline = raw::Pipeline::<RawTextureVertex>::builder()
+            .vertex_shader(raw::ShaderSource::Src(
+                "#version 450\nlayout(location = 0) in vec2 position;\nvoid main() { gl_Position = vec4(position, 0.0, 1.0); }"
+                    .into(),
+            ))
+            .fragment_shader(raw::ShaderSource::Src(
+                "#version 450\nlayout(set = 0, binding = 0) uniform sampler2D image;\nlayout(location = 0) out vec4 color;\nvoid main() { color = texture(image, vec2(0.5)); }"
+                    .into(),
+            ))
+            .build(&window)?;
+        let sampler = Sampler::builder(&context)
+            .config(SamplerConfig::nearest())
+            .build()?;
+        let dependency_texture = Texture2D::from_pixels(
+            &context,
+            PixelSource::new(1, 1, TextureFormat::Rgba8Unorm, &[255, 255, 255, 255])?,
+        )
+        .build()?;
+
+        // Exercise the raw resource guard with a view-compatible GPU image whose
+        // image usage deliberately omits SAMPLED. The public texture builder cannot
+        // currently create this combination because it always creates a default view.
+        let image = Image::new(
+            context.inner.memory_allocator.clone(),
+            ImageCreateInfo {
+                format: Format::R8G8B8A8_UNORM,
+                extent: [1, 1, 1],
+                usage: ImageUsage::COLOR_ATTACHMENT,
+                ..Default::default()
+            },
+            AllocationCreateInfo {
+                memory_type_filter: MemoryTypeFilter::PREFER_DEVICE,
+                ..Default::default()
+            },
+        )
+        .map_err(|error| upload_error(error.to_string()))?;
+        let default_view = ImageView::new_default(image.clone())
+            .map_err(|error| upload_error(error.to_string()))?;
+        let texture = Texture2D {
+            storage: Rc::new(TextureStorage {
+                context: context.clone(),
+                image,
+                default_view,
+                upload: Rc::new(UploadState {
+                    progress: RefCell::new(UploadProgress::Complete),
+                }),
+                upload_dependency: dependency_texture.storage.upload_dependency.clone(),
+                extent: [1, 1],
+                format: TextureFormat::Rgba8Unorm,
+                encoding: ColorEncoding::Linear,
+                alpha_mode: AlphaMode::Opaque,
+                usage: TextureUsage::TRANSFER_DESTINATION,
+                mutable_format_views: false,
+                retirement_policy: TextureRetirementPolicy::Wait,
+            }),
+        };
+        let Err(error) = raw::Resources::builder(&pipeline)
+            .sampled_texture(0, 0, &texture, &sampler)
+            .build(&context)
+        else {
+            panic!("a non-sampled image must be rejected");
+        };
+        match error.kind() {
+            VMNLErrorKind::InvalidState(message)
+                if message
+                    == "raw resources set 0 binding 0: texture view image usage does not include shader sampling" => {}
+            kind => panic!("unexpected non-sampled texture rejection: {kind:?}"),
+        }
+
+        Ok(())
     }
 
     fn readback_rgba8(texture: &Texture2D) -> Vec<u8> {

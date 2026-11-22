@@ -177,6 +177,7 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     /// Errors are reported by [`FrameRenderer::submit`] if the current
     /// swapchain image count no longer matches the uniform, or if the backend
     /// buffer allocation, descriptor set allocation, or buffer write fails.
+    /// The image count is checked before acquiring a swapchain image.
     #[must_use]
     pub fn write_frame_uniform<TData>(
         mut self,
@@ -228,6 +229,13 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     /// ```
     ///
     /// # Errors
+    /// Raw pipeline, geometry, and resource compatibility, raw viewport/scissor
+    /// validity, and frame-uniform image counts are checked before acquisition.
+    /// If acquisition requires swapchain recreation, these checks run again for
+    /// the replacement swapchain before retrying.
+    ///
+    /// Returns `TextureUploadFailed` before acquiring a swapchain image if an initial
+    /// upload used by a raw draw has a known failure or its fence status query fails.
     /// Returns an error if frame-uniform allocation/write/binding, frame acquisition,
     /// command recording, submission, or presentation fails. An out-of-date swapchain
     /// during acquisition or presentation returns `VMNLErrorKind::VulkanOutOfDate`.
@@ -235,8 +243,9 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     /// mean that no work was submitted or that its resources are idle. VMNL preserves
     /// the required synchronization and requests swapchain recreation, so the same
     /// window can be used again after its framebuffer is renderable.
-    /// With Vulkano 0.35.2, retiring a failed presentation future can wait for the
-    /// presentation queue to become idle; this error path can block the calling thread.
+    /// Returns `VMNLErrorKind::VulkanDeviceLost` if presentation or the subsequent fence
+    /// submission reports device loss. Error cleanup can block the calling thread while
+    /// the queue retires submitted resources.
     ///
     /// Earlier `0.1.0` builds logged a presentation-stage out-of-date result and
     /// returned `Ok(())`. Callers that relied on that behavior must now handle

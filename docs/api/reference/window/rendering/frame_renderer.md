@@ -23,7 +23,11 @@ Passes execute in append order. Empty arrays create empty logical passes; a fram
 
 ## Construction, defaults, and validation
 
-`Window::render()` starts with `RenderMode::PerObject`, no passes, and no queued frame-uniform writes. Compatibility of raw pipeline, geometry, resources, window render pass, swapchain image count, and device is checked during submission/build paths.
+`Window::render()` starts with `RenderMode::PerObject`, no passes, and no queued frame-uniform writes.
+During submission, VMNL checks raw pipeline, geometry, and resource compatibility, viewport/scissor
+validity, and bound or queued frame-uniform image counts against the current swapchain before
+acquiring an image. If acquisition triggers recreation, VMNL checks the replacement swapchain
+before retrying.
 
 ## Units, coordinates, and valid ranges
 
@@ -39,9 +43,13 @@ The builder mutably borrows `Window` and borrows draw resources for `'g`; those 
 
 `submit` can fail for incompatible devices/layouts/render passes, incompatible frame-uniform image counts, frame-uniform allocation/write/binding, zero-size/out-of-date swapchains, command recording, acquisition, device loss, queue submission, or presentation.
 
+Before acquiring a swapchain image, `submit` checks each distinct initial texture upload referenced
+by a raw draw. It returns `TextureUploadFailed` if the upload has a recorded failure or its fence
+status query fails. Pending uploads join the GPU dependency chain without a host wait.
+
 `VulkanOutOfDate` can be returned when acquisition or presentation finds the swapchain out of date, or when the framebuffer has no renderable extent. A presentation-stage error may follow queue submission; it does not mean that no work was submitted or that its resources are idle. VMNL requests swapchain recreation and preserves the synchronization state needed to keep the same window usable after it becomes renderable. Continue processing events and retry with that window.
 
-With Vulkano 0.35.2, retiring a failed presentation future can wait for the presentation queue to become idle. This error path can block the thread calling `submit` while submitted resources are retired.
+`submit` returns `VulkanDeviceLost` when presentation or the subsequent fence submission reports device loss. Error cleanup can block the calling thread while the queue retires submitted resources.
 
 Earlier `0.1.0` builds logged a presentation-stage out-of-date result and returned `Ok(())`. That result is now `Err(VulkanOutOfDate)`, matching the documented error contract. Callers that depended on the previous behavior must handle this transient error.
 
@@ -49,7 +57,11 @@ Optional depth attachments are cleared with the window's immutable `RenderTarget
 
 ## Allocation, transfers, synchronization, and GPU cost
 
-Recording passes allocates CPU vectors and clones shared GPU handles. Queued frame-uniform writes are applied during `submit` after swapchain image acquisition and before command recording; they are not ordered between draw passes. Frame-uniform resources allocate descriptor sets during command recording. `submit` performs swapchain acquisition, command recording, queue submission, synchronization, and presentation. Exact batching/performance guarantees are not specified.
+Recording passes allocates CPU vectors and clones shared GPU handles. Submission collects resolved
+raw viewport/scissor states in draw order before acquisition. Queued frame-uniform writes are
+applied after acquisition and before command recording. Frame-uniform resources allocate descriptor
+sets during command recording. `submit` performs swapchain acquisition, command recording, queue
+submission, synchronization, and presentation. Exact batching/performance guarantees are not specified.
 
 With a depth attachment, `submit` waits on the acquired image's previous frame fence before reusing its depth image. This can block the calling thread but adds no device-wide wait. Color-only windows keep the existing synchronization path.
 

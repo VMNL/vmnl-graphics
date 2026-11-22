@@ -28,7 +28,7 @@ addressing behavior for one texture axis.
 `IntOpaqueBlack`, `FloatOpaqueWhite`, and `IntOpaqueWhite` retain the Vulkan
 numeric class in the request. [`TextureView2D::validate_sampler`](gpu_resources.md#textureview2d)
 checks the border class against a specific view. Shader compatibility remains
-the responsibility of a sampling consumer.
+the responsibility of a sampling consumer; raw resources validate it when built.
 
 ### SamplerLodLimit
 
@@ -56,12 +56,15 @@ minimum LOD, anisotropy below `1`, and incompatible texel-mode settings.
 limit, and checks nonzero LOD bias against its limit. A nonzero LOD bias on
 portability-subset devices also requires `DeviceFeature::SamplerMipLodBias`.
 Requests are not clamped. Border/view numeric compatibility and shader
-instruction compatibility require the later sampling consumer.
+instruction compatibility are validated by `raw::ResourcesBuilder::build`.
 
 Texel coordinates require equal min/mag filters, nearest mip filtering, zero
 minimum/maximum LOD and bias, anisotropy `1`, and ClampToEdge or ClampToBorder on
-both axes. The associated image/view and shader restrictions are checked at the
-consumer boundary; independent requests are never silently rewritten.
+both axes. The current raw texture view is single-layer and single-mip. Its
+shader must use an explicit statically known LOD of zero; implicit or dynamic
+LOD, depth comparison, projection, gather, bias, gradients, and offsets are
+rejected. The selected image/sampler pair is checked at resource-build time;
+independent requests are never silently rewritten.
 
 ## Construction, defaults, and validation
 
@@ -84,8 +87,8 @@ thread.
 
 Numerically invalid requests, texel-mode conflicts, and sampler values outside
 the device limits return `VMNLErrorKind::InvalidState`. A required optional
-feature that was not enabled returns `DeviceFeatureNotEnabled`. View/shader
-incompatibilities are checked by the later sampling consumer.
+feature that was not enabled returns `DeviceFeatureNotEnabled`. Raw image/shader
+incompatibilities return `InvalidState` from `ResourcesBuilder::build`.
 
 ## Allocation, transfers, synchronization, and GPU cost
 
