@@ -45,10 +45,11 @@ Release review must cover its public API, defaults, tests, examples, and documen
 the [stable contract requirements](architecture.md#stable-contract-requirements). The version
 number alone does not satisfy these release requirements.
 
-`0.2.0` adds textures and the owned elapsed-time clock API (`vmnl_graphics::time::{Clock, Duration}`,
-backed by `std::time::Instant` with no window/GPU/backend dependency) without breaking the
-published `0.1.0` contracts. Text and batching development may proceed in parallel after that
-baseline.
+`0.2.0` adds textures and the `time` API — the owned elapsed-time clock
+(`vmnl_graphics::time::{Clock, Duration}`, backed by `std::time::Instant`) and the
+caller-advanced one-shot/repeating timers (`Timer`, `TimerMode`, pure duration arithmetic) —
+with no window/GPU/backend dependency, without breaking the published `0.1.0` contracts. Text and
+batching development may proceed in parallel after that baseline.
 
 `1.0.0` requires:
 

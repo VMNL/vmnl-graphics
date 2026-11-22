@@ -24,6 +24,8 @@
   - [Joystick and gamepad samples](reference/joystick_gamepad.md)
   - [Time](reference/time/README.md)
     - [Clock](reference/time/clock.md)
+    - [Timer](reference/time/timer.md)
+    - [TimerMode](reference/time/timer_mode.md)
   - [Errors](reference/errors/README.md)
     - [VMNLError](reference/errors/vmnl_error.md)
     - [VMNLErrorKind](reference/errors/vmnl_error_kind.md)

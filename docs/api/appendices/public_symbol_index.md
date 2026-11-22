@@ -135,3 +135,5 @@
 | struct | `vmnl_graphics::texture::UploadTicket` | [UploadTicket](../reference/texture/gpu_resources.md#uploadticket-and-uploadwaitoutcome) | [Rustdoc](../../../target/doc/vmnl_graphics/texture/struct.UploadTicket.html) |
 | enum | `vmnl_graphics::texture::UploadWaitOutcome` | [UploadWaitOutcome](../reference/texture/gpu_resources.md#uploadticket-and-uploadwaitoutcome) | [Rustdoc](../../../target/doc/vmnl_graphics/texture/enum.UploadWaitOutcome.html) |
 | struct | `vmnl_graphics::time::Clock` | [Clock](../reference/time/clock.md) | [Rustdoc](../../../target/doc/vmnl_graphics/time/struct.Clock.html) |
+| struct | `vmnl_graphics::time::Timer` | [Timer](../reference/time/timer.md) | [Rustdoc](../../../target/doc/vmnl_graphics/time/struct.Timer.html) |
+| enum | `vmnl_graphics::time::TimerMode` | [TimerMode](../reference/time/timer_mode.md) | [Rustdoc](../../../target/doc/vmnl_graphics/time/enum.TimerMode.html) |

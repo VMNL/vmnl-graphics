@@ -11,6 +11,7 @@ the texture resource foundation targets `0.2.0`. Versioning does not qualify a n
 | Custom 2D shaders | Operational in 0.1.0 | Shader compile and visual example |
 | Ordered 2D/raw frame composition | Operational in 0.1.0 | GPU/example behavior |
 | Owned elapsed-time clocks (`time::Clock`, `time::Duration`) | Accepted for 0.2.0, not in the 0.1.0 baseline | Headless unit/API/doctest evidence; no GPU, window, or display required |
+| Caller-advanced one-shot/repeating timers (`time::Timer`, `time::TimerMode`) | Accepted for 0.2.0, not in the 0.1.0 baseline | Headless unit/API/doctest evidence on exact literal durations; no GPU, window, or display required |
 | Raw typed pipeline/geometry | Operational in 0.1.0 | Restricted public contract |
 | Raw configurable color blending | Partial 0.2.0 | Legacy exhaustive `BlendMode` preserved; editable RGB/alpha factors and operations, three presets, constants and effective pipeline inspection; dual-source factors unavailable |
 | Raw uniform buffers/resources | Operational in 0.1.0 | Scalar uniform-buffer descriptors |

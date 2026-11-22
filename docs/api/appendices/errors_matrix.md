@@ -27,5 +27,6 @@
 | Frame submit | device/render-pass/resource mismatch; `VulkanOutOfDate` during acquisition, presentation, or zero-size recreation; record/submit/present/device errors | Keep processing events and retry with the same window after its framebuffer is renderable; rebuild/terminate on hard device failure |
 | GLFW callbacks/infallible setters | No typed result; routed through callback/default backend handling | Log/classify callback and reconcile observed state |
 | `time::Clock` reads and transitions | Infallible; interval and accumulation arithmetic saturates at zero/`Duration::MAX` instead of wrapping or panicking | None |
+| `time::Timer::new` | `InvalidState` with message `timer duration must be strictly positive` for a zero duration in either mode | Supply a strictly positive `Duration` |
 
 `VMNLErrorKind` is non-exhaustive. This table groups public behavior; exact per-item variants remain in Rustdoc/reference pages.

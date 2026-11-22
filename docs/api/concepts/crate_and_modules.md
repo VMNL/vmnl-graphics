@@ -10,6 +10,6 @@ procedural macros are re-exported through `raw`, so clients need no macros depen
 | `vmnl_graphics::common` | Colors, shader sources, memory preferences | 0.1.0 |
 | `vmnl_graphics::d2` | GPU-backed 2D shapes and draw contracts | 0.1.0, operational |
 | `vmnl_graphics::raw` | Typed custom pipelines, geometry, uniforms | 0.1.0, operational within documented limits |
-| `vmnl_graphics::time` | Owned elapsed-time clocks; standard `Duration` re-export | Accepted for 0.2.0 |
+| `vmnl_graphics::time` | Owned elapsed-time clocks, caller-advanced timers, standard `Duration` re-export | Accepted for 0.2.0 |
 
 `pub(crate)`, `pub(super)`, implementation-only re-exports, and `vmnl_graphics::raw::__private` are not client API. `__private` exists only so derive macro expansions can name dependencies.

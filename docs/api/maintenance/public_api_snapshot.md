@@ -1768,6 +1768,25 @@ impl !core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::texture::Upload
 impl !core::panic::unwind_safe::UnwindSafe for vmnl_graphics::texture::UploadTicket
 pub mod vmnl_graphics::time
 pub use vmnl_graphics::time::Duration
+pub enum vmnl_graphics::time::TimerMode
+pub vmnl_graphics::time::TimerMode::Once
+pub vmnl_graphics::time::TimerMode::Repeating
+impl core::clone::Clone for vmnl_graphics::time::TimerMode
+pub fn vmnl_graphics::time::TimerMode::clone(&self) -> vmnl_graphics::time::TimerMode
+impl core::cmp::Eq for vmnl_graphics::time::TimerMode
+impl core::cmp::PartialEq for vmnl_graphics::time::TimerMode
+pub fn vmnl_graphics::time::TimerMode::eq(&self, &vmnl_graphics::time::TimerMode) -> bool
+impl core::fmt::Debug for vmnl_graphics::time::TimerMode
+pub fn vmnl_graphics::time::TimerMode::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::time::TimerMode
+impl core::marker::StructuralPartialEq for vmnl_graphics::time::TimerMode
+impl core::marker::Freeze for vmnl_graphics::time::TimerMode
+impl core::marker::Send for vmnl_graphics::time::TimerMode
+impl core::marker::Sync for vmnl_graphics::time::TimerMode
+impl core::marker::Unpin for vmnl_graphics::time::TimerMode
+impl core::marker::UnsafeUnpin for vmnl_graphics::time::TimerMode
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::time::TimerMode
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::time::TimerMode
 pub struct vmnl_graphics::time::Clock
 impl vmnl_graphics::time::Clock
 pub fn vmnl_graphics::time::Clock::elapsed(&self) -> core::time::Duration
@@ -1785,6 +1804,26 @@ impl core::marker::Unpin for vmnl_graphics::time::Clock
 impl core::marker::UnsafeUnpin for vmnl_graphics::time::Clock
 impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::time::Clock
 impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::time::Clock
+pub struct vmnl_graphics::time::Timer
+impl vmnl_graphics::time::Timer
+pub fn vmnl_graphics::time::Timer::advance(&mut self, core::time::Duration) -> u128
+pub fn vmnl_graphics::time::Timer::duration(&self) -> core::time::Duration
+pub fn vmnl_graphics::time::Timer::elapsed(&self) -> core::time::Duration
+pub fn vmnl_graphics::time::Timer::is_finished(&self) -> bool
+pub fn vmnl_graphics::time::Timer::is_paused(&self) -> bool
+pub fn vmnl_graphics::time::Timer::mode(&self) -> vmnl_graphics::time::TimerMode
+pub fn vmnl_graphics::time::Timer::new(core::time::Duration, vmnl_graphics::time::TimerMode) -> vmnl_graphics::VMNLResult<Self>
+pub fn vmnl_graphics::time::Timer::pause(&mut self)
+pub fn vmnl_graphics::time::Timer::remaining(&self) -> core::time::Duration
+pub fn vmnl_graphics::time::Timer::restart(&mut self)
+pub fn vmnl_graphics::time::Timer::resume(&mut self)
+impl core::marker::Freeze for vmnl_graphics::time::Timer
+impl core::marker::Send for vmnl_graphics::time::Timer
+impl core::marker::Sync for vmnl_graphics::time::Timer
+impl core::marker::Unpin for vmnl_graphics::time::Timer
+impl core::marker::UnsafeUnpin for vmnl_graphics::time::Timer
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::time::Timer
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::time::Timer
 pub enum vmnl_graphics::CursorMode
 pub vmnl_graphics::CursorMode::Captured
 pub vmnl_graphics::CursorMode::Disabled
