@@ -7,7 +7,7 @@ use super::VMNLWindow;
 use crate::{VMNLError, VMNLErrorKind, VMNLResult};
 
 impl VMNLWindow {
-    /// Initialize a GLFW window along with its associated event receiver.
+    /// Initializes a GLFW window along with its associated event receiver.
     ///
     /// # Source
     /// <https://www.glfw.org/docs/latest/window_guide.html>

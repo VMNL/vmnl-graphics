@@ -129,6 +129,9 @@ impl VMNLWindow {
         self.handle.input.clear_transitions();
     }
 
+    /// Changes connection-event delivery independently of sampling.
+    ///
+    /// Disabling delivery clears events already queued for this window.
     pub(crate) fn set_joystick_event_delivery(&mut self, enabled: bool) {
         if enabled == self.handle.joystick_event_subscription.is_some() {
             return;
@@ -151,6 +154,7 @@ impl VMNLWindow {
         self.handle.joystick_event_subscription.is_some()
     }
 
+    /// Changes joystick sampling for this window and resets tracking state on disable.
     pub(crate) fn set_joystick_tracking(&mut self, enabled: bool) -> crate::VMNLResult<()> {
         if enabled == self.handle.joystick_tracking_enabled {
             return Ok(());

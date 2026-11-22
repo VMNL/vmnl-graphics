@@ -35,10 +35,9 @@
 
 ## Documentation
 
-- Avoid unnecessary code comments or obvious comments
-- Avoid comments explaining what the code does. Explain WHY when required
-- Add comments that explain why a design decision was made.
-- Only complex algorithms should have explanatory comments
+- Follow the [function documentation formats](function_documentation.md) for Rustdoc and internal
+  function comments.
+- Explain non-obvious decisions and invariants in implementation comments.
 
 ## Code organization and structure
 

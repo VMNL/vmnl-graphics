@@ -72,6 +72,10 @@ impl Clock {
     ///
     /// The starting instant is captured now, so a later [`elapsed`](Clock::elapsed) may already be
     /// nonzero. See [`Clock::default`] for the identical `Default` implementation.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn new() -> Self {
         Self::from_origin(Instant::now())
@@ -83,6 +87,10 @@ impl Clock {
     /// the call does not consume the elapsed time. While paused, this is exactly the frozen
     /// accumulated value, without consulting the OS time source. The result is a
     /// [`Duration`] saturating at [`Duration::MAX`].
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn elapsed(&self) -> Duration {
         match self.running_since {
@@ -122,6 +130,10 @@ impl Clock {
     ///
     /// Idempotent: calling `pause` on an already paused clock preserves the frozen duration and
     /// state without reading the OS time source.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     pub fn pause(&mut self) {
         if self.running_since.is_some() {
             self.pause_at(Instant::now());
@@ -133,6 +145,10 @@ impl Clock {
     ///
     /// Idempotent: calling `resume` on an already running clock does not reset the origin or
     /// discard time, and does not read the OS time source.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     pub fn resume(&mut self) {
         if self.running_since.is_none() {
             self.resume_at(Instant::now());
@@ -140,6 +156,10 @@ impl Clock {
     }
 
     /// Returns whether the clock is paused, without affecting the measurement.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn is_paused(&self) -> bool {
         self.running_since.is_none()
@@ -185,8 +205,7 @@ impl Clock {
 }
 
 impl Default for Clock {
-    /// Identical to [`Clock::new`]: a running clock capturing the current instant with zero
-    /// accumulated time.
+    /// Creates a running clock with zero accumulated time, as in [`Clock::new`].
     fn default() -> Self {
         Self::new()
     }

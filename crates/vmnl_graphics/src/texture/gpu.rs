@@ -57,10 +57,15 @@ pub(crate) struct TextureUpload {
 }
 
 impl TextureUpload {
+    /// Queries the upload fence before a dependent draw and propagates recorded failures.
+    ///
+    /// A successful result permits the caller to attach the upload dependency. Completion is tracked
+    /// separately.
     pub(crate) fn check_for_failure(&self) -> VMNLResult<()> {
         self.is_signaled().map(|_| ()).map_err(upload_error)
     }
 
+    /// Clones the upload completion handle for chaining a GPU dependency.
     pub(crate) fn future(&self) -> UploadFence {
         self.future.clone()
     }
@@ -118,6 +123,45 @@ enum TextureSource<'a> {
 /// Source decoding, image and staging allocation, and command-buffer preparation happen in
 /// [`prepare`](Self::prepare). [`build`](Self::build) also submits the upload and returns without
 /// waiting for it to complete. Borrowed input is no longer used after `prepare` returns.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use vmnl_graphics::{Context, time::Duration};
+/// use vmnl_graphics::texture::{PixelSource, PngDecodeOptions, Texture2DBuilder,
+///     TextureFormat, TextureRetirementPolicy, TextureUsageRequest, UploadWaitOutcome};
+///
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// let context = Context::new()?;
+/// let bytes = [255, 0, 0, 255];
+/// let pixels = PixelSource::new(1, 1, TextureFormat::Rgba8Unorm, &bytes)?;
+/// let builder = Texture2DBuilder::from_pixels(&context, pixels)
+///     .with_usage(TextureUsageRequest::Automatic)
+///     .with_mutable_format_views(false)
+///     .retirement_policy(TextureRetirementPolicy::Wait);
+/// assert!(!builder.mutable_format_views_requested());
+/// assert_eq!(builder.mutable_format_views_override(), Some(false));
+/// let prepared = builder.prepare()?;
+/// assert_eq!(prepared.extent(), [1, 1]);
+/// assert!(!prepared.mutable_format_views_enabled());
+/// let texture = prepared.submit()?;
+///
+/// let upload = texture.initial_upload();
+/// if !upload.is_complete()? {
+///     match upload.wait(Some(Duration::from_millis(5)))? {
+///         UploadWaitOutcome::Complete => {}
+///         UploadWaitOutcome::TimedOut => { /* Query again in a later update. */ }
+///     }
+/// }
+///
+/// let png = std::fs::read("sprite.png")?;
+/// let _from_bytes = Texture2DBuilder::from_png(&context, &png)
+///     .with_png_options(PngDecodeOptions::default())
+///     .build()?;
+/// let _from_file = Texture2DBuilder::from_file(&context, "sprite.png").build()?;
+/// # Ok(())
+/// # }
+/// ```
 pub struct Texture2DBuilder<'a> {
     context: Context,
     source: TextureSource<'a>,
@@ -129,6 +173,16 @@ pub struct Texture2DBuilder<'a> {
 
 impl<'a> Texture2DBuilder<'a> {
     /// Creates a builder from a borrowed RGBA8 pixel descriptor.
+    ///
+    /// # Arguments
+    ///
+    /// - `context` supplies the device and allocator used when the texture is built.
+    /// - `source` supplies dimensions, encoding, layout, and borrowed bytes, typically via
+    ///   `PixelSource::new`.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn from_pixels(context: &Context, source: PixelSource<'a>) -> Self {
         Self {
@@ -142,6 +196,15 @@ impl<'a> Texture2DBuilder<'a> {
     }
 
     /// Creates a builder from borrowed encoded PNG bytes.
+    ///
+    /// # Arguments
+    ///
+    /// - `context` supplies the device and allocator used when the texture is built.
+    /// - `bytes` contains the borrowed encoded PNG, for example from `include_bytes!`.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn from_png(context: &Context, bytes: &'a [u8]) -> Self {
         Self {
@@ -155,6 +218,15 @@ impl<'a> Texture2DBuilder<'a> {
     }
 
     /// Creates a builder from an owned PNG path.
+    ///
+    /// # Arguments
+    ///
+    /// - `context` supplies the device and allocator used when the texture is built.
+    /// - `path` identifies the PNG file to read when preparing the texture.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn from_file(context: &Context, path: impl Into<PathBuf>) -> Self {
         Self {
@@ -168,6 +240,14 @@ impl<'a> Texture2DBuilder<'a> {
     }
 
     /// Sets declarations used when decoding a PNG source.
+    ///
+    /// # Arguments
+    ///
+    /// - `options` supplies encoding and alpha declarations for PNG decoding.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn with_png_options(mut self, options: PngDecodeOptions) -> Self {
         self.png_options = options;
@@ -178,6 +258,14 @@ impl<'a> Texture2DBuilder<'a> {
     ///
     /// `Automatic` selects sampled plus transfer-destination usage. An exact request is preserved;
     /// the initial upload fails if it omits transfer-destination usage.
+    ///
+    /// # Arguments
+    ///
+    /// - `usage` supplies an exact image-usage request or selects the automatic upload defaults.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn with_usage(mut self, usage: TextureUsageRequest) -> Self {
         self.usage_override = Some(usage);
@@ -191,9 +279,18 @@ impl<'a> Texture2DBuilder<'a> {
     /// error from [`prepare`](Self::prepare) instead of silently creating a fixed-format image.
     /// An omitted request inherits the context setting, then defaults to `false`.
     ///
+    /// # Arguments
+    ///
+    /// - `enabled` controls whether the image allows compatible alternative view formats.
+    ///
     /// # Errors
+    ///
     /// `prepare` returns `InvalidState` when the requested image configuration is unsupported, or
     /// `VulkanValidationFailed` when the device capability query fails.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn with_mutable_format_views(mut self, enabled: bool) -> Self {
         self.mutable_format_views = Some(enabled);
@@ -202,12 +299,20 @@ impl<'a> Texture2DBuilder<'a> {
 
     /// Returns whether mutable-format views were explicitly enabled on this builder.
     /// Use `mutable_format_views_override` to distinguish unset from explicit `false`.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn mutable_format_views_requested(&self) -> bool {
         matches!(self.mutable_format_views, Some(true))
     }
 
     /// Returns the exact local mutable-format setting, if supplied.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn mutable_format_views_override(&self) -> Option<bool> {
         self.mutable_format_views
@@ -216,6 +321,15 @@ impl<'a> Texture2DBuilder<'a> {
     /// Selects how the final texture owner retires its image resources.
     ///
     /// `Wait` is the default. `DeferToContext` requires explicit collection or context shutdown.
+    ///
+    /// # Arguments
+    ///
+    /// - `policy` selects whether the final owner waits for an outstanding upload or defers
+    ///   retirement to the context.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn retirement_policy(mut self, policy: TextureRetirementPolicy) -> Self {
         self.retirement_policy = policy;
@@ -228,7 +342,16 @@ impl<'a> Texture2DBuilder<'a> {
     /// into an owned staging buffer before this method returns.
     ///
     /// # Errors
-    /// Returns a source, descriptor, image, staging-buffer, image-view, or command-buffer error.
+    ///
+    /// Propagates source errors such as `TextureSourceReadFailed`, `TextureDecodeFailed`,
+    /// and `TextureCpuAllocationFailed`. Returns `InvalidState` for incompatible declarations
+    /// or usage. Image and staging allocation can return `VulkanImageCreationFailed`,
+    /// `VulkanImageViewCreationFailed`, or `VulkanMemoryAllocationFailed`. Recording the copy
+    /// can return `VulkanCommandBufferCreationFailed` or `VulkanValidationFailed`.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     pub fn prepare(self) -> VMNLResult<PreparedTexture2D> {
         let mutable_format_views = self
             .mutable_format_views
@@ -337,7 +460,13 @@ impl<'a> Texture2DBuilder<'a> {
     /// [`PreparedTexture2D::submit`] to choose the submission point explicitly.
     ///
     /// # Errors
-    /// Returns the same errors as [`prepare`](Self::prepare) or an upload-submission error.
+    ///
+    /// Propagates errors from [`prepare`](Self::prepare) or returns `TextureUploadFailed` if
+    /// executing or submitting the upload fails.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     pub fn build(self) -> VMNLResult<Texture2D> {
         self.prepare()?.submit()
     }
@@ -382,6 +511,33 @@ pub enum TextureRetirementPolicy {
 /// visible in application code. Images use optimal tiling, one mip level, and device-preferred
 /// memory with Vulkano's compatible fallback. The uploaded image remains in `General` layout for
 /// the initial resource contract.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use vmnl_graphics::Context;
+/// use vmnl_graphics::texture::{PixelSource, Texture2D, TextureFormat};
+///
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// let context = Context::new()?;
+/// let bytes = [255, 255, 255, 255];
+/// let pixels = PixelSource::new(1, 1, TextureFormat::Rgba8Unorm, &bytes)?;
+/// let texture = Texture2D::from_pixels(&context, pixels).build()?;
+/// assert_eq!(texture.extent(), [1, 1]);
+/// assert!(texture.is_sampleable());
+/// assert!(texture.supports_view_format(texture.format()));
+/// assert!(texture.shares_storage_with(&texture.clone()));
+/// let _metadata = (texture.encoding(), texture.alpha_mode(), texture.usage());
+/// let _mutable_views = texture.mutable_format_views_enabled();
+/// let _view = texture.view();
+/// let _ = texture.initial_upload().wait(None)?;
+///
+/// let png = std::fs::read("sprite.png")?;
+/// let _encoded = Texture2D::from_png(&context, &png);
+/// let _path = Texture2D::from_file(&context, "sprite.png");
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Clone)]
 pub struct Texture2D {
     storage: Rc<TextureStorage>,
@@ -433,60 +589,116 @@ fn retire_texture_upload(
 
 impl Texture2D {
     /// Creates a builder from a borrowed RGBA8 pixel descriptor.
+    ///
+    /// # Arguments
+    ///
+    /// - `context` supplies the device and allocator used when the texture is built.
+    /// - `source` supplies dimensions, encoding, layout, and borrowed bytes, typically via
+    ///   `PixelSource::new`.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn from_pixels<'a>(context: &Context, source: PixelSource<'a>) -> Texture2DBuilder<'a> {
         Texture2DBuilder::from_pixels(context, source)
     }
 
     /// Creates a builder from borrowed encoded PNG bytes.
+    ///
+    /// # Arguments
+    ///
+    /// - `context` supplies the device and allocator used when the texture is built.
+    /// - `bytes` contains the borrowed encoded PNG, for example from `include_bytes!`.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn from_png<'a>(context: &Context, bytes: &'a [u8]) -> Texture2DBuilder<'a> {
         Texture2DBuilder::from_png(context, bytes)
     }
 
     /// Creates a builder from an owned PNG path.
+    ///
+    /// # Arguments
+    ///
+    /// - `context` supplies the device and allocator used when the texture is built.
+    /// - `path` identifies the PNG file to read when preparing the texture.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn from_file(context: &Context, path: impl Into<PathBuf>) -> Texture2DBuilder<'static> {
         Texture2DBuilder::from_file(context, path)
     }
 
     /// Returns the image extent in pixels.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn extent(&self) -> [u32; 2] {
         self.storage.extent
     }
 
     /// Returns the texture's RGBA8 format.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn format(&self) -> TextureFormat {
         self.storage.format
     }
 
     /// Returns the declared channel encoding; pixel values are not converted.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn encoding(&self) -> ColorEncoding {
         self.storage.encoding
     }
 
     /// Returns the declared alpha representation; pixel values are not converted.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn alpha_mode(&self) -> AlphaMode {
         self.storage.alpha_mode
     }
 
     /// Returns the exact image-usage set used by the Vulkan image.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn usage(&self) -> TextureUsage {
         self.storage.usage
     }
 
     /// Returns whether the exact image usage includes shader sampling.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn is_sampleable(&self) -> bool {
         self.storage.usage.contains(TextureUsage::SAMPLED)
     }
 
     /// Returns whether image creation enabled compatible mutable-format views.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn mutable_format_views_enabled(&self) -> bool {
         self.storage.mutable_format_views
@@ -496,6 +708,14 @@ impl Texture2D {
     ///
     /// The base format is always supported. The current RGBA8 surface additionally supports its
     /// UNORM/sRGB counterpart when [`Texture2DBuilder::with_mutable_format_views`] was requested.
+    ///
+    /// # Arguments
+    ///
+    /// - `format` supplies the format that would be requested on the view builder.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn supports_view_format(&self, format: TextureFormat) -> bool {
         format == self.storage.format
@@ -504,6 +724,10 @@ impl Texture2D {
     }
 
     /// Returns a handle to the default full-range view of the same image storage.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn view(&self) -> TextureView2D {
         TextureView2D {
@@ -523,6 +747,10 @@ impl Texture2D {
     }
 
     /// Returns a reusable handle to the initial upload's completion state.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn initial_upload(&self) -> UploadTicket {
         UploadTicket {
@@ -538,6 +766,14 @@ impl Texture2D {
     }
 
     /// Returns whether this texture and another handle share the same image allocation.
+    ///
+    /// # Arguments
+    ///
+    /// - `other` identifies the texture handle whose image allocation is compared to this one's.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn shares_storage_with(&self, other: &Self) -> bool {
         Rc::ptr_eq(&self.storage, &other.storage)
@@ -553,6 +789,44 @@ impl Texture2D {
 }
 
 /// A view that retains the texture storage it refers to.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use vmnl_graphics::{Context, texture::{AlphaMode, ColorEncoding, PixelSource, Sampler,
+///     SamplerConfig, Texture2D, TextureComponentMapping, TextureFormat, TextureView2D,
+///     TextureViewInterpretation}};
+///
+/// # fn main() -> vmnl_graphics::VMNLResult<()> {
+/// let context = Context::new()?;
+/// let pixels = [255, 0, 0, 255];
+/// let format = TextureFormat::Rgba8Unorm;
+/// let source = PixelSource::new(1, 1, format, &pixels)?;
+/// let texture = Texture2D::from_pixels(&context, source).build()?;
+/// let mapping = TextureComponentMapping::identity();
+/// let interpretation = TextureViewInterpretation::new(ColorEncoding::Linear, AlphaMode::Straight);
+/// let view = TextureView2D::builder(&texture)
+///     .format(format)
+///     .component_mapping(mapping)
+///     .interpretation(interpretation)
+///     .build()?;
+/// let inherited = TextureView2D::builder(&texture).use_default_interpretation().build()?;
+/// assert!(inherited.uses_default_interpretation());
+/// assert!(view.shares_storage_with(&texture));
+/// assert_eq!(view.texture().extent(), view.extent());
+/// assert_eq!(view.requested_format(), Some(format));
+/// assert_eq!(view.effective_format(), view.format());
+/// assert_eq!(view.requested_component_mapping(), Some(mapping));
+/// assert_eq!(view.effective_component_mapping(), mapping);
+/// assert_eq!(view.requested_interpretation(), Some(interpretation));
+/// assert_eq!(view.sampled_interpretation(), Some(interpretation));
+///
+/// let sampler = Sampler::builder(&context).config(SamplerConfig::nearest()).build()?;
+/// let _requested = sampler.config();
+/// view.validate_sampler(&sampler)?;
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Clone)]
 pub struct TextureView2D {
     texture: Texture2D,
@@ -601,6 +875,20 @@ impl TextureComponent {
 ///
 /// The identity mapping is the default. Mapping changes affect sampled values only; the texture's
 /// stored bytes and source declarations are unchanged.
+///
+/// # Example
+///
+/// ```rust
+/// use vmnl_graphics::texture::{TextureComponent as Channel, TextureComponentMapping};
+///
+/// let mapping = TextureComponentMapping::new(Channel::Blue, Channel::Green, Channel::Red, Channel::One);
+/// assert_eq!(mapping.red(), Channel::Blue);
+/// assert_eq!(mapping.green(), Channel::Green);
+/// assert_eq!(mapping.blue(), Channel::Red);
+/// assert_eq!(mapping.alpha(), Channel::One);
+/// assert!(TextureComponentMapping::identity().is_identity());
+/// assert!(!mapping.is_identity());
+/// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct TextureComponentMapping {
     red: TextureComponent,
@@ -611,6 +899,17 @@ pub struct TextureComponentMapping {
 
 impl TextureComponentMapping {
     /// Creates a mapping for the sampled red, green, blue and alpha outputs.
+    ///
+    /// # Arguments
+    ///
+    /// - `red` selects the source component or constant for sampled red.
+    /// - `green` selects the source component or constant for sampled green.
+    /// - `blue` selects the source component or constant for sampled blue.
+    /// - `alpha` selects the source component or constant for sampled alpha.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn new(
         red: TextureComponent,
@@ -627,6 +926,10 @@ impl TextureComponentMapping {
     }
 
     /// Returns the identity mapping, which preserves the stored RGBA channels.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn identity() -> Self {
         Self::new(
@@ -638,30 +941,50 @@ impl TextureComponentMapping {
     }
 
     /// Returns the source selected for sampled red.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn red(self) -> TextureComponent {
         self.red
     }
 
     /// Returns the source selected for sampled green.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn green(self) -> TextureComponent {
         self.green
     }
 
     /// Returns the source selected for sampled blue.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn blue(self) -> TextureComponent {
         self.blue
     }
 
     /// Returns the source selected for sampled alpha.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn alpha(self) -> TextureComponent {
         self.alpha
     }
 
     /// Returns whether this mapping preserves all four channels.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn is_identity(self) -> bool {
         matches!(self.red, TextureComponent::Red)
@@ -681,6 +1004,16 @@ impl TextureComponentMapping {
 }
 
 /// Color and alpha declarations for the RGBA values returned by a texture view.
+///
+/// # Example
+///
+/// ```rust
+/// use vmnl_graphics::texture::{AlphaMode, ColorEncoding, TextureViewInterpretation};
+///
+/// let color = TextureViewInterpretation::new(ColorEncoding::Linear, AlphaMode::Premultiplied);
+/// assert_eq!(color.encoding(), ColorEncoding::Linear);
+/// assert_eq!(color.alpha_mode(), AlphaMode::Premultiplied);
+/// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct TextureViewInterpretation {
     encoding: ColorEncoding,
@@ -689,6 +1022,15 @@ pub struct TextureViewInterpretation {
 
 impl TextureViewInterpretation {
     /// Creates an interpretation declaration without transforming sampled values.
+    ///
+    /// # Arguments
+    ///
+    /// - `encoding` declares the color encoding represented by the sampled RGB values.
+    /// - `alpha_mode` declares how sampled alpha relates to the color components.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn new(encoding: ColorEncoding, alpha_mode: AlphaMode) -> Self {
         Self {
@@ -698,12 +1040,20 @@ impl TextureViewInterpretation {
     }
 
     /// Returns the declared color encoding of sampled RGB values.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn encoding(self) -> ColorEncoding {
         self.encoding
     }
 
     /// Returns the declared alpha representation of sampled values.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn alpha_mode(self) -> AlphaMode {
         self.alpha_mode
@@ -722,6 +1072,14 @@ pub struct TextureView2DBuilder {
 impl TextureView2DBuilder {
     /// Requests an exact view format. The image must have enabled mutable-format views if this
     /// differs from its storage format.
+    ///
+    /// # Arguments
+    ///
+    /// - `format` supplies the exact sample format to apply to the existing image.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`TextureView2D`].
     #[must_use]
     pub const fn format(mut self, format: TextureFormat) -> Self {
         self.format = Some(format);
@@ -730,6 +1088,15 @@ impl TextureView2DBuilder {
 
     /// Requests an exact sampled-component mapping. Omit it to inherit the context setting
     /// or use identity if the context has none.
+    ///
+    /// # Arguments
+    ///
+    /// - `mapping` supplies the four component selectors, for example from
+    ///   `TextureComponentMapping::new`.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`TextureView2D`].
     #[must_use]
     pub const fn component_mapping(mut self, mapping: TextureComponentMapping) -> Self {
         self.component_mapping = Some(mapping);
@@ -741,6 +1108,15 @@ impl TextureView2DBuilder {
     /// This overrides a context declaration. With no declaration, only an identity view in
     /// the storage format inherits the texture declarations. Raw shaders may also sample views
     /// whose interpretation is unspecified.
+    ///
+    /// # Arguments
+    ///
+    /// - `interpretation` supplies the encoding and alpha declaration without converting sampled
+    ///   values.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`TextureView2D`].
     #[must_use]
     pub const fn interpretation(mut self, interpretation: TextureViewInterpretation) -> Self {
         self.interpretation = Some(interpretation);
@@ -750,6 +1126,10 @@ impl TextureView2DBuilder {
 
     /// Bypasses the context interpretation and uses the standard texture-derived rule.
     /// A changed format or a non-identity view then has unspecified interpretation.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`TextureView2D`].
     #[must_use]
     pub const fn use_default_interpretation(mut self) -> Self {
         self.interpretation = None;
@@ -763,10 +1143,15 @@ impl TextureView2DBuilder {
     /// mapping or format creates one additional Vulkan image-view object and no image allocation.
     ///
     /// # Errors
+    ///
     /// Returns `InvalidState` when the format, format features, image-creation request, or enabled
     /// portability-subset features do not support this view; `VulkanValidationFailed` when a
     /// device format-property query fails; or `VulkanImageViewCreationFailed` when Vulkan rejects
     /// view creation.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`TextureView2D`].
     pub fn build(self) -> VMNLResult<TextureView2D> {
         let defaults = self.texture.storage.context.texture_defaults();
         let effective_format = self
@@ -823,6 +1208,14 @@ impl TextureView2DBuilder {
 
 impl TextureView2D {
     /// Starts a builder for another view of `texture`'s existing image storage.
+    ///
+    /// # Arguments
+    ///
+    /// - `texture` supplies the existing image allocation and the context used to create the view.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn builder(texture: &Texture2D) -> TextureView2DBuilder {
         TextureView2DBuilder {
@@ -835,60 +1228,104 @@ impl TextureView2D {
     }
 
     /// Returns the texture that owns this view's image storage.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn texture(&self) -> &Texture2D {
         &self.texture
     }
 
     /// Returns whether this view refers to the supplied texture allocation.
+    ///
+    /// # Arguments
+    ///
+    /// - `texture` identifies the texture whose image allocation is compared with this view's.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn shares_storage_with(&self, texture: &Texture2D) -> bool {
         self.texture.shares_storage_with(texture)
     }
 
     /// Returns the view's image extent in pixels.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn extent(&self) -> [u32; 2] {
         self.texture.extent()
     }
 
     /// Returns the view's format.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn format(&self) -> TextureFormat {
         self.effective_format
     }
 
     /// Returns the local view-format request, or `None` when the format was inherited.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn requested_format(&self) -> Option<TextureFormat> {
         self.requested_format
     }
 
     /// Returns the view format selected by a successful build.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn effective_format(&self) -> TextureFormat {
         self.effective_format
     }
 
     /// Returns the local component-mapping request, or `None` when the mapping was inherited.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn requested_component_mapping(&self) -> Option<TextureComponentMapping> {
         self.requested_component_mapping
     }
 
     /// Returns the component mapping applied to sampled values.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn effective_component_mapping(&self) -> TextureComponentMapping {
         self.effective_component_mapping
     }
 
     /// Returns the explicit sampled interpretation request, if supplied.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn requested_interpretation(&self) -> Option<TextureViewInterpretation> {
         self.requested_interpretation
     }
 
     /// Returns whether this view bypasses context interpretation.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn uses_default_interpretation(&self) -> bool {
         self.use_default_interpretation
@@ -899,6 +1336,10 @@ impl TextureView2D {
     /// Explicit views check their local request, then the context declaration when enabled.
     /// Without a declaration, only identity views in the storage format inherit the texture's
     /// declarations.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn sampled_interpretation(&self) -> Option<TextureViewInterpretation> {
         self.sampled_interpretation
@@ -911,8 +1352,18 @@ impl TextureView2D {
     /// inspect shader instructions; raw
     /// [`ResourcesBuilder`](crate::raw::ResourcesBuilder) checks those when resources are built.
     ///
+    /// # Arguments
+    ///
+    /// - `sampler` supplies the sampler that will be paired with this view, built on the same
+    ///   context.
+    ///
     /// # Errors
+    ///
     /// Returns `InvalidState` when the view and sampler are incompatible.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     pub fn validate_sampler(&self, sampler: &Sampler) -> VMNLResult<()> {
         validate_sampled_image_sampler(
             &self.inner,
@@ -949,6 +1400,9 @@ impl TextureView2D {
     }
 }
 
+/// Checks that image and sampler can be bound together on the same Vulkan device.
+///
+/// Call before constructing descriptor sets for the pair.
 pub(crate) fn validate_sampled_image_sampler(
     image_view: &ImageView,
     image_device: &Arc<Device>,
@@ -1165,12 +1619,20 @@ pub struct PreparedTexture2D {
 
 impl PreparedTexture2D {
     /// Returns the prepared image extent in pixels.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Texture2DBuilder`].
     #[must_use]
     pub const fn extent(&self) -> [u32; 2] {
         self.extent
     }
 
     /// Returns whether the prepared image creation enabled compatible mutable-format views.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Texture2DBuilder`].
     #[must_use]
     pub const fn mutable_format_views_enabled(&self) -> bool {
         self.mutable_format_views
@@ -1182,7 +1644,12 @@ impl PreparedTexture2D {
     /// waits for this upload to complete.
     ///
     /// # Errors
+    ///
     /// Returns `TextureUploadFailed` if command execution or queue submission fails.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Texture2DBuilder`].
     pub fn submit(self) -> VMNLResult<Texture2D> {
         let future = Arc::new(
             now(self.context.inner.device.clone())
@@ -1287,7 +1754,13 @@ impl UploadTicket {
     /// Returns whether the upload has completed; querying never blocks.
     ///
     /// # Errors
-    /// Returns the persistent upload failure if the fence or completion operation failed.
+    ///
+    /// Returns `TextureUploadFailed` if checking or finalizing the upload fails. Once recorded,
+    /// the failure is reported by subsequent queries and waits.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Texture2DBuilder`].
     pub fn is_complete(&self) -> VMNLResult<bool> {
         self.poll()
     }
@@ -1297,8 +1770,19 @@ impl UploadTicket {
     /// Finite timeouts poll the fence and never call Vulkano's state-consuming timed wait.
     /// Repeated waits and cloned tickets observe the same result. `None` waits without a deadline.
     ///
+    /// # Arguments
+    ///
+    /// - `timeout` supplies the maximum wait duration, or `None` for an indefinite wait. Zero checks
+    ///   the current state once.
+    ///
     /// # Errors
-    /// Returns the persistent upload failure if fence polling or finalization failed.
+    ///
+    /// Returns `TextureUploadFailed` if fence polling or finalization fails. Subsequent queries
+    /// and waits report the recorded failure. A timeout returns `Ok(UploadWaitOutcome::TimedOut)`.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Texture2DBuilder`].
     pub fn wait(&self, timeout: Option<Duration>) -> VMNLResult<UploadWaitOutcome> {
         let started = Instant::now();
         loop {
@@ -1392,6 +1876,14 @@ pub struct Sampler {
 
 impl Sampler {
     /// Creates a sampler builder using the default linear configuration.
+    ///
+    /// # Arguments
+    ///
+    /// - `context` supplies the device and its sampling limits.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`TextureView2D`].
     #[must_use]
     pub fn builder(context: &Context) -> SamplerBuilder {
         SamplerBuilder {
@@ -1401,6 +1893,10 @@ impl Sampler {
     }
 
     /// Returns the exact configuration used to create this sampler.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`TextureView2D`].
     #[must_use]
     pub const fn config(&self) -> SamplerConfig {
         self.config
@@ -1439,6 +1935,10 @@ impl TextureRetirementRegistry {
         self.resources.borrow_mut().push(texture);
     }
 
+    /// Releases finished or failed deferred uploads and retains pending entries.
+    ///
+    /// Reports the first upload failure after visiting all entries. Completed and failed
+    /// entries have already been removed when the function returns an error.
     pub(crate) fn collect(&self) -> VMNLResult<usize> {
         let mut resources = self.resources.borrow_mut();
         let mut collected = 0;
@@ -1471,6 +1971,7 @@ impl TextureRetirementRegistry {
         Ok(collected)
     }
 
+    /// Retires the context's remaining texture uploads at shutdown.
     pub(crate) fn drain(&mut self) {
         for texture in self.resources.get_mut().drain(..) {
             let ticket = UploadTicket {
@@ -1489,6 +1990,15 @@ pub struct SamplerBuilder {
 
 impl SamplerBuilder {
     /// Replaces the sampler configuration.
+    ///
+    /// # Arguments
+    ///
+    /// - `config` supplies the requested filtering, addressing, and coordinate policies, typically
+    ///   from a `SamplerConfig` preset.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`TextureView2D`].
     #[must_use]
     pub const fn config(mut self, config: SamplerConfig) -> Self {
         self.config = config;
@@ -1501,7 +2011,12 @@ impl SamplerBuilder {
     /// unavailable. No sampler cache is used.
     ///
     /// # Errors
+    ///
     /// Returns `InvalidState`, `DeviceFeatureNotEnabled`, or a Vulkan sampler creation error.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`TextureView2D`].
     pub fn build(self) -> VMNLResult<Sampler> {
         self.config.validate()?;
         let device = &self.context.inner.device;

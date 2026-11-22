@@ -21,11 +21,10 @@ impl VMNLInstance {
     /// Assigns a priority value to a physical device type for selection purposes.
     /// Discrete GPUs are given the highest priority, followed by integrated GPUs, virtual GPUs, and CPUs.
     ///
+    /// Returns a `u32` priority value, where higher values indicate a more preferred device type.
+    ///
     /// # Arguments
     /// - `device_type`: The type of the physical device (e.g. `DiscreteGpu`, `IntegratedGpu`, etc.).
-    ///
-    /// # Returns
-    /// A `u32` priority value, where higher values indicate a more preferred device type.
     #[inline]
     #[must_use = "physical device priority is used for device selection and should be stable"]
     pub(super) const fn physical_device_priority(device_type: PhysicalDeviceType) -> u32 {
@@ -38,15 +37,14 @@ impl VMNLInstance {
         }
     }
 
-    /// Select a suitable physical device based on required extensions, graphics support and features.
+    /// Selects a suitable physical device based on required extensions, graphics support and features.
+    ///
+    /// Returns an `Arc<PhysicalDevice>` pointing to the selected physical device.
     ///
     /// # Arguments
     /// - `instance`: Reference to the Vulkan instance used to enumerate physical devices.
     /// - `required_extensions`: Device extensions that the selected physical device must support.
     /// - `device_config`: Features that must be supported together before device ranking.
-    ///
-    /// # Returns
-    /// An `Arc<PhysicalDevice>` pointing to the selected physical device.
     ///
     /// # Source
     /// <https://vulkano.rs/02-initialization/01-initialization.html#enumerating-physical-devices>
@@ -81,6 +79,9 @@ impl VMNLInstance {
         )
     }
 
+    /// Ranks candidates that satisfy the complete requested feature set.
+    ///
+    /// The caller supplies feature inspection and device ranking for the candidate type.
     pub(super) fn select_device_for_requirements<T>(
         candidates: impl IntoIterator<Item = T>,
         device_config: &DeviceConfig,

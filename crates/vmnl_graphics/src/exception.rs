@@ -21,6 +21,7 @@ impl VMNLErrorLocation {
     /// Returns the file in which the error occurred.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::{VMNLError, VMNLErrorKind};
     ///
@@ -37,6 +38,7 @@ impl VMNLErrorLocation {
     /// Returns the line number where the error occurred.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::{VMNLError, VMNLErrorKind};
     ///
@@ -53,6 +55,7 @@ impl VMNLErrorLocation {
     /// Returns the column number where the error occurred.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::{VMNLError, VMNLErrorKind};
     ///
@@ -226,15 +229,16 @@ pub struct VMNLError {
 }
 
 impl VMNLError {
-    /// Create a new `VMNLError` with the specified error kind and caller location.
+    /// Creates a new `VMNLError` with the specified error kind and caller location.
+    ///
+    /// Returns a new `VMNLError` containing the provided error kind and caller location.
     ///
     /// # Arguments
+    ///
     /// - `kind`: The specific kind of error that occurred.
     ///
-    /// # Returns
-    /// A new `VMNLError` containing the provided error kind and caller location.
-    ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::{VMNLError, VMNLErrorKind};
     ///
@@ -259,6 +263,7 @@ impl VMNLError {
     /// Returns the kind of error that occurred.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::{VMNLError, VMNLErrorKind};
     ///
@@ -274,6 +279,7 @@ impl VMNLError {
     /// Returns the location in the source code where the error occurred.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::{VMNLError, VMNLErrorKind};
     ///
@@ -287,12 +293,12 @@ impl VMNLError {
         self.caller
     }
 
-    /// Format the error message along with location information for reporting.
+    /// Formats the error message along with location information for reporting.
     ///
-    /// # Returns
-    /// A formatted string containing the error message and its location in the source code.
+    /// Returns a formatted string containing the error message and its location in the source code.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::{VMNLError, VMNLErrorKind};
     ///

@@ -14,6 +14,14 @@ use crate::{
     Context, VMNLResult,
 };
 
+/// Validates indexed triangle geometry and returns Vulkan draw counts.
+///
+/// Checks triangle structure, index bounds, and counts before checking vertex positions. Call before
+/// allocating either GPU buffer.
+///
+/// # Errors
+///
+/// Returns `InvalidState` for structurally invalid geometry or non-finite positions.
 pub(super) fn preflight_indexed_geometry(
     vertices: &[Vertex2D],
     indices: &[u32],
@@ -54,14 +62,16 @@ impl IndexedShapeBuilder {
         }
     }
 
-    /// Set the preferred memory placement for the created vertex and index buffers.
+    /// Sets the preferred memory placement for the created vertex and index buffers.
     ///
     /// This is a preference, not a guarantee. Defaults to `BufferMemoryPreference::Device`.
     ///
     /// # Arguments
+    ///
     /// - `preference`: Preferred GPU buffer memory placement.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::common::{BufferMemoryPreference, Rgba};
@@ -85,12 +95,18 @@ impl IndexedShapeBuilder {
         self
     }
 
-    /// Build the indexed shape from the vertices and indices required by `Shape::indexed`.
+    /// Validates the triangle list and creates its GPU buffers.
+    ///
+    /// Consumes the builder. Repeated indices, unused finite vertices, duplicate positions,
+    /// either winding order, and zero-area triangles are valid.
     ///
     /// # Arguments
-    /// - `vmnl_context`: Graphics context used to allocate GPU buffers.
+    ///
+    /// - `vmnl_context` supplies the device and allocator. Pass the context used to create the
+    ///   window that will render the shape, or start with [`Context::new`].
     ///
     /// # Errors
+    ///
     /// Returns [`crate::VMNLErrorKind::InvalidState`] when the geometry has fewer than three
     /// vertices, has no indices or a non-triangle-aligned index count, contains an
     /// out-of-bounds index, has counts that do not fit the draw-count type, or contains a
@@ -98,16 +114,17 @@ impl IndexedShapeBuilder {
     /// position errors; NaN positions are reported before infinities, including in unused
     /// vertices. All validation completes before either GPU buffer is allocated.
     ///
-    /// Repeated indices, unused finite vertices, duplicate positions, either winding, and
-    /// zero-area/degenerate triangles are valid for this explicit indexed triangle-list API.
+    /// Returns `VulkanVertexBufferCreationFailed` or `VulkanIndexBufferCreationFailed` if
+    /// creating the corresponding buffer fails.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::common::Rgba;
     /// # use vmnl_graphics::d2::{Shape, Vector2f, Vertex2D};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
-    /// # let context = Context::new()?;
+    /// let context = Context::new()?;
     /// let vertices = [
     ///     Vertex2D { position: Vector2f { x: 100.0, y: 100.0 }, color: Rgba::new(255, 0, 0, 255) },
     ///     Vertex2D { position: Vector2f { x: 300.0, y: 100.0 }, color: Rgba::new(0, 255, 0, 255) },
@@ -129,15 +146,9 @@ impl IndexedShapeBuilder {
         )
     }
 
-    /// Create a `Shape` instance with indexed vertices.
+    /// Builds explicit indexed geometry with the indexed geometry shape kind.
     ///
-    /// # Arguments
-    /// - `vmnl_context`: Reference to the VMNL context providing the memory allocator.
-    /// - `vertices`: Slice of `Vertex2D` instances.
-    /// - `indices`: Slice of `u32` indices for indexed rendering.
-    ///
-    /// # Returns
-    /// A `Shape` instance containing created vertex and index buffers ready for rendering.
+    /// Propagates the shared preflight and buffer creation errors.
     pub(crate) fn indexed_shape(
         vmnl_context: &Context,
         vertices: &[Vertex2D],
@@ -154,6 +165,14 @@ impl IndexedShapeBuilder {
         )
     }
 
+    /// Builds indexed GPU geometry and associates it with the caller's shape kind.
+    ///
+    /// Runs the shared preflight before allocating either buffer. The caller establishes any
+    /// shape-specific invariants first.
+    ///
+    /// # Errors
+    ///
+    /// Propagates preflight and vertex/index buffer creation errors.
     pub(super) fn indexed_shape_with_kind(
         vmnl_context: &Context,
         vertices: &[Vertex2D],
@@ -238,6 +257,7 @@ mod tests {
 
     #[test]
     fn preflight_indexed_geometry_rejects_a_non_finite_unused_vertex() {
+        // Keep the invalid vertex out of the index list to exercise full-buffer validation.
         let vertices = [
             vertex(0.0, 0.0),
             vertex(1.0, 0.0),

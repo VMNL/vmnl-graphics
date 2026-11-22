@@ -554,6 +554,7 @@ def command_surface() -> Surface:
 
 
 def update(surface: Surface) -> None:
+    # Validate all inputs before rewriting the generated snapshot and indexes.
     rows = parse_matrix()
     validate_public_reexports(surface)
     validate_matrix_files(rows)
@@ -563,6 +564,7 @@ def update(surface: Surface) -> None:
 
 
 def check(surface: Surface) -> None:
+    # Compare against the tracked inventories and inspect anchors in the built Rustdoc.
     rows = parse_matrix()
     validate_public_reexports(surface)
     validate_matrix_files(rows)

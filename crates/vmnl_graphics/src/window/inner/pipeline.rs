@@ -42,15 +42,14 @@ impl VMNLWindow {
 
     /// Load a shader from GLSL source code, compile it, and create a Vulkan shader module.
     ///
+    /// Returns an `Arc<ShaderModule>` representing the compiled shader module, or an error if compilation or creation fails.
+    ///
     /// # Arguments
     /// - `device`: Vulkan logical device used to create the shader module.
     /// - `compiler`: Shader compiler instance for compiling GLSL source code.
     /// - `source`: GLSL source code of the shader.
     /// - `kind`: The kind of shader (vertex, fragment, etc.) to compile.
     /// - `input_file_name`: Name used by the shader compiler for diagnostics.
-    ///
-    /// # Returns
-    /// An `Arc<ShaderModule>` representing the compiled shader module, or an error if compilation or creation fails.
     fn load_shader_from_src(
         device: &Arc<Device>,
         compiler: &shaderc::Compiler,
@@ -75,14 +74,13 @@ impl VMNLWindow {
 
     /// Load a shader from a file path, compile it, and create a Vulkan shader module.
     ///
+    /// Returns an `Arc<ShaderModule>` representing the compiled shader module, or an error if compilation or creation fails.
+    ///
     /// # Arguments
     /// - `device`: Vulkan logical device used to create the shader module.
     /// - `compiler`: Shader compiler instance for compiling GLSL source code.
     /// - `path`: File path to the shader source code.
     /// - `kind`: The kind of shader (vertex, fragment, etc.) to compile.
-    ///
-    /// # Returns
-    /// An `Arc<ShaderModule>` representing the compiled shader module, or an error if compilation or creation fails.
     fn load_shader_from_path(
         device: &Arc<Device>,
         compiler: &shaderc::Compiler,
@@ -97,15 +95,14 @@ impl VMNLWindow {
         Self::load_shader_from_src(device, compiler, &source, kind, &input_file_name)
     }
 
-    /// Create and configure a Vulkan graphics pipeline.
+    /// Creates and configure a Vulkan graphics pipeline.
+    ///
+    /// Returns an `Arc<GraphicsPipeline>` representing the created graphics pipeline.
     ///
     /// # Arguments
     /// - `device`: Logical Vulkan device.
     /// - `swapchain`: Swapchain to determine image extent.
     /// - `render_pass`: Render pass the pipeline must be compatible with.
-    ///
-    /// # Returns
-    /// An `Arc<GraphicsPipeline>` representing the created graphics pipeline.
     ///
     /// # Sources
     /// <https://registry.khronos.org/vulkan/specs/1.3-extensions/html/chap9.html>

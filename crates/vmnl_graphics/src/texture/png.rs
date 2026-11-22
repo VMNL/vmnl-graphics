@@ -13,6 +13,23 @@ use crate::{VMNLError, VMNLErrorKind, VMNLResult};
 const PNG_DECODER_LIMIT_BYTES: usize = 64 * 1024 * 1024;
 
 /// Optional declarations for decoding a static PNG.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use vmnl_graphics::texture::{AlphaMode, ColorEncoding, PngDecodeOptions};
+///
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// let bytes = std::fs::read("sprite.png")?;
+/// let options = PngDecodeOptions::default()
+///     .with_encoding(ColorEncoding::Srgb)
+///     .with_alpha_mode(AlphaMode::Straight);
+/// assert_eq!(options.encoding(), Some(ColorEncoding::Srgb));
+/// assert_eq!(options.alpha_mode(), Some(AlphaMode::Straight));
+/// let pixels = options.decode_png(&bytes)?;
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct PngDecodeOptions {
     color_encoding: Option<ColorEncoding>,
@@ -21,6 +38,15 @@ pub struct PngDecodeOptions {
 
 impl PngDecodeOptions {
     /// Overrides the default encoding only for an untagged PNG.
+    ///
+    /// # Arguments
+    ///
+    /// - `encoding` supplies the color encoding to assume when the PNG carries no encoding
+    ///   declaration.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn with_encoding(mut self, encoding: ColorEncoding) -> Self {
         self.color_encoding = Some(encoding);
@@ -28,6 +54,14 @@ impl PngDecodeOptions {
     }
 
     /// Declares the expected alpha representation.
+    ///
+    /// # Arguments
+    ///
+    /// - `alpha_mode` declares how alpha is represented in the decoded pixels.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn with_alpha_mode(mut self, alpha_mode: AlphaMode) -> Self {
         self.alpha_mode = Some(alpha_mode);
@@ -35,12 +69,20 @@ impl PngDecodeOptions {
     }
 
     /// Returns the optional encoding declaration.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn encoding(self) -> Option<ColorEncoding> {
         self.color_encoding
     }
 
     /// Returns the optional alpha declaration.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn alpha_mode(self) -> Option<AlphaMode> {
         self.alpha_mode
@@ -61,11 +103,19 @@ impl PngDecodeOptions {
     /// APNG and 16-bit samples are rejected. The decoder's internal working memory
     /// limit is 64 MiB; the returned RGBA8 allocation is checked separately.
     ///
+    /// # Arguments
+    ///
+    /// - `bytes` supplies a complete encoded PNG, for example from a file or `include_bytes!`.
+    ///
     /// # Errors
     ///
     /// Returns [`VMNLErrorKind::TextureDecodeFailed`] for malformed PNG data or
     /// [`VMNLErrorKind::UnsupportedTextureSource`] for unsupported source features.
     /// Conflicting explicit declarations return [`VMNLErrorKind::InvalidState`].
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     pub fn decode_png(self, bytes: &[u8]) -> VMNLResult<PreparedPixelData> {
         decode_png_impl(bytes, self)
     }

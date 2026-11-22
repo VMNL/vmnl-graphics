@@ -15,6 +15,28 @@ use crate::{Context, VMNLError, VMNLErrorKind, VMNLResult};
 /// between non-adjacent edges. Holes and multiple contours are unsupported.
 /// Non-finite coordinates, consecutive collinear boundary points, and zero or
 /// non-finite signed area are rejected when building.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use vmnl_graphics::{Context, common::{BufferMemoryPreference, Rgba}};
+/// use vmnl_graphics::d2::{Shape, Vector2f};
+///
+/// # fn main() -> vmnl_graphics::VMNLResult<()> {
+/// let context = Context::new()?;
+/// let points = [
+///     Vector2f { x: 10.0, y: 10.0 },
+///     Vector2f { x: 50.0, y: 10.0 },
+///     Vector2f { x: 40.0, y: 35.0 },
+/// ];
+/// let _uniform = Shape::polygon(points).color(Rgba::WHITE).build(&context)?;
+/// let _per_vertex = Shape::polygon(points)
+///     .vertex_colors([Rgba::RED, Rgba::GREEN, Rgba::BLUE])
+///     .buffer_memory_preference(BufferMemoryPreference::Host)
+///     .build(&context)?;
+/// # Ok(())
+/// # }
+/// ```
 pub struct PolygonBuilder {
     vertices: Vec<Vertex2D>,
     vertex_colors: Option<Vec<Rgba>>,
@@ -41,9 +63,17 @@ impl PolygonBuilder {
 
         Self::from_vertices(vertices)
     }
-    /// Set one uniform color for all polygon vertices.
+    /// Sets one uniform color for all polygon vertices.
     ///
     /// Overrides any previous uniform or per-vertex color configuration.
+    ///
+    /// # Arguments
+    ///
+    /// - `color` supplies the uniform fill color as an `Rgba` value or an RGB/RGBA byte array.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn color<C>(mut self, color: C) -> Self
     where
@@ -58,19 +88,35 @@ impl PolygonBuilder {
         self
     }
 
-    /// Set the preferred buffer memory placement.
+    /// Sets the preferred buffer memory placement.
     ///
     /// Defaults to `BufferMemoryPreference::Device`. This is a preference, not a guarantee.
+    ///
+    /// # Arguments
+    ///
+    /// - `preference` selects preferred host or device placement for the vertex and index buffers.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn buffer_memory_preference(mut self, preference: BufferMemoryPreference) -> Self {
         self.buffer_memory_preference = preference;
         self
     }
-    /// Set one color per boundary vertex.
+    /// Sets one color per boundary vertex.
     ///
     /// Overrides previous color configuration.
     /// The color count must match the boundary vertex count;
     /// this is checked when building the shape.
+    ///
+    /// # Arguments
+    ///
+    /// - `colors` supplies one color per boundary position in the original input order.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn vertex_colors<I, C>(mut self, colors: I) -> Self
     where
@@ -457,7 +503,7 @@ impl PolygonBuilder {
 
         Ok(indices)
     }
-    /// Validate and triangulate the polygon, then create its GPU buffers.
+    /// Validates and triangulate the polygon, then create its GPU buffers.
     ///
     /// Consumes the builder. Geometry validation and CPU index generation
     /// finish before GPU buffer creation begins.
@@ -487,13 +533,23 @@ impl PolygonBuilder {
     /// Requires a usable graphics context; displaying the shape additionally requires
     /// a window and display.
     ///
+    /// # Arguments
+    ///
+    /// - `context` supplies the device and allocator. Reuse the context of the window that will
+    ///   render the polygon.
+    ///
     /// # Errors
-    /// Returns an error for invalid geometry, an incorrect vertex-color count,
-    /// unsupported counts, failed temporary-storage reservation, or GPU buffer
-    /// creation failure. Invalid contours and an internal inability to complete
-    /// triangulation return distinct `InvalidState` diagnostics before GPU allocation.
+    ///
+    /// Returns `InvalidState` for invalid geometry, an incorrect vertex-color count,
+    /// unsupported counts, failed temporary storage reservation, or an inability to
+    /// complete triangulation. Returns `VulkanVertexBufferCreationFailed` or
+    /// `VulkanIndexBufferCreationFailed` if the corresponding GPU buffer cannot be created.
     /// Ear removal is bounded by the input vertex count; a scan finding no valid
     /// ear returns an error without uploading partial geometry.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     pub fn build(mut self, context: &Context) -> VMNLResult<Shape> {
         self.apply_vertex_colors()?;
         let indices = self.triangulate()?;

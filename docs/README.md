@@ -15,6 +15,8 @@ Local `README.md` files are only navigation aids for their directory. Public API
 - [Deployment](deployment.md): compatibility, milestones, distribution, manual releases, and
   publication status and prerequisites.
 - [Examples](examples.md): visual example rules and command conventions.
+- [Function Documentation](function_documentation.md): comment formats for public APIs, backend
+  code, tests, examples, and tooling.
 - [Getting Started](getting_started.md): clone, build, test, and run the first visual example.
 - [Platform Support](platform_support.md): validated platforms and local environment scope.
 - [Rust Instructions](RUST.md): rust coding guidelines.

@@ -54,12 +54,20 @@ pub struct RenderTargetInfo {
 
 impl RenderTargetInfo {
     /// Returns the actual color attachment format, including any surface fallback.
+    ///
+    /// # Example
+    ///
+    /// See the example on [`crate::Window::render_target_info`].
     #[must_use]
     pub const fn color_format(self) -> ColorFormat {
         self.color_format
     }
 
     /// Returns samples per pixel. Currently `1`; this does not enable MSAA.
+    ///
+    /// # Example
+    ///
+    /// See the example on [`crate::Window::render_target_info`].
     #[must_use]
     pub const fn sample_count(self) -> u32 {
         self.sample_count
@@ -67,11 +75,16 @@ impl RenderTargetInfo {
 
     /// Returns the depth attachment format, or `None` for a color-only target.
     /// This does not report whether a pipeline enables depth testing or writes.
+    ///
+    /// # Example
+    ///
+    /// See the example on [`crate::Window::render_target_info`].
     #[must_use]
     pub const fn depth_format(self) -> Option<DepthFormat> {
         self.depth_format
     }
 
+    /// Copies the actual attachment formats and sample count from the window render pass.
     pub(crate) fn from_render_pass(render_pass: &RenderPass) -> VMNLResult<Self> {
         Self::from_attachments(render_pass.attachments())
     }

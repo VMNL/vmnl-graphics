@@ -20,7 +20,7 @@ use vulkano::{
 };
 
 impl VMNLInstance {
-    /// Initialize the command buffer allocator for the Vulkan device.
+    /// Initializes the command buffer allocator for the Vulkan device.
     ///
     /// # Arguments
     /// - `device`: Reference-counted pointer to the Vulkan logical device.
@@ -39,7 +39,7 @@ impl VMNLInstance {
         .into()
     }
 
-    /// Initialize the descriptor set allocator for shader resource bindings.
+    /// Initializes the descriptor set allocator for shader resource bindings.
     #[inline]
     #[must_use = "descriptor set allocator is required for binding shader resources"]
     pub(super) fn create_descriptor_set_allocator(
@@ -51,7 +51,7 @@ impl VMNLInstance {
         ))
     }
 
-    /// Initialize the memory allocator for the Vulkan device.
+    /// Initializes the memory allocator for the Vulkan device.
     ///
     /// # Arguments
     /// - `device`: Reference-counted pointer to the Vulkan logical device.

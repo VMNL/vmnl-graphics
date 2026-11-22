@@ -35,16 +35,15 @@ impl VMNLWindow {
         validate_depth_support(properties.map(|p| (p.sample_counts, p.max_extent)), extent)
     }
 
-    /// Create a render pass that describes the overall process of drawing a frame.
+    /// Creates a render pass that describes the overall process of drawing a frame.
     ///
     /// Render passes are divided into one or more subpasses.
+    ///
+    /// Returns a shared handle to the created `RenderPass`.
     ///
     /// # Arguments
     /// - `device`: Vulkan logical device.
     /// - `swapchain`: The swapchain providing the image format.
-    ///
-    /// # Returns
-    /// A shared handle to the created `RenderPass`.
     ///
     /// # Requirements
     /// - A physical device must be selected.
@@ -93,14 +92,13 @@ impl VMNLWindow {
         .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanRenderPassCreationFailed))
     }
 
-    /// Create one framebuffer for each swapchain image.
+    /// Creates one framebuffer for each swapchain image.
+    ///
+    /// Returns a vector of `Arc<Framebuffer>`, typically one per swapchain image.
     ///
     /// # Arguments
     /// - `image_views`: Image views for each swapchain image.
     /// - `render_pass`: Render pass that defines attachment layouts and subpasses.
-    ///
-    /// # Returns
-    /// A vector of `Arc<Framebuffer>`, typically one per swapchain image.
     ///
     /// # Sources
     /// <https://registry.khronos.org/vulkan/specs/1.3-extensions/html/chap8.html>

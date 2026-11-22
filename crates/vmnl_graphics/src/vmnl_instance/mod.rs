@@ -71,11 +71,10 @@ pub(crate) struct VMNLInstance {
 }
 
 impl VMNLInstance {
-    /// Initialize the `VMNLInstance` by creating the Vulkan instance, selecting a physical device,
+    /// Initializes the `VMNLInstance` by creating the Vulkan instance, selecting a physical device,
     /// creating a logical device, and setting up memory and command buffer allocators.
     ///
-    /// # Returns
-    /// A `VMNLResult<Self>` containing the initialized `VMNLInstance` on success.
+    /// Returns a `VMNLResult<Self>` containing the initialized `VMNLInstance` on success.
     ///
     /// # Source
     /// <https://vulkano.rs/02-initialization/01-initialization.html#creating-an-instance>

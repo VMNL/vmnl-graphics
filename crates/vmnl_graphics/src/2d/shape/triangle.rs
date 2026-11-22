@@ -38,14 +38,16 @@ impl TriangleBuilder {
         }
     }
 
-    /// Set one uniform color for all triangle vertices.
+    /// Sets one uniform color for all triangle vertices.
     ///
     /// Overrides any previous uniform or per-vertex color configuration.
     ///
     /// # Arguments
+    ///
     /// - `color`: Color convertible to `Rgba`, applied to all three vertices.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::d2::{Shape, Vector2f};
@@ -71,16 +73,18 @@ impl TriangleBuilder {
         self
     }
 
-    /// Set one color per triangle vertex.
+    /// Sets one color per triangle vertex.
     ///
     /// Overrides any previous uniform or per-vertex color configuration.
     ///
     /// # Arguments
-    /// - `a`: Color for the first vertex.
-    /// - `b`: Color for the second vertex.
-    /// - `c`: Color for the third vertex.
+    ///
+    /// - `color1` supplies the color for the first position passed to `Shape::triangle`.
+    /// - `color2` supplies the color for the second position passed to `Shape::triangle`.
+    /// - `color3` supplies the color for the third position passed to `Shape::triangle`.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::common::Rgba;
@@ -110,14 +114,16 @@ impl TriangleBuilder {
         self
     }
 
-    /// Set the preferred memory placement for the created vertex buffer.
+    /// Sets the preferred memory placement for the created vertex buffer.
     ///
     /// This is a preference, not a guarantee. Defaults to `BufferMemoryPreference::Device`.
     ///
     /// # Arguments
+    ///
     /// - `preference`: Preferred GPU buffer memory placement.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::common::BufferMemoryPreference;
@@ -160,15 +166,16 @@ impl TriangleBuilder {
         ]
     }
 
-    /// Build a triangle shape from the positions and colors configured on this builder.
+    /// Builds a triangle shape from the positions and colors configured on this builder.
+    ///
+    /// Returns a `Shape` instance representing the triangle, ready for rendering.
     ///
     /// # Arguments
+    ///
     /// - `vmnl_context`: Reference to the VMNL context providing the memory allocator.
     ///
-    /// # Returns
-    /// A `Shape` instance representing the triangle, ready for rendering.
-    ///
     /// # Errors
+    ///
     /// Returns [`VMNLErrorKind::InvalidState`] for duplicate positions, non-finite
     /// coordinates, or a zero/non-finite signed double area. Duplicate-position errors
     /// take precedence; otherwise NaN positions are reported before infinities. Area is
@@ -177,6 +184,7 @@ impl TriangleBuilder {
     /// creation/upload failures are propagated.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::common::Rgba;
@@ -228,14 +236,13 @@ impl TriangleBuilder {
         Ok(())
     }
 
-    /// Create a `Shape` instance by transforming the input vertices into a vertex buffer.
+    /// Creates a `Shape` instance by transforming the input vertices into a vertex buffer.
+    ///
+    /// Returns a `Shape` instance with a created vertex buffer ready for rendering.
     ///
     /// # Arguments
     /// - `vmnl_context`: Reference to the VMNL context providing the memory allocator.
     /// - `vertex1`, `vertex2`, `vertex3`: The three vertices defining the geometry.
-    ///
-    /// # Returns
-    /// A `Shape` instance with a created vertex buffer ready for rendering.
     fn triangle(
         vmnl_context: &Context,
         vertex: [Vertex2D; 3],

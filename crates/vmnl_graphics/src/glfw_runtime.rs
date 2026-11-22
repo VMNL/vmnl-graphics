@@ -41,6 +41,10 @@ impl InputRuntimeConfig {
     /// Returns whether GLFW also exposes each joystick hat direction in its button array.
     ///
     /// Hats remain available through GLFW's separate hat API either way.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`InputRuntime`].
     #[inline]
     #[must_use]
     pub const fn hat_buttons(self) -> bool {
@@ -66,6 +70,29 @@ impl Default for InputRuntimeConfig {
 /// for initialization. It is intentionally not `Clone`; each `acquire` returns a distinct handle.
 /// The handle is neither `Send` nor `Sync` and must be acquired and dropped on GLFW's platform
 /// thread.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use vmnl_graphics::{InputRuntime, JoystickId};
+///
+/// # fn main() -> vmnl_graphics::VMNLResult<()> {
+/// // Configure the first acquisition.
+/// let mut runtime = InputRuntime::builder().hat_buttons(false).build()?;
+/// let observer = InputRuntime::acquire()?;
+/// assert!(!observer.configuration().hat_buttons());
+///
+/// runtime.set_joystick_callback(|event, _user_pointer| {
+///     let _connection_change = event.kind();
+/// });
+/// for event in runtime.poll_events() {
+///     let _connection_change = event.into_kind();
+/// }
+/// let _snapshot = runtime.sample_joystick(JoystickId::Joystick1)?;
+/// runtime.unset_joystick_callback();
+/// # Ok(())
+/// # }
+/// ```
 pub struct InputRuntime {
     runtime: Rc<GlfwRuntime>,
     joystick_events: Rc<RefCell<JoystickEventQueue>>,
@@ -80,8 +107,13 @@ impl InputRuntime {
     /// lazy: this call does not create a Vulkan instance or window.
     ///
     /// # Errors
+    ///
     /// Returns `GlfwInitFailed` if GLFW cannot initialize, or `InvalidState` if another thread
     /// currently owns VMNL's active GLFW runtime.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     pub fn acquire() -> VMNLResult<Self> {
         Ok(Self {
             runtime: GlfwRuntime::acquire(None)?,
@@ -92,12 +124,20 @@ impl InputRuntime {
     }
 
     /// Creates a builder for choosing GLFW initialization settings on first acquisition.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn builder() -> InputRuntimeBuilder {
         InputRuntimeBuilder { hat_buttons: None }
     }
 
     /// Returns the settings resolved when the active GLFW runtime was initialized.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[inline]
     #[must_use]
     pub fn configuration(&self) -> InputRuntimeConfig {
@@ -115,9 +155,19 @@ impl InputRuntime {
     /// variable-length raw arrays and device strings. The first joystick query lazily initializes
     /// GLFW's joystick subsystem; its latency is unspecified.
     ///
+    /// # Arguments
+    ///
+    /// - `id` identifies a GLFW slot. Use an ID from an event or construct one with
+    ///   `JoystickId::from_index`.
+    ///
     /// # Errors
-    /// Returns a GLFW operation error if the backend reports one or violates the documented
+    ///
+    /// Returns `GlfwInputOperationFailed` if the backend reports an error or violates the documented
     /// pointer/count contract.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     pub fn sample_joystick(
         &self,
         id: crate::JoystickId,
@@ -139,6 +189,10 @@ impl InputRuntime {
     /// GLFW callback. Panics in the native joystick callback are caught at the C boundary and
     /// resumed after GLFW returns to Rust. Every subscriber still receives the queued event;
     /// further user callbacks are skipped for the remainder of that GLFW call.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn poll_events(&mut self) -> Vec<crate::Event> {
         self.has_polled_joystick_events = true;
@@ -163,6 +217,15 @@ impl InputRuntime {
     ///
     /// A callback may replace or remove itself when another consumer processes events. The
     /// change applies to subsequent notifications; the current invocation completes normally.
+    ///
+    /// # Arguments
+    ///
+    /// - `callback` receives each connection event and its opaque user pointer synchronously during
+    ///   event processing.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     pub fn set_joystick_callback(
         &mut self,
         callback: impl FnMut(&crate::Event, *mut std::ffi::c_void) + 'static,
@@ -176,6 +239,10 @@ impl InputRuntime {
     ///
     /// If called from that callback, the current invocation completes. Native unregistration
     /// waits until GLFW returns to Rust. A handle that has polled retains its event subscription.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     pub fn unset_joystick_callback(&mut self) {
         self.joystick_events.borrow_mut().callback = JoystickCallbackState::Unset;
         if !self.has_polled_joystick_events {
@@ -199,10 +266,28 @@ impl InputRuntime {
     /// existing entry. The mapping database belongs to the shared GLFW runtime; windows sample
     /// the new mapping on their next input poll.
     ///
+    /// # Arguments
+    ///
+    /// - `mappings` supplies text in the SDL game controller database format.
+    ///
     /// # Errors
-    /// Returns an error for non-ASCII or NUL-containing input, a GLFW error callback during
-    /// parsing, or a failed GLFW return value. GLFW 3.4 may report an invalid mapping through its
-    /// error callback while still returning `true`; VMNL treats either signal as failure.
+    ///
+    /// Returns `InvalidGamepadMapping` for non-ASCII or NUL-containing input.
+    /// Returns `GlfwInputOperationFailed` if GLFW emits an error callback or returns failure.
+    /// GLFW 3.4 can emit the callback even when it returns `true`.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use vmnl_graphics::InputRuntime;
+    ///
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let runtime = InputRuntime::acquire()?;
+    /// let mappings = std::fs::read_to_string("gamecontrollerdb.txt")?;
+    /// runtime.update_gamepad_mappings(&mappings)?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn update_gamepad_mappings(&self, mappings: &str) -> VMNLResult<()> {
         if !mappings.is_ascii() {
             return Err(VMNLError::new(VMNLErrorKind::InvalidGamepadMapping(
@@ -238,10 +323,19 @@ impl InputRuntime {
     /// The pointer is retained by GLFW only while that slot's device remains connected. This
     /// accessor does not establish ownership or keep the pointed-to allocation alive.
     ///
+    /// # Arguments
+    ///
+    /// - `id` identifies the GLFW slot whose process-wide pointer to read.
+    ///
     /// # Safety
+    ///
     /// The caller must ensure that any dereference is valid, aligned, initialized, and obeys Rust's
     /// aliasing rules. The pointer may become invalid as soon as the device disconnects or GLFW
     /// terminates. Do not retain it past either boundary.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self::set_joystick_user_pointer`].
     #[must_use]
     pub unsafe fn joystick_user_pointer(&self, id: crate::JoystickId) -> *mut std::ffi::c_void {
         crate::glfw_backend::get_joystick_user_pointer(id)
@@ -252,10 +346,41 @@ impl InputRuntime {
     /// GLFW does not own or synchronize the pointed-to value. It clears the pointer when the
     /// device disconnects.
     ///
+    /// # Arguments
+    ///
+    /// - `id` identifies the GLFW slot whose process-wide pointer to replace.
+    /// - `pointer` supplies application-owned data as an opaque pointer. Use a null pointer to clear
+    ///   the association.
+    ///
     /// # Safety
+    ///
     /// The caller owns the allocation and must keep it valid for every access through this pointer
     /// until the slot disconnects or the pointer is replaced. Concurrent access must be
     /// synchronized by the caller, and no Rust reference may outlive the allocation.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use vmnl_graphics::{InputRuntime, JoystickId};
+    ///
+    /// # fn main() -> vmnl_graphics::VMNLResult<()> {
+    /// let runtime = InputRuntime::acquire()?;
+    /// let id = JoystickId::Joystick1;
+    /// if runtime.sample_joystick(id)?.is_some() {
+    ///     let mut controller_tag = 7_u32;
+    ///     let owner = std::ptr::from_mut(&mut controller_tag).cast();
+    ///     // SAFETY: The local tag lives through every access. The pointer is read
+    ///     // without dereferencing it and cleared before the tag goes out of scope.
+    ///     unsafe {
+    ///         runtime.set_joystick_user_pointer(id, owner);
+    ///         let stored = runtime.joystick_user_pointer(id);
+    ///         runtime.set_joystick_user_pointer(id, std::ptr::null_mut());
+    ///         assert_eq!(stored, owner);
+    ///     }
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
     pub unsafe fn set_joystick_user_pointer(
         &self,
         id: crate::JoystickId,
@@ -278,6 +403,14 @@ impl InputRuntimeBuilder {
     /// regardless of this setting. This hint applies only when the first VMNL handle initializes
     /// GLFW; a conflicting explicit setting while the runtime is active returns a structured
     /// [`VMNLErrorKind::GlfwInitializationConfigConflict`].
+    ///
+    /// # Arguments
+    ///
+    /// - `enabled` controls whether GLFW copies hat directions into the raw joystick button array.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`InputRuntime`].
     #[inline]
     #[must_use]
     pub const fn hat_buttons(mut self, enabled: bool) -> Self {
@@ -288,9 +421,14 @@ impl InputRuntimeBuilder {
     /// Acquires the shared runtime, using GLFW defaults unless a setting was supplied.
     ///
     /// # Errors
+    ///
     /// Returns `GlfwInitFailed` if GLFW cannot initialize, a configuration conflict if this
     /// explicit setting differs from the active runtime, or `InvalidState` if another thread
     /// currently owns VMNL's active GLFW runtime.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`InputRuntime`].
     pub fn build(self) -> VMNLResult<InputRuntime> {
         let requested = self
             .hat_buttons
@@ -471,6 +609,7 @@ impl GlfwRuntime {
         (result, errors)
     }
 
+    /// Registers a queue for connection events from the shared GLFW runtime.
     pub(crate) fn subscribe_joystick_events(
         self: &Rc<Self>,
         queue: Rc<RefCell<JoystickEventQueue>>,
@@ -497,6 +636,7 @@ impl GlfwRuntime {
         }
     }
 
+    /// Removes a queue from shared GLFW joystick event delivery.
     pub(crate) fn unsubscribe_joystick_events(&self, queue: &Rc<RefCell<JoystickEventQueue>>) {
         let is_unused = self.joystick_events.borrow_mut().unsubscribe(queue);
         if is_unused {
@@ -541,6 +681,10 @@ impl GlfwRuntime {
         );
     }
 
+    /// Finishes joystick callback cleanup after a GLFW poll or wait.
+    ///
+    /// Delay cleanup and propagation of a user callback's unwind until the native callback
+    /// has returned.
     pub(crate) fn finish_joystick_callbacks(&self) {
         if self.is_joystick_callback_active.get() {
             return;
@@ -660,6 +804,7 @@ enum JoystickCallbackState {
 }
 
 impl JoystickEventQueue {
+    /// Returns the queued joystick connection events in delivery order and clears the queue.
     pub(crate) fn drain_events(&mut self) -> std::collections::vec_deque::Drain<'_, crate::Event> {
         self.events.drain(..)
     }

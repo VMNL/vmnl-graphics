@@ -29,6 +29,10 @@ use vulkano::{
 };
 
 impl VMNLWindow {
+    /// Validates raw draw bindings and resolves viewport/scissor pairs before image acquisition.
+    ///
+    /// Each pair corresponds to a raw draw item in submission order. Run again after swapchain
+    /// recreation to resolve against the replacement extent.
     pub(super) fn preflight_frame(
         &self,
         commands: &[RenderPassCommand],
@@ -91,13 +95,12 @@ impl VMNLWindow {
 
     /// Builds a Vulkan command buffer for rendering the provided graphics objects to the specified swapchain image.
     ///
+    /// Returns an `Arc<PrimaryAutoCommandBuffer>` containing the built command buffer ready for execution.
+    ///
     /// # Arguments
     /// - `image_index`: Index of the swapchain image to render to.
     /// - `commands`: Ordered render commands to record.
     /// - `raw_draw_states`: Viewport and scissor resolved in raw draw order for this swapchain.
-    ///
-    /// # Returns
-    /// An `Arc<PrimaryAutoCommandBuffer>` containing the built command buffer ready for execution.
     #[allow(clippy::too_many_lines)]
     pub(super) fn build_command_buffer(
         &self,

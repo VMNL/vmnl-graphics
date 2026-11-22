@@ -11,6 +11,16 @@ use crate::{VMNLError, VMNLErrorKind, VMNLResult};
 /// A slot is not a persistent physical-device identity. Its attached device may change after a
 /// disconnect; use a sample's GUID to identify a device model, noting that identical units may
 /// share a GUID.
+///
+/// # Example
+///
+/// ```rust
+/// use vmnl_graphics::JoystickId;
+///
+/// assert_eq!(JoystickId::from_index(0), Some(JoystickId::Joystick1));
+/// assert_eq!(JoystickId::Joystick1.index(), 0);
+/// assert_eq!(JoystickId::from_index(16), None);
+/// ```
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[repr(i32)]
 pub enum JoystickId {
@@ -53,6 +63,14 @@ impl JoystickId {
     pub const COUNT: usize = 16;
 
     /// Converts a zero-based GLFW slot index to its valid identifier.
+    ///
+    /// # Arguments
+    ///
+    /// - `index` supplies a zero-based slot in the range `0..=15`.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[inline]
     #[must_use]
     pub const fn from_index(index: usize) -> Option<Self> {
@@ -78,6 +96,10 @@ impl JoystickId {
     }
 
     /// Returns this identifier's zero-based GLFW slot index.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[inline]
     #[must_use]
     pub const fn index(self) -> usize {
@@ -90,6 +112,16 @@ impl JoystickId {
 }
 
 /// Preserved raw state of one joystick button.
+///
+/// # Example
+///
+/// ```rust
+/// use vmnl_graphics::JoystickButtonState;
+///
+/// let button = JoystickButtonState::Pressed;
+/// assert!(button.is_pressed());
+/// assert_eq!(button.as_raw(), 1);
+/// ```
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum JoystickButtonState {
     /// GLFW reported `GLFW_RELEASE`.
@@ -102,6 +134,10 @@ pub enum JoystickButtonState {
 
 impl JoystickButtonState {
     /// Returns the GLFW byte value represented by this state.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[inline]
     #[must_use]
     pub const fn as_raw(self) -> u8 {
@@ -113,6 +149,10 @@ impl JoystickButtonState {
     }
 
     /// Returns whether GLFW reported this button pressed.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[inline]
     #[must_use]
     pub const fn is_pressed(self) -> bool {
@@ -129,6 +169,17 @@ impl JoystickButtonState {
 }
 
 /// Raw bit field for one joystick hat, including GLFW's diagonal combinations.
+///
+/// # Example
+///
+/// ```rust
+/// use vmnl_graphics::JoystickHatState;
+///
+/// let hat = JoystickHatState::from_raw(0x03);
+/// assert_eq!(hat.as_raw(), 0x03);
+/// assert!(hat.is_up() && hat.is_right());
+/// assert!(!hat.is_down() && !hat.is_left());
+/// ```
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct JoystickHatState(u8);
 
@@ -153,6 +204,14 @@ impl JoystickHatState {
     pub const LEFT_DOWN: Self = Self(0x0c);
 
     /// Creates a hat state from its raw GLFW bit field.
+    ///
+    /// # Arguments
+    ///
+    /// - `value` supplies the direction flags as reported by GLFW for one hat.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[inline]
     #[must_use]
     pub const fn from_raw(value: u8) -> Self {
@@ -160,6 +219,10 @@ impl JoystickHatState {
     }
 
     /// Returns the raw GLFW bit field without normalization.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[inline]
     #[must_use]
     pub const fn as_raw(self) -> u8 {
@@ -167,6 +230,10 @@ impl JoystickHatState {
     }
 
     /// Returns whether the hat points upward, including diagonals.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[inline]
     #[must_use]
     pub const fn is_up(self) -> bool {
@@ -174,6 +241,10 @@ impl JoystickHatState {
     }
 
     /// Returns whether the hat points right, including diagonals.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[inline]
     #[must_use]
     pub const fn is_right(self) -> bool {
@@ -181,6 +252,10 @@ impl JoystickHatState {
     }
 
     /// Returns whether the hat points downward, including diagonals.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[inline]
     #[must_use]
     pub const fn is_down(self) -> bool {
@@ -188,6 +263,10 @@ impl JoystickHatState {
     }
 
     /// Returns whether the hat points left, including diagonals.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[inline]
     #[must_use]
     pub const fn is_left(self) -> bool {
@@ -277,6 +356,10 @@ pub struct GamepadState {
 
 impl GamepadState {
     /// Returns the mapped gamepad name, if GLFW provides one.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`JoystickState`].
     #[inline]
     #[must_use]
     pub fn name(&self) -> Option<&str> {
@@ -284,6 +367,14 @@ impl GamepadState {
     }
 
     /// Returns the state for a standard gamepad button.
+    ///
+    /// # Arguments
+    ///
+    /// - `button` selects a control from the standard gamepad button layout.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`JoystickState`].
     #[inline]
     #[must_use]
     pub const fn button(&self, button: GamepadButton) -> JoystickButtonState {
@@ -291,6 +382,10 @@ impl GamepadState {
     }
 
     /// Returns all fifteen standard button states in GLFW order.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`JoystickState`].
     #[inline]
     #[must_use]
     pub const fn buttons(&self) -> &[JoystickButtonState; GamepadButton::COUNT] {
@@ -298,6 +393,14 @@ impl GamepadState {
     }
 
     /// Returns the value for a standard gamepad axis, unchanged from GLFW.
+    ///
+    /// # Arguments
+    ///
+    /// - `axis` selects a control from the standard gamepad axis layout.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`JoystickState`].
     #[inline]
     #[must_use]
     pub const fn axis(&self, axis: GamepadAxis) -> f32 {
@@ -305,6 +408,10 @@ impl GamepadState {
     }
 
     /// Returns all six standard axis values in GLFW order.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`JoystickState`].
     #[inline]
     #[must_use]
     pub const fn axes(&self) -> &[f32; GamepadAxis::COUNT] {
@@ -336,6 +443,25 @@ pub enum StickAngleConvention {
 }
 
 /// Processing configuration for one mapped gamepad stick.
+///
+/// # Example
+///
+/// ```rust
+/// use vmnl_graphics::{StickAngleConvention, StickConfig};
+///
+/// let config = StickConfig::new(0.1, StickAngleConvention::Math2D)?
+///     .with_radial_dead_zone(0.2)?
+///     .with_angle_convention(StickAngleConvention::Screen2D);
+/// assert_eq!(config.radial_dead_zone(), 0.2);
+/// assert_eq!(config.angle_convention(), StickAngleConvention::Screen2D);
+///
+/// let resting = config.process(0.05, 0.0);
+/// assert_eq!([resting.x(), resting.y()], [0.0, 0.0]);
+/// assert_eq!(resting.magnitude(), 0.0);
+/// assert_eq!(resting.angle(), None);
+/// assert_eq!(config.process(1.0, 0.0).angle(), Some(0.0));
+/// # Ok::<(), vmnl_graphics::VMNLError>(())
+/// ```
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct StickConfig {
     radial_dead_zone: f32,
@@ -348,8 +474,18 @@ impl StickConfig {
     /// The dead zone must be finite and in `[0, 1)`. Values outside it preserve their original
     /// axis components; VMNL does not rescale the remaining range.
     ///
+    /// # Arguments
+    ///
+    /// - `radial_dead_zone` supplies the normalized radius within which stick movement is suppressed.
+    /// - `angle_convention` selects the orientation used for processed stick vectors and angles.
+    ///
     /// # Errors
+    ///
     /// Returns `InvalidState` when the dead zone is non-finite or outside `[0, 1)`.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     pub fn new(radial_dead_zone: f32, angle_convention: StickAngleConvention) -> VMNLResult<Self> {
         if !radial_dead_zone.is_finite() || !(0.0..1.0).contains(&radial_dead_zone) {
             return Err(VMNLError::new(VMNLErrorKind::InvalidState(
@@ -364,6 +500,10 @@ impl StickConfig {
     }
 
     /// Returns the configured radial dead-zone threshold.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[inline]
     #[must_use]
     pub const fn radial_dead_zone(self) -> f32 {
@@ -371,6 +511,10 @@ impl StickConfig {
     }
 
     /// Returns the configured angle convention.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[inline]
     #[must_use]
     pub const fn angle_convention(self) -> StickAngleConvention {
@@ -379,13 +523,30 @@ impl StickConfig {
 
     /// Returns a copy of this configuration with a validated radial dead zone.
     ///
+    /// # Arguments
+    ///
+    /// - `radial_dead_zone` supplies the replacement normalized radius where movement is suppressed.
+    ///
     /// # Errors
+    ///
     /// Returns `InvalidState` when the dead zone is non-finite or outside `[0, 1)`.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     pub fn with_radial_dead_zone(self, radial_dead_zone: f32) -> VMNLResult<Self> {
         Self::new(radial_dead_zone, self.angle_convention)
     }
 
     /// Returns a copy of this configuration with the given angle convention.
+    ///
+    /// # Arguments
+    ///
+    /// - `angle_convention` selects the replacement orientation for processed vectors and angles.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[inline]
     #[must_use]
     pub const fn with_angle_convention(mut self, angle_convention: StickAngleConvention) -> Self {
@@ -398,6 +559,15 @@ impl StickConfig {
     /// Inputs are the stick's X/Y axes. Values at or below the configured magnitude threshold
     /// become `(0, 0)`. Values outside it remain unchanged. This pure operation also accepts axes
     /// from a standalone [`JoystickSample`]; no particular raw-axis pair is inferred.
+    ///
+    /// # Arguments
+    ///
+    /// - `x` supplies the horizontal axis value, typically from the mapped gamepad's stick axes.
+    /// - `y` supplies the vertical axis value, typically from the mapped gamepad's stick axes.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[inline]
     #[must_use]
     pub fn process(self, x: f32, y: f32) -> StickState {
@@ -438,6 +608,10 @@ pub struct StickState {
 
 impl StickState {
     /// Returns the processed X component.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`StickConfig`].
     #[inline]
     #[must_use]
     pub const fn x(self) -> f32 {
@@ -445,6 +619,10 @@ impl StickState {
     }
 
     /// Returns the processed Y component.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`StickConfig`].
     #[inline]
     #[must_use]
     pub const fn y(self) -> f32 {
@@ -452,6 +630,10 @@ impl StickState {
     }
 
     /// Returns the vector magnitude after the dead zone is applied.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`StickConfig`].
     #[inline]
     #[must_use]
     pub const fn magnitude(self) -> f32 {
@@ -464,6 +646,10 @@ impl StickState {
     /// `Math2D` uses `atan2(-y, x)` for Y-up cartesian coordinates. `Screen2D` uses `atan2(y, x)`
     /// for Y-down screen coordinates. `Heading` uses `atan2(x, -y)` for local planar movement;
     /// it is not world or camera yaw. The angle is calculated only when this method is called.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`StickConfig`].
     #[must_use]
     pub fn angle(self) -> Option<f32> {
         if (self.x == 0.0 && self.y == 0.0) || !self.x.is_finite() || !self.y.is_finite() {
@@ -501,6 +687,42 @@ pub enum JoystickStatus {
 /// Native samples advance only when the owning window processes `Window::poll_events`. Disabling
 /// tracking clears the snapshot immediately. Standalone [`Input::new`](crate::Input::new) values
 /// remain detached from GLFW.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use vmnl_graphics::{Context, GamepadAxis, GamepadButton, JoystickId, Window};
+///
+/// # fn main() -> vmnl_graphics::VMNLResult<()> {
+/// let context = Context::new()?;
+/// let mut window = Window::builder().joystick_tracking(true).build(&context)?;
+/// let _events = window.poll_events();
+/// let state = window.input().joystick(JoystickId::Joystick1);
+/// let _status = state.status();
+/// let _movement = state.left_stick();
+/// let _aim = state.right_stick();
+/// let _held = state.is_down(GamepadButton::A);
+/// let _pressed = state.is_pressed(GamepadButton::A);
+/// let _released = state.is_released(GamepadButton::A);
+///
+/// let actions = [GamepadButton::A, GamepadButton::B];
+/// let _any_held = state.is_any_down(&actions);
+/// let _any_pressed = state.is_any_pressed(&actions);
+/// let _any_released = state.is_any_released(&actions);
+/// if let Some(sample) = state.sample() {
+///     let _identity = (sample.id(), sample.name(), sample.guid());
+///     let _raw_controls = (sample.axes(), sample.buttons(), sample.hats());
+///     let _mapped_sample = sample.gamepad();
+/// }
+/// if let Some(gamepad) = state.gamepad() {
+///     let _name = gamepad.name();
+///     let _controls = (gamepad.buttons(), gamepad.axes());
+///     let _jump = gamepad.button(GamepadButton::A);
+///     let _horizontal = gamepad.axis(GamepadAxis::LeftX);
+/// }
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Debug)]
 pub struct JoystickState {
     status: JoystickStatus,
@@ -531,6 +753,9 @@ impl JoystickState {
         self.transitions.clear_transitions();
     }
 
+    /// Updates one slot and derives mapped button transitions from consecutive samples.
+    ///
+    /// The caller marks the first sample so an already-held button becomes baseline state.
     pub(crate) fn apply_sample(&mut self, sample: Option<JoystickSample>, initial: bool) {
         if initial {
             self.transitions.reset();
@@ -568,6 +793,7 @@ impl JoystickState {
         self.sample = sample;
     }
 
+    /// Discards a slot's cached sample and transition state when tracking is disabled.
     pub(crate) fn clear_tracking(&mut self) {
         self.status = JoystickStatus::NotTracked;
         self.sample = None;
@@ -584,6 +810,10 @@ impl JoystickState {
     }
 
     /// Returns whether this slot is untracked, absent, or present in the latest window snapshot.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[inline]
     #[must_use]
     pub const fn status(&self) -> JoystickStatus {
@@ -591,6 +821,10 @@ impl JoystickState {
     }
 
     /// Returns the latest owned sample while this slot is present.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[inline]
     #[must_use]
     pub const fn sample(&self) -> Option<&JoystickSample> {
@@ -598,6 +832,10 @@ impl JoystickState {
     }
 
     /// Returns the latest mapped gamepad state, if this present device has a GLFW mapping.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[inline]
     #[must_use]
     pub fn gamepad(&self) -> Option<&GamepadState> {
@@ -605,6 +843,10 @@ impl JoystickState {
     }
 
     /// Returns the configured left stick when this device has a gamepad mapping.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[inline]
     #[must_use]
     pub fn left_stick(&self) -> Option<StickState> {
@@ -616,6 +858,10 @@ impl JoystickState {
     }
 
     /// Returns the configured right stick when this device has a gamepad mapping.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[inline]
     #[must_use]
     pub fn right_stick(&self) -> Option<StickState> {
@@ -627,6 +873,14 @@ impl JoystickState {
     }
 
     /// Returns whether a mapped button is held in the latest sample.
+    ///
+    /// # Arguments
+    ///
+    /// - `button` selects the standard mapped button to query.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[inline]
     #[must_use]
     pub const fn is_down(&self, button: GamepadButton) -> bool {
@@ -634,6 +888,14 @@ impl JoystickState {
     }
 
     /// Returns whether a mapped button was pressed during this window's current poll batch.
+    ///
+    /// # Arguments
+    ///
+    /// - `button` selects the standard mapped button whose press transition is queried.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[inline]
     #[must_use]
     pub const fn is_pressed(&self, button: GamepadButton) -> bool {
@@ -641,6 +903,14 @@ impl JoystickState {
     }
 
     /// Returns whether a mapped button was released during this window's current poll batch.
+    ///
+    /// # Arguments
+    ///
+    /// - `button` selects the standard mapped button whose release transition is queried.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[inline]
     #[must_use]
     pub const fn is_released(&self, button: GamepadButton) -> bool {
@@ -648,18 +918,42 @@ impl JoystickState {
     }
 
     /// Returns whether any listed mapped button is held.
+    ///
+    /// # Arguments
+    ///
+    /// - `buttons` supplies the mapped buttons treated as alternatives for the held-state check.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn is_any_down(&self, buttons: &[GamepadButton]) -> bool {
         buttons.iter().any(|button| self.is_down(*button))
     }
 
     /// Returns whether any listed mapped button was pressed in this poll batch.
+    ///
+    /// # Arguments
+    ///
+    /// - `buttons` supplies the mapped buttons treated as alternatives for the press check.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn is_any_pressed(&self, buttons: &[GamepadButton]) -> bool {
         buttons.iter().any(|button| self.is_pressed(*button))
     }
 
     /// Returns whether any listed mapped button was released in this poll batch.
+    ///
+    /// # Arguments
+    ///
+    /// - `buttons` supplies the mapped buttons treated as alternatives for the release check.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub fn is_any_released(&self, buttons: &[GamepadButton]) -> bool {
         buttons.iter().any(|button| self.is_released(*button))
@@ -723,6 +1017,10 @@ pub struct JoystickSample {
 
 impl JoystickSample {
     /// Returns the reusable slot from which this sample was read.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`JoystickState`].
     #[inline]
     #[must_use]
     pub const fn id(&self) -> JoystickId {
@@ -730,6 +1028,10 @@ impl JoystickSample {
     }
 
     /// Returns the human-readable raw joystick name, if GLFW provides one.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`JoystickState`].
     #[inline]
     #[must_use]
     pub fn name(&self) -> Option<&str> {
@@ -737,6 +1039,10 @@ impl JoystickSample {
     }
 
     /// Returns the SDL-compatible device-model GUID, if GLFW provides one.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`JoystickState`].
     #[inline]
     #[must_use]
     pub fn guid(&self) -> Option<&str> {
@@ -744,6 +1050,10 @@ impl JoystickSample {
     }
 
     /// Returns raw axis values in GLFW order and range.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`JoystickState`].
     #[inline]
     #[must_use]
     pub fn axes(&self) -> &[f32] {
@@ -751,6 +1061,10 @@ impl JoystickSample {
     }
 
     /// Returns raw button states in GLFW order, including any configured hat buttons.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`JoystickState`].
     #[inline]
     #[must_use]
     pub fn buttons(&self) -> &[JoystickButtonState] {
@@ -758,6 +1072,10 @@ impl JoystickSample {
     }
 
     /// Returns separate hat values in GLFW order, preserving diagonal bit combinations.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`JoystickState`].
     #[inline]
     #[must_use]
     pub fn hats(&self) -> &[JoystickHatState] {
@@ -765,6 +1083,10 @@ impl JoystickSample {
     }
 
     /// Returns mapped state when GLFW has a gamepad mapping for this device.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`JoystickState`].
     #[inline]
     #[must_use]
     pub const fn gamepad(&self) -> Option<&GamepadState> {

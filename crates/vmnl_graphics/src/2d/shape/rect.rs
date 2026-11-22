@@ -82,6 +82,17 @@ impl Anchor {
 /// `top_left`, `top_right`, `bottom_right`, `bottom_left`. A radius of `0.0`
 /// keeps the corresponding corner sharp. See [`RectBuilder::corner_radii`] for
 /// validation and geometry costs.
+///
+/// # Example
+///
+/// ```rust
+/// use vmnl_graphics::d2::CornerRadii;
+///
+/// let rounded = CornerRadii::all(4.0);
+/// let rounded_top = CornerRadii::new(4.0, 4.0, 0.0, 0.0);
+/// assert_eq!(rounded.bottom_left, 4.0);
+/// assert_eq!(rounded_top.bottom_left, 0.0);
+/// ```
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct CornerRadii {
     /// Radius of the top-left corner. `0.0` keeps the corner sharp.
@@ -95,10 +106,15 @@ pub struct CornerRadii {
 }
 
 impl CornerRadii {
-    /// Four equal corner radii.
+    /// Creates four equal corner radii.
     ///
     /// # Arguments
+    ///
     /// - `radius`: Radius applied to every corner. `0.0` keeps all corners sharp.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn all(radius: f32) -> Self {
         Self {
@@ -109,13 +125,18 @@ impl CornerRadii {
         }
     }
 
-    /// Four independent corner radii, ordered clockwise from the top-left corner.
+    /// Creates four independent corner radii in clockwise order from the top-left corner.
     ///
     /// # Arguments
+    ///
     /// - `top_left`: Top-left corner radius.
     /// - `top_right`: Top-right corner radius.
     /// - `bottom_right`: Bottom-right corner radius.
     /// - `bottom_left`: Bottom-left corner radius.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn new(top_left: f32, top_right: f32, bottom_right: f32, bottom_left: f32) -> Self {
         Self {
@@ -222,15 +243,17 @@ impl RectBuilder {
         }
     }
 
-    /// Set the position of the rectangle.
+    /// Sets the position of the rectangle.
+    ///
+    /// Returns the updated `RectBuilder` instance with the specified position.
     ///
     /// # Arguments
+    ///
     /// - `x`: X-coordinate of the top-left corner of the rectangle.
     /// - `y`: Y-coordinate of the top-left corner of the rectangle.
     ///
-    /// # Returns
-    /// The updated `RectBuilder` instance with the specified position.
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::d2::Shape;
@@ -248,15 +271,16 @@ impl RectBuilder {
         self
     }
 
-    /// Set the color of the rectangle.
+    /// Sets the color of the rectangle.
+    ///
+    /// Returns the updated `RectBuilder` instance with the specified color.
     ///
     /// # Arguments
+    ///
     /// - `color`: Color convertible to `Rgba`, for example `Rgba::RED`, `[r, g, b]`, or `[r, g, b, a]`.
     ///
-    /// # Returns
-    /// The updated `RectBuilder` instance with the specified color.
-    ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::d2::Shape;
@@ -277,14 +301,16 @@ impl RectBuilder {
         self
     }
 
-    /// Set the rotation of the rectangle in degrees.
+    /// Sets the rotation of the rectangle in degrees.
+    ///
+    /// Returns the updated `RectBuilder` instance with the specified rotation.
     ///
     /// # Arguments
+    ///
     /// - `degrees`: Rotation angle in degrees. Rotation is applied around the configured origin.
     ///
-    /// # Returns
-    /// The updated `RectBuilder` instance with the specified rotation.
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::d2::Shape;
@@ -302,14 +328,16 @@ impl RectBuilder {
         self
     }
 
-    /// Set the rectangle rotation pivot using a predefined anchor.
+    /// Sets the rectangle rotation pivot using a predefined anchor.
     ///
     /// Replaces any previous custom origin.
     ///
     /// # Arguments
+    ///
     /// - `anchor`: Predefined local origin used as the rotation pivot.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::d2::{Anchor, Shape};
@@ -328,15 +356,17 @@ impl RectBuilder {
         self
     }
 
-    /// Set the local origin used as the rectangle rotation pivot.
+    /// Sets the local origin used as the rectangle rotation pivot.
     ///
     /// # Arguments
+    ///
     /// - `x`: X coordinate relative to the rectangle top-left corner.
     /// - `y`: Y coordinate relative to the rectangle top-left corner.
     ///
     /// Replaces any previous anchor.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::d2::Shape;
@@ -355,17 +385,19 @@ impl RectBuilder {
         self
     }
 
-    /// Set one uniform circular corner radius on every corner.
+    /// Sets one uniform circular corner radius on every corner.
     ///
     /// Equivalent to `corner_radii(CornerRadii::all(radius))`. The last call to this
     /// method or [`Self::corner_radii`] replaces the previous corner configuration.
     /// A radius of `0.0` keeps the existing four-vertex sharp-rectangle path.
     ///
     /// # Arguments
+    ///
     /// - `radius`: Corner radius in pixel-like 2D coordinates. Must be finite and
     ///   greater than or equal to zero at build time.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::d2::Shape;
@@ -382,17 +414,19 @@ impl RectBuilder {
         self
     }
 
-    /// Set independent circular corner radii.
+    /// Sets independent circular corner radii.
     ///
     /// The last call to this method or [`Self::corner_radius`] replaces the previous
     /// corner configuration. Fields are ordered clockwise from the top-left corner.
     /// A radius of `0.0` keeps the corresponding corner sharp.
     ///
     /// # Arguments
+    ///
     /// - `radii`: Per-corner radii in pixel-like 2D coordinates. Each radius must be
     ///   finite and greater than or equal to zero at build time.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::d2::{CornerRadii, Shape};
@@ -409,7 +443,7 @@ impl RectBuilder {
         self
     }
 
-    /// Set the number of line segments used for each non-zero quarter arc.
+    /// Sets the number of line segments used for each non-zero quarter arc.
     ///
     /// This is an explicit quality/cost control over the geometric approximation only;
     /// it does not provide anti-aliasing. Defaults to `8`; at least one segment is
@@ -418,9 +452,11 @@ impl RectBuilder {
     /// index counts.
     ///
     /// # Arguments
+    ///
     /// - `segments`: Segments per non-zero quarter arc, in `1..=65535`.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::d2::Shape;
@@ -438,14 +474,16 @@ impl RectBuilder {
         self
     }
 
-    /// Set the preferred memory placement for the created vertex and index buffers.
+    /// Sets the preferred memory placement for the created vertex and index buffers.
     ///
     /// This is a preference, not a guarantee. Defaults to `BufferMemoryPreference::Device`.
     ///
     /// # Arguments
+    ///
     /// - `preference`: Preferred GPU buffer memory placement.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::common::BufferMemoryPreference;
@@ -464,15 +502,16 @@ impl RectBuilder {
         self
     }
 
-    /// Build a rectangle shape from the provided options.
+    /// Builds a rectangle shape from the provided options.
+    ///
+    /// Returns a `Shape` instance representing the rectangle, ready for rendering.
     ///
     /// # Arguments
+    ///
     /// - `vmnl_context`: Reference to the VMNL context providing the memory allocator.
     ///
-    /// # Returns
-    /// A `Shape` instance representing the rectangle, ready for rendering.
-    ///
     /// # Errors
+    ///
     /// Returns an error if the geometry is invalid or GPU buffer creation fails.
     ///
     /// The final builder state is validated before any GPU allocation. Each corner
@@ -503,6 +542,7 @@ impl RectBuilder {
     /// costs are unspecified.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::d2::Shape;
@@ -594,7 +634,7 @@ impl RectBuilder {
         Ok(graphics)
     }
 
-    /// Validate the corner configuration against the rectangle size.
+    /// Validates the corner configuration against the rectangle size.
     ///
     /// Radii are never clamped or rescaled: overlapping corner regions are rejected.
     fn validate_corners(size: Vector2f, radii: CornerRadii, segments: u16) -> VMNLResult<()> {

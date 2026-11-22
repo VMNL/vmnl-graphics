@@ -12,12 +12,14 @@ use std::{ffi::CStr, ptr::NonNull, slice};
 
 pub(crate) struct NativeCursor(NonNull<glfw::ffi::GLFWcursor>);
 
+/// Initializes GLFW and installs the runtime's native error callback.
 pub(crate) fn init(
     callback: impl FnMut(glfw::Error, String) + 'static,
 ) -> Result<glfw::Glfw, glfw::InitError> {
     glfw::init(callback)
 }
 
+/// Replaces the callback on the active GLFW runtime.
 pub(crate) fn set_error_callback(
     glfw: &mut glfw::Glfw,
     callback: impl FnMut(glfw::Error, String) + 'static,
@@ -25,6 +27,7 @@ pub(crate) fn set_error_callback(
     glfw.set_error_callback(callback);
 }
 
+/// Maps native GLFW errors to their VMNL error categories.
 pub(crate) fn map_error(error: glfw::Error) -> VMNLErrorKind {
     match error {
         glfw::Error::ApiUnavailable
@@ -44,6 +47,7 @@ pub(crate) fn map_error(error: glfw::Error) -> VMNLErrorKind {
     }
 }
 
+/// Formats the native callback's error and description for VMNL diagnostics.
 pub(crate) fn callback_message(error: glfw::Error, description: String) -> String {
     match error {
         glfw::Error::Unknown(code) => format!("GLFW unknown error {code}: {description}"),
@@ -100,6 +104,9 @@ pub(crate) fn sample_joystick(id: JoystickId) -> Result<Option<JoystickSample>, 
     }
 }
 
+/// Registers the process-wide native joystick callback.
+///
+/// The caller owns the active GLFW runtime and manages the callback's registration lifetime.
 pub(crate) fn set_joystick_callback(
     glfw: &mut glfw::Glfw,
     callback: impl FnMut(glfw::JoystickId, glfw::JoystickEvent) + 'static,
@@ -109,6 +116,7 @@ pub(crate) fn set_joystick_callback(
     glfw.set_joystick_callback(callback);
 }
 
+/// Stops native joystick event delivery to the installed callback.
 pub(crate) fn unset_joystick_callback(glfw: &mut glfw::Glfw) {
     #[cfg(test)]
     joystick_calls::record(|calls| calls.callback_removals += 1);
@@ -142,18 +150,27 @@ pub(crate) mod joystick_calls {
     }
 }
 
+/// Submits a NUL-terminated mapping database to the active GLFW runtime.
+///
+/// The caller checks native diagnostics when GLFW rejects the update.
 pub(crate) fn update_gamepad_mappings(mappings: &std::ffi::CStr) -> bool {
     // SAFETY: `CStr` guarantees a non-null, NUL-terminated string whose allocation outlives this
     // call. The shared runtime and main-thread precondition are enforced by `InputRuntime`.
     unsafe { glfw::ffi::glfwUpdateGamepadMappings(mappings.as_ptr()) == glfw::ffi::GLFW_TRUE }
 }
 
+/// Reads the opaque pointer associated with a native joystick slot.
+///
+/// The caller retains responsibility for the pointee's lifetime and valid access.
 pub(crate) fn get_joystick_user_pointer(id: JoystickId) -> *mut std::ffi::c_void {
     // SAFETY: `JoystickId` restricts the slot to GLFW's 0..=15 range. The owning InputRuntime
     // keeps GLFW initialized and confines this call to GLFW's platform thread.
     unsafe { glfw::ffi::glfwGetJoystickUserPointer(id.as_raw()) }
 }
 
+/// Associates an opaque pointer with a native joystick slot.
+///
+/// The caller owns the allocation and its lifetime. GLFW stores the pointer.
 pub(crate) fn set_joystick_user_pointer(id: JoystickId, pointer: *mut std::ffi::c_void) {
     // SAFETY: `JoystickId` restricts the slot to GLFW's 0..=15 range. The owning InputRuntime
     // keeps GLFW initialized; GLFW stores the opaque pointer without dereferencing it.
@@ -203,6 +220,7 @@ fn copy_glfw_string(pointer: *const std::ffi::c_char) -> Option<String> {
     )
 }
 
+/// Reports the backend of the initialized GLFW runtime.
 pub(crate) fn backend_name(glfw: &glfw::Glfw) -> &'static str {
     match glfw.get_platform() {
         glfw::Platform::Any => "any",
@@ -214,6 +232,9 @@ pub(crate) fn backend_name(glfw: &glfw::Glfw) -> &'static str {
     }
 }
 
+/// Applies an already validated aspect ratio to a live GLFW window.
+///
+/// Use two positive terms to set a ratio or the no-preference sentinel for both terms to clear it.
 pub(crate) fn set_aspect_ratio(
     window: &mut glfw::PWindow,
     numerator: std::ffi::c_int,
@@ -228,6 +249,13 @@ pub(crate) fn set_aspect_ratio(
     }
 }
 
+/// Creates a native cursor through the active GLFW runtime.
+///
+/// The caller retains the runtime until the cursor is destroyed.
+///
+/// # Errors
+///
+/// Translates the GLFW error when the native cursor handle is null.
 pub(crate) fn create_standard_cursor(shape: StandardCursor) -> VMNLResult<NativeCursor> {
     clear_error();
     let native_shape = standard_cursor_shape(shape);
@@ -255,6 +283,14 @@ const fn standard_cursor_shape(shape: StandardCursor) -> std::os::raw::c_int {
     }
 }
 
+/// Creates a native cursor from a validated RGBA8 image.
+///
+/// The supplied pixels cover the declared dimensions and the hotspot lies within the image. GLFW
+/// copies the pixels during the call.
+///
+/// # Errors
+///
+/// Translates the GLFW error when the native cursor handle is null.
 pub(crate) fn create_cursor(image: CursorImage, pixels: &[u8]) -> VMNLResult<NativeCursor> {
     clear_error();
     let native_image = glfw::ffi::GLFWimage {
@@ -274,6 +310,9 @@ pub(crate) fn create_cursor(image: CursorImage, pixels: &[u8]) -> VMNLResult<Nat
         .ok_or_else(last_error)
 }
 
+/// Associates a native cursor with the window or requests the GLFW default.
+///
+/// Keep a supplied cursor alive until the window replaces the association or is destroyed.
 pub(crate) fn set_cursor(
     window: &mut glfw::PWindow,
     cursor: Option<&NativeCursor>,
@@ -293,6 +332,9 @@ pub(crate) fn set_cursor(
     operation_result()
 }
 
+/// Applies the effective GLFW cursor mode to a live window.
+///
+/// The caller resolves VMNL's desired policy to the native mode before this call.
 pub(crate) fn set_cursor_mode(
     window: &mut glfw::PWindow,
     mode: glfw::CursorMode,
@@ -312,6 +354,7 @@ pub(crate) fn set_cursor_mode(
     operation_result()
 }
 
+/// Destroys the native handle exactly once while its GLFW runtime is still alive.
 pub(crate) fn destroy_cursor(cursor: &NativeCursor) {
     // SAFETY: `NativeCursor` is created only from a non-null GLFW cursor handle and destroyed once
     // by its owning `CursorResource`. That resource retains a GLFW token through this call.

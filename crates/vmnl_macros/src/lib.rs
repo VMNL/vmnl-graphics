@@ -15,6 +15,9 @@ use syn::{
 };
 
 /// Derives Vulkano `Vertex` through VMNL's raw reexport.
+///
+/// The derive input must be a struct with named fields and a `format` attribute on each field.
+/// Parse and expansion errors are emitted as compile diagnostics.
 #[proc_macro_derive(Vertex, attributes(name, format))]
 pub fn derive_vertex(input: TokenStream) -> TokenStream {
     let input: DeriveInput = parse_macro_input!(input as DeriveInput);
@@ -24,6 +27,9 @@ pub fn derive_vertex(input: TokenStream) -> TokenStream {
 }
 
 /// Derives bytemuck `Pod` through VMNL's raw reexport.
+///
+/// The derive input must use `repr(C)` or `repr(transparent)`. Expansion checks the `Pod`
+/// bounds on field types and checks for padding in non-generic structs.
 #[proc_macro_derive(Pod)]
 pub fn derive_pod(input: TokenStream) -> TokenStream {
     let input: DeriveInput = parse_macro_input!(input as DeriveInput);
@@ -33,6 +39,8 @@ pub fn derive_pod(input: TokenStream) -> TokenStream {
 }
 
 /// Derives bytemuck `Zeroable` through VMNL's raw reexport.
+///
+/// The derive input must be a struct. Expansion checks the `Zeroable` bound on each field.
 #[proc_macro_derive(Zeroable)]
 pub fn derive_zeroable(input: TokenStream) -> TokenStream {
     let input: DeriveInput = parse_macro_input!(input as DeriveInput);

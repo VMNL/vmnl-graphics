@@ -26,6 +26,16 @@ pub struct Viewport {
 }
 
 /// Viewport policy fixed on a pipeline, resolved for each draw's acquired image.
+///
+/// # Example
+///
+/// ```rust
+/// use vmnl_graphics::raw::ViewportPolicy;
+///
+/// let viewport = ViewportPolicy::FullFramebuffer.resolve([640, 480])?;
+/// assert_eq!(viewport.extent, [640.0, 480.0]);
+/// # Ok::<(), vmnl_graphics::VMNLError>(())
+/// ```
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum ViewportPolicy {
     /// Cover the current framebuffer with depth endpoints `[0, 1]`; follows resize.
@@ -43,10 +53,20 @@ impl ViewportPolicy {
     /// A successful call allocates nothing. Device limits are additionally checked
     /// at pipeline build and command recording, not by this headless operation.
     ///
+    /// # Arguments
+    ///
+    /// - `framebuffer_extent` supplies the framebuffer width and height in pixels for the
+    ///   full-framebuffer policy. Fixed policies use the extent configured in the viewport.
+    ///
     /// # Errors
+    ///
     /// Returns `InvalidState` for invalid fixed numbers/ranges, or a zero/oversized
     /// full-framebuffer extent. Full dimensions above `2^24` are rejected to avoid
     /// an inexact integer-to-float conversion. Fixed policies ignore the supplied extent.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     pub fn resolve(self, framebuffer_extent: [u32; 2]) -> VMNLResult<Viewport> {
         let viewport = match self {
             Self::FullFramebuffer => Viewport {
@@ -75,6 +95,17 @@ pub struct Scissor {
 }
 
 /// Scissor policy fixed on a pipeline, resolved independently of its viewport.
+///
+/// # Example
+///
+/// ```rust
+/// use vmnl_graphics::raw::{Scissor, ScissorPolicy};
+///
+/// let policy = ScissorPolicy::Fixed(Scissor { offset: [10, 20], extent: [100, 50] });
+/// let scissor = policy.resolve([640, 480])?;
+/// assert_eq!(scissor.offset, [10, 20]);
+/// # Ok::<(), vmnl_graphics::VMNLError>(())
+/// ```
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum ScissorPolicy {
     /// Clip to the acquired framebuffer; follows resize.
@@ -90,10 +121,20 @@ impl ScissorPolicy {
     /// This CPU-only operation does not inspect the last submitted image. The renderer
     /// supplies its acquired image extent; fixed policies ignore the supplied extent.
     ///
+    /// # Arguments
+    ///
+    /// - `framebuffer_extent` supplies the framebuffer width and height in pixels for the
+    ///   full-framebuffer policy. Fixed policies use the extent configured in the scissor.
+    ///
     /// # Errors
+    ///
     /// Returns `InvalidState` when an offset plus extent would overflow signed Vulkan
     /// rectangle coordinates. Empty rectangles are valid, including a zero full extent;
     /// rendering a minimized window still follows `FrameRenderer::submit`'s error contract.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     pub fn resolve(self, framebuffer_extent: [u32; 2]) -> VMNLResult<Scissor> {
         let scissor = match self {
             Self::FullFramebuffer => Scissor {
@@ -177,6 +218,13 @@ impl Viewport {
     }
 }
 
+/// Resolves viewport and scissor policies for a concrete framebuffer extent.
+///
+/// Applies physical-device viewport limits before constructing the backend values.
+///
+/// # Errors
+///
+/// Propagates invalid policy, extent, or device-limit errors.
 pub(crate) fn resolve_viewport_scissor(
     viewport_policy: ViewportPolicy,
     scissor_policy: ScissorPolicy,

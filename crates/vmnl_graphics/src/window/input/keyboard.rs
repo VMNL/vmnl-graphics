@@ -13,18 +13,45 @@ use glfw::{Action, Key as GlfwKey};
 ///
 /// Scancodes are meaningful only within the platform environment that produced them. They must
 /// not be persisted or exchanged as portable key identifiers.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use vmnl_graphics::{Context, Key, Scancode};
+///
+/// # fn main() -> vmnl_graphics::VMNLResult<()> {
+/// let context = Context::new()?;
+/// if let Some(scan) = context.get_key_scancode(Key::A) {
+///     let raw = scan.as_raw();
+///     assert_eq!(Scancode::from_raw(raw), scan);
+/// }
+/// # Ok(())
+/// # }
+/// ```
 #[repr(transparent)]
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Scancode(i32);
 
 impl Scancode {
     /// Creates a scancode from the raw platform value reported by GLFW.
+    ///
+    /// # Arguments
+    ///
+    /// - `raw` supplies the platform scancode from the active GLFW backend.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn from_raw(raw: i32) -> Self {
         Self(raw)
     }
 
     /// Returns the raw platform-specific scancode value.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn as_raw(self) -> i32 {
         self.0
@@ -429,11 +456,10 @@ impl KeyboardState {
 
     /// Converts a GLFW key code to the corresponding `Key` variant.
     ///
+    /// `Some(Key)` if conversion is successful, otherwise `None`.
+    ///
     /// # Arguments
     /// - `key`: The GLFW key code to convert.
-    ///
-    /// # Returns
-    /// `Some(Key)` if conversion is successful, otherwise `None`.
     #[allow(clippy::too_many_lines)] // Keep the GLFW mapping explicit and exhaustive.
     pub(crate) const fn from_glfw(key: GlfwKey) -> Option<Key> {
         match key {
@@ -563,11 +589,10 @@ impl KeyboardState {
 
     /// Converts a `Key` variant to the corresponding GLFW key code.
     ///
+    /// `Some(GlfwKey)` if a mapping exists, otherwise `None`.
+    ///
     /// # Arguments
     /// - `key`: The `Key` variant to convert.
-    ///
-    /// # Returns
-    /// `Some(GlfwKey)` if a mapping exists, otherwise `None`.
     #[allow(clippy::too_many_lines)] // Keep the inverse test oracle explicit and exhaustive.
     pub(crate) const fn to_glfw(key: Key) -> Option<GlfwKey> {
         match key {
@@ -728,9 +753,11 @@ impl KeyboardState {
     /// Returns `true` if the specified key is currently pressed.
     ///
     /// # Arguments
+    ///
     /// - `key`: The `Key` variant to check.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::{Input, Key};
     ///
@@ -747,9 +774,11 @@ impl KeyboardState {
     /// Returns `true` if the specified key was pressed in the current event batch.
     ///
     /// # Arguments
+    ///
     /// - `key`: The `Key` variant to check.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::{Input, Key};
     ///
@@ -766,9 +795,11 @@ impl KeyboardState {
     /// Returns `true` if the specified key was released in the current event batch.
     ///
     /// # Arguments
+    ///
     /// - `key`: The `Key` variant to check.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::{Input, Key};
     ///
@@ -785,9 +816,11 @@ impl KeyboardState {
     /// Returns `true` if any of the specified keys were pressed in the current event batch.
     ///
     /// # Arguments
+    ///
     /// - `keys`: A slice of `Key` variants to check.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::{Input, Key};
     ///
@@ -809,9 +842,11 @@ impl KeyboardState {
     /// Returns `true` if any of the specified keys were released in the current event batch.
     ///
     /// # Arguments
+    ///
     /// - `keys`: A slice of `Key` variants to check.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::{Input, Key};
     ///
@@ -833,9 +868,11 @@ impl KeyboardState {
     /// Returns `true` if any of the specified keys are currently down.
     ///
     /// # Arguments
+    ///
     /// - `keys`: A slice of `Key` variants to check.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::{Input, Key};
     ///
@@ -857,9 +894,11 @@ impl KeyboardState {
     /// Returns `true` if any of the specified keys were used in the current event batch.
     ///
     /// # Arguments
+    ///
     /// - `keys`: A slice of `Key` variants to check.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::{Input, Key};
     ///
@@ -881,6 +920,7 @@ impl KeyboardState {
     /// Returns `true` if any key was pressed in the current event batch.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::Input;
     ///
@@ -902,6 +942,7 @@ impl KeyboardState {
     /// Returns `true` if any key was released in the current event batch.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::Input;
     ///
@@ -923,6 +964,7 @@ impl KeyboardState {
     /// Returns `true` if any key is currently down.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::Input;
     ///
@@ -944,6 +986,7 @@ impl KeyboardState {
     /// Returns `true` if any key was used in the current event batch.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::Input;
     ///
@@ -965,6 +1008,7 @@ impl KeyboardState {
     /// Creates a new `KeyboardState` with all keys initialized to not pressed.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::KeyboardState;
     ///

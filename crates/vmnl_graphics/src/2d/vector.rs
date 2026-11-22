@@ -26,10 +26,10 @@ pub struct Vector2f {
 }
 
 impl Vector2f {
-    /// Normalize the vector to have a length of 1, preserving its direction.
+    /// Scales the vector by the reciprocal of its length.
     ///
-    /// # Returns
-    /// A new `Vector2f` instance representing the normalized vector.
+    /// Returns zero for a zero vector or a NaN component. Callers needing a unit vector
+    /// must supply components with a finite, nonzero computed length.
     pub(crate) fn normalize(self) -> Self {
         if (self.x == 0.0 && self.y == 0.0) || self.x.is_nan() || self.y.is_nan() {
             return Self { x: 0.0, y: 0.0 };

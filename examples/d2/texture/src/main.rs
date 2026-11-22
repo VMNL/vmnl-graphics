@@ -14,6 +14,7 @@ fn main() -> VMNLResult<()> {
         Texture2D::from_file(&context, "examples/d2/texture/assets/pikachu.png").build()?;
     let sampler = Sampler::builder(&context).build()?;
 
+    // Validate the pairing and wait for the upload before reporting the texture as ready.
     texture.view().validate_sampler(&sampler)?;
     assert_eq!(
         texture.initial_upload().wait(None)?,

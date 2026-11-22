@@ -21,13 +21,12 @@ use vulkano::{
 };
 
 impl VMNLWindow {
-    /// Create an image view for each swapchain image.
+    /// Creates an image view for each swapchain image.
+    ///
+    /// Returns a vector of `Arc<ImageView>` corresponding to each swapchain image.
     ///
     /// # Arguments
     /// - `images`: A slice of Vulkan images obtained from the swapchain.
-    ///
-    /// # Returns
-    /// A vector of `Arc<ImageView>` corresponding to each swapchain image.
     ///
     /// # Sources
     /// <https://docs.rs/vulkano/latest/vulkano/image/view/index.html>
@@ -49,15 +48,14 @@ impl VMNLWindow {
             .collect()
     }
 
-    /// Create a Vulkan swapchain for the given surface and device, returning the swapchain and its images.
+    /// Creates a Vulkan swapchain for the given surface and device, returning the swapchain and its images.
+    ///
+    /// Returns a tuple `(Arc<Swapchain>, Vec<Arc<Image>>)` containing the created swapchain and its associated images.
     ///
     /// # Arguments
     /// - `device`: Vulkan logical device used to create the swapchain and query surface capabilities.
     /// - `surface`: Vulkan surface representing the OS window to present rendered images to.
     /// - `window_extent`: Desired dimensions of the swapchain images, typically matching the window size.
-    ///
-    /// # Returns
-    /// A tuple `(Arc<Swapchain>, Vec<Arc<Image>>)` containing the created swapchain and its associated images.
     ///
     /// # Sources
     /// <https://docs.rs/vulkano/latest/vulkano/swapchain/index.html>

@@ -54,16 +54,18 @@ pub struct Window {
 impl Window {
     /// Creates a new `Window` instance with default configuration options.
     ///
+    /// Returns a `VMNLResult` containing the newly created `Window` instance or an error if the window creation fails.
+    ///
     /// # Arguments
+    ///
     /// - `context`: The graphics context to associate with the window.
     ///
-    /// # Returns
-    /// A `VMNLResult` containing the newly created `Window` instance or an error if the window creation fails.
-    ///
     /// # Errors
-    /// Returns an error if default window initialization fails.
+    ///
+    /// Propagates the same initialization errors as [`WindowBuilder::build`].
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// use vmnl_graphics::{Context, Window};
     ///
@@ -80,6 +82,7 @@ impl Window {
     /// Provides a builder for constructing a `Window` instance with customizable options.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// use vmnl_graphics::{Context, Window};
     ///
@@ -129,6 +132,10 @@ impl Window {
     /// The returned copy performs no allocation, synchronization or GPU query. Depth
     /// format and clear value persist across resize; image extent follows the swapchain.
     /// This does not expose backend image handles or imply that depth testing is enabled.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self::render_target_info`].
     #[must_use]
     pub const fn render_target_config(&self) -> RenderTargetConfig {
         self.inner.config.render_target
@@ -141,6 +148,23 @@ impl Window {
     /// This allocates nothing and performs no GPU query or synchronization. Equal
     /// descriptions do not make pipelines shareable across windows; use
     /// [`crate::raw::Pipeline::validate_target`] for that check.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use vmnl_graphics::{Context, Window};
+    ///
+    /// # fn main() -> vmnl_graphics::VMNLResult<()> {
+    /// let context = Context::new()?;
+    /// let window = Window::new(&context)?;
+    /// let config = window.render_target_config();
+    /// let info = window.render_target_info();
+    /// assert_eq!(info.depth_format(), config.depth_value());
+    /// assert_eq!(info.sample_count(), 1);
+    /// let _resolved_color_format = info.color_format();
+    /// # Ok(())
+    /// # }
+    /// ```
     #[must_use]
     pub const fn render_target_info(&self) -> RenderTargetInfo {
         self.inner.config.render_target_info

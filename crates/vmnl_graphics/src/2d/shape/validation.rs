@@ -6,6 +6,7 @@
 use super::Vertex2D;
 use crate::{VMNLError, VMNLErrorKind, VMNLResult};
 
+/// Rejects non-finite values, giving NaN precedence over infinities across the slice.
 pub(super) fn validate_finite(values: &[f32], subject: &str) -> VMNLResult<()> {
     if values.iter().any(|value| value.is_nan()) {
         return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
@@ -22,6 +23,9 @@ pub(super) fn validate_finite(values: &[f32], subject: &str) -> VMNLResult<()> {
     Ok(())
 }
 
+/// Checks every vertex position, including vertices absent from the index list.
+///
+/// Rejects any NaN coordinate before reporting an infinite coordinate.
 pub(super) fn validate_finite_positions(vertices: &[Vertex2D], subject: &str) -> VMNLResult<()> {
     if vertices
         .iter()
@@ -44,6 +48,9 @@ pub(super) fn validate_finite_positions(vertices: &[Vertex2D], subject: &str) ->
     Ok(())
 }
 
+/// Checks that each value is finite and strictly positive.
+///
+/// Reports non-finite input before testing the positivity constraint.
 pub(super) fn validate_positive_finite(values: &[f32], subject: &str) -> VMNLResult<()> {
     validate_finite(values, subject)?;
 

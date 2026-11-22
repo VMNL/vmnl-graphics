@@ -15,13 +15,12 @@ use vulkano::{
 };
 
 impl VMNLInstance {
-    /// Create a Vulkan instance with the required extensions for GLFW integration.
+    /// Creates a Vulkan instance with the required extensions for GLFW integration.
+    ///
+    /// Returns a `VMNLResult<Arc<Instance>>` containing the created Vulkan instance on success.
     ///
     /// # Arguments
     /// - `glfw`: The GLFW context used to query required instance extensions for Vulkan.
-    ///
-    /// # Returns
-    /// A `VMNLResult<Arc<Instance>>` containing the created Vulkan instance on success.
     #[must_use = "vulkan instance is required for all other Vulkan resource initialization"]
     pub(super) fn create_instance(glfw: &glfw::Glfw) -> VMNLResult<Arc<Instance>> {
         let library: Arc<VulkanLibrary> =

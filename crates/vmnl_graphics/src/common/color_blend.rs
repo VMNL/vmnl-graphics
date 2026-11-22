@@ -101,6 +101,30 @@ impl ColorBlendOperation {
 /// The default disables blending. Presets are editable values; use the `with_*`
 /// methods to replace any part before passing the configuration to
 /// `raw::PipelineSpec::color_blend`.
+///
+/// # Example
+///
+/// ```rust
+/// use vmnl_graphics::common::{ColorBlendConfig, ColorBlendFactor as Factor,
+///     ColorBlendOperation as Operation};
+///
+/// assert!(!ColorBlendConfig::opaque().blend_enabled());
+/// let straight = ColorBlendConfig::straight_alpha();
+/// let premultiplied = ColorBlendConfig::premultiplied_alpha();
+/// assert_ne!(straight.color_source_factor(), premultiplied.color_source_factor());
+///
+/// let configured = premultiplied
+///     .with_blend_enabled(true)
+///     .with_color_blend(Factor::One, Factor::One, Operation::Add)
+///     .with_alpha_blend(Factor::One, Factor::Zero, Operation::Add)
+///     .with_blend_constants([0.0, 0.0, 0.0, 1.0]);
+/// assert_eq!(configured.color_destination_factor(), Factor::One);
+/// assert_eq!(configured.color_operation(), Operation::Add);
+/// assert_eq!(configured.alpha_source_factor(), Factor::One);
+/// assert_eq!(configured.alpha_destination_factor(), Factor::Zero);
+/// assert_eq!(configured.alpha_operation(), Operation::Add);
+/// assert_eq!(configured.blend_constants(), [0.0, 0.0, 0.0, 1.0]);
+/// ```
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ColorBlendConfig {
     blend_enabled: bool,
@@ -121,6 +145,10 @@ impl Default for ColorBlendConfig {
 
 impl ColorBlendConfig {
     /// Returns blending-disabled state, which writes shader output directly.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn opaque() -> Self {
         Self {
@@ -138,6 +166,10 @@ impl ColorBlendConfig {
     /// Returns straight-alpha source-over blending.
     ///
     /// RGB is `Cs * As + Cd * (1 - As)`; alpha is `As + Ad * (1 - As)`.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn straight_alpha() -> Self {
         Self {
@@ -156,6 +188,10 @@ impl ColorBlendConfig {
     ///
     /// RGB is `Cs + Cd * (1 - As)`; the shader must write premultiplied `Cs`.
     /// Alpha is `As + Ad * (1 - As)`.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn premultiplied_alpha() -> Self {
         Self {
@@ -171,6 +207,14 @@ impl ColorBlendConfig {
     }
 
     /// Enables or disables blending without changing the configured factors.
+    ///
+    /// # Arguments
+    ///
+    /// - `enabled` selects blending when true or direct shader writes when false.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn with_blend_enabled(mut self, enabled: bool) -> Self {
         self.blend_enabled = enabled;
@@ -178,6 +222,16 @@ impl ColorBlendConfig {
     }
 
     /// Replaces the independent RGB source/destination factors and operation.
+    ///
+    /// # Arguments
+    ///
+    /// - `source` selects the factor applied to the incoming RGB channels.
+    /// - `destination` selects the factor applied to the RGB channels already in the attachment.
+    /// - `operation` selects how the incoming and stored RGB values are combined.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn with_color_blend(
         mut self,
@@ -192,6 +246,16 @@ impl ColorBlendConfig {
     }
 
     /// Replaces the independent alpha source/destination factors and operation.
+    ///
+    /// # Arguments
+    ///
+    /// - `source` selects the factor applied to incoming alpha.
+    /// - `destination` selects the factor applied to alpha already in the attachment.
+    /// - `operation` selects how incoming and stored alpha are combined.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn with_alpha_blend(
         mut self,
@@ -206,6 +270,15 @@ impl ColorBlendConfig {
     }
 
     /// Sets the blend constant in RGBA order; values are passed to Vulkan unchanged.
+    ///
+    /// # Arguments
+    ///
+    /// - `rgba` supplies the four constants in red, green, blue, alpha order for constant blend
+    ///   factors.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn with_blend_constants(mut self, rgba: [f32; 4]) -> Self {
         self.blend_constants = rgba;
@@ -213,48 +286,80 @@ impl ColorBlendConfig {
     }
 
     /// Returns whether blending is enabled.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn blend_enabled(self) -> bool {
         self.blend_enabled
     }
 
     /// Returns the RGB source factor.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn color_source_factor(self) -> ColorBlendFactor {
         self.color_source_factor
     }
 
     /// Returns the RGB destination factor.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn color_destination_factor(self) -> ColorBlendFactor {
         self.color_destination_factor
     }
 
     /// Returns the RGB operation.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn color_operation(self) -> ColorBlendOperation {
         self.color_operation
     }
 
     /// Returns the alpha source factor.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn alpha_source_factor(self) -> ColorBlendFactor {
         self.alpha_source_factor
     }
 
     /// Returns the alpha destination factor.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn alpha_destination_factor(self) -> ColorBlendFactor {
         self.alpha_destination_factor
     }
 
     /// Returns the alpha operation.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn alpha_operation(self) -> ColorBlendOperation {
         self.alpha_operation
     }
 
     /// Returns the blend constant in RGBA order.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn blend_constants(self) -> [f32; 4] {
         self.blend_constants
@@ -278,6 +383,34 @@ impl ColorBlendConfig {
 ///
 /// Each setter selects an exact field value. An unset field inherits. A complete
 /// [`ColorBlendConfig`] can be converted into an override for every field.
+///
+/// # Example
+///
+/// ```rust
+/// use vmnl_graphics::common::{ColorBlendConfig, ColorBlendFactor as Factor,
+///     ColorBlendOperation as Operation, ColorBlendOverrides};
+///
+/// let base = ColorBlendConfig::straight_alpha();
+/// let overrides = ColorBlendOverrides::default()
+///     .with_blend_enabled(true)
+///     .with_color_source_factor(Factor::One)
+///     .with_color_destination_factor(Factor::One)
+///     .with_color_operation(Operation::Add)
+///     .with_alpha_source_factor(Factor::One)
+///     .with_alpha_destination_factor(Factor::Zero)
+///     .with_alpha_operation(Operation::Add)
+///     .with_blend_constants([0.0, 0.0, 0.0, 1.0]);
+/// let effective = overrides.resolve(base);
+/// let complete = ColorBlendOverrides::from_config(effective);
+/// assert_eq!(complete.blend_enabled(), Some(true));
+/// assert_eq!(complete.color_source_factor(), Some(Factor::One));
+/// assert_eq!(complete.color_destination_factor(), Some(Factor::One));
+/// assert_eq!(complete.color_operation(), Some(Operation::Add));
+/// assert_eq!(complete.alpha_source_factor(), Some(Factor::One));
+/// assert_eq!(complete.alpha_destination_factor(), Some(Factor::Zero));
+/// assert_eq!(complete.alpha_operation(), Some(Operation::Add));
+/// assert_eq!(complete.blend_constants(), Some([0.0, 0.0, 0.0, 1.0]));
+/// ```
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct ColorBlendOverrides {
     blend_enabled: Option<bool>,
@@ -303,6 +436,15 @@ impl ColorBlendOverrides {
     };
 
     /// Converts every value of a complete blend configuration into an explicit override.
+    ///
+    /// # Arguments
+    ///
+    /// - `config` supplies the complete blend state, typically from a preset or an existing pipeline
+    ///   request.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn from_config(config: ColorBlendConfig) -> Self {
         Self {
@@ -318,6 +460,14 @@ impl ColorBlendOverrides {
     }
 
     /// Resolves the override against a complete base configuration without GPU work.
+    ///
+    /// # Arguments
+    ///
+    /// - `base` supplies the complete state used for fields that have no override.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn resolve(self, mut base: ColorBlendConfig) -> ColorBlendConfig {
         if let Some(value) = self.blend_enabled {
@@ -348,6 +498,14 @@ impl ColorBlendOverrides {
     }
 
     /// Sets whether blending is enabled and preserves all other overrides.
+    ///
+    /// # Arguments
+    ///
+    /// - `value` selects blending when true or direct shader writes when false.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn with_blend_enabled(mut self, value: bool) -> Self {
         self.blend_enabled = Some(value);
@@ -355,12 +513,24 @@ impl ColorBlendOverrides {
     }
 
     /// Returns the explicit override for whether blending is enabled, if supplied.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn blend_enabled(self) -> Option<bool> {
         self.blend_enabled
     }
 
     /// Sets the RGB source factor and preserves all other overrides.
+    ///
+    /// # Arguments
+    ///
+    /// - `value` selects the factor applied to incoming RGB.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn with_color_source_factor(mut self, value: ColorBlendFactor) -> Self {
         self.color_source_factor = Some(value);
@@ -368,12 +538,24 @@ impl ColorBlendOverrides {
     }
 
     /// Returns the explicit override for the RGB source factor, if supplied.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn color_source_factor(self) -> Option<ColorBlendFactor> {
         self.color_source_factor
     }
 
     /// Sets the RGB destination factor and preserves all other overrides.
+    ///
+    /// # Arguments
+    ///
+    /// - `value` selects the factor applied to RGB already in the attachment.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn with_color_destination_factor(mut self, value: ColorBlendFactor) -> Self {
         self.color_destination_factor = Some(value);
@@ -381,12 +563,24 @@ impl ColorBlendOverrides {
     }
 
     /// Returns the explicit override for the RGB destination factor, if supplied.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn color_destination_factor(self) -> Option<ColorBlendFactor> {
         self.color_destination_factor
     }
 
     /// Sets the RGB operation and preserves all other overrides.
+    ///
+    /// # Arguments
+    ///
+    /// - `value` selects how source and destination RGB values are combined.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn with_color_operation(mut self, value: ColorBlendOperation) -> Self {
         self.color_operation = Some(value);
@@ -394,12 +588,24 @@ impl ColorBlendOverrides {
     }
 
     /// Returns the explicit override for the RGB operation, if supplied.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn color_operation(self) -> Option<ColorBlendOperation> {
         self.color_operation
     }
 
     /// Sets the alpha source factor and preserves all other overrides.
+    ///
+    /// # Arguments
+    ///
+    /// - `value` selects the factor applied to incoming alpha.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn with_alpha_source_factor(mut self, value: ColorBlendFactor) -> Self {
         self.alpha_source_factor = Some(value);
@@ -407,12 +613,24 @@ impl ColorBlendOverrides {
     }
 
     /// Returns the explicit override for the alpha source factor, if supplied.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn alpha_source_factor(self) -> Option<ColorBlendFactor> {
         self.alpha_source_factor
     }
 
     /// Sets the alpha destination factor and preserves all other overrides.
+    ///
+    /// # Arguments
+    ///
+    /// - `value` selects the factor applied to alpha already in the attachment.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn with_alpha_destination_factor(mut self, value: ColorBlendFactor) -> Self {
         self.alpha_destination_factor = Some(value);
@@ -420,12 +638,24 @@ impl ColorBlendOverrides {
     }
 
     /// Returns the explicit override for the alpha destination factor, if supplied.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn alpha_destination_factor(self) -> Option<ColorBlendFactor> {
         self.alpha_destination_factor
     }
 
     /// Sets the alpha operation and preserves all other overrides.
+    ///
+    /// # Arguments
+    ///
+    /// - `value` selects how source and destination alpha are combined.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn with_alpha_operation(mut self, value: ColorBlendOperation) -> Self {
         self.alpha_operation = Some(value);
@@ -433,12 +663,24 @@ impl ColorBlendOverrides {
     }
 
     /// Returns the explicit override for the alpha operation, if supplied.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn alpha_operation(self) -> Option<ColorBlendOperation> {
         self.alpha_operation
     }
 
     /// Sets the RGBA blend constants and preserves all other overrides.
+    ///
+    /// # Arguments
+    ///
+    /// - `value` supplies the constants in RGBA order for constant blend factors.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn with_blend_constants(mut self, value: [f32; 4]) -> Self {
         self.blend_constants = Some(value);
@@ -446,6 +688,10 @@ impl ColorBlendOverrides {
     }
 
     /// Returns the explicit override for the RGBA blend constants, if supplied.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn blend_constants(self) -> Option<[f32; 4]> {
         self.blend_constants

@@ -54,6 +54,26 @@ impl Drop for CursorResource {
 /// retains its own clone while the cursor is assigned, so dropping a client clone cannot invalidate
 /// a cursor still used by a window. The native resource is destroyed when its last owner is dropped.
 /// `Cursor` is intentionally neither `Send` nor `Sync` and must remain on the GLFW thread.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use vmnl_graphics::{Context, Cursor, StandardCursor, Window};
+///
+/// # fn main() -> vmnl_graphics::VMNLResult<()> {
+/// let context = Context::new()?;
+/// let mut window = Window::new(&context)?;
+/// let system = Cursor::standard(StandardCursor::Crosshair).build(&context)?;
+/// window.set_cursor(Some(&system))?;
+///
+/// let pixel = [255, 255, 255, 255];
+/// let custom = Cursor::rgba8(1, 1, &pixel).hotspot(0, 0)
+///     .hotspot_marker([255, 0, 0, 255])
+///     .build(&context)?;
+/// window.set_cursor(Some(&custom))?;
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Clone)]
 pub struct Cursor {
     resource: Rc<CursorResource>,
@@ -64,6 +84,14 @@ impl Cursor {
     ///
     /// Exact appearance and size come from the active system cursor theme. No native resource is
     /// created until [`StandardCursorBuilder::build`] is called.
+    ///
+    /// # Arguments
+    ///
+    /// - `shape` selects a native system cursor shape from the `StandardCursor` variants.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     pub const fn standard(shape: StandardCursor) -> StandardCursorBuilder {
         StandardCursorBuilder { shape }
     }
@@ -73,6 +101,16 @@ impl Cursor {
     /// Pixels are arranged as sequential rows from the upper-left corner, with four bytes per
     /// pixel in red, green, blue, alpha order. The builder borrows the pixels until
     /// [`CursorBuilder::build`] copies them through GLFW. The hotspot defaults to `(0, 0)`.
+    ///
+    /// # Arguments
+    ///
+    /// - `width` supplies the image width in pixels.
+    /// - `height` supplies the image height in pixels.
+    /// - `pixels` supplies four non-premultiplied RGBA8 bytes per pixel, packed row by row.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     pub const fn rgba8(width: u32, height: u32, pixels: &[u8]) -> CursorBuilder<'_> {
         CursorBuilder {
             width,
@@ -125,12 +163,18 @@ impl StandardCursorBuilder {
     ///
     /// This call performs one native allocation.
     ///
+    /// # Arguments
+    ///
+    /// - `context` supplies the live GLFW runtime. Use the context associated with the target window.
+    ///
     /// # Errors
+    ///
     /// Returns [`GlfwUnsupportedPlatform`](VMNLErrorKind::GlfwUnsupportedPlatform) when the active
     /// cursor theme does not provide the requested shape. Other creation failures retain their
     /// corresponding VMNL GLFW error category.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Cursor, StandardCursor};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -162,6 +206,15 @@ pub struct CursorBuilder<'pixels> {
 
 impl CursorBuilder<'_> {
     /// Sets the active hotspot in image pixels relative to the upper-left corner.
+    ///
+    /// # Arguments
+    ///
+    /// - `x` supplies the active column in image pixels, counted from the left.
+    /// - `y` supplies the active row in image pixels, counted from the top.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Cursor`].
     pub const fn hotspot(mut self, x: u32, y: u32) -> Self {
         self.hotspot = (x, y);
         self
@@ -173,6 +226,14 @@ impl CursorBuilder<'_> {
     /// slice. The caller controls visibility by choosing a color that contrasts with the cursor;
     /// VMNL does not alter the supplied RGBA components. Enabling the marker performs one temporary
     /// `width * height * 4` byte allocation during `build`.
+    ///
+    /// # Arguments
+    ///
+    /// - `color` supplies the diagnostic hotspot color as an `Rgba` value or an RGB/RGBA byte array.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Cursor`].
     pub fn hotspot_marker<C>(mut self, color: C) -> Self
     where
         C: Into<Rgba>,
@@ -188,13 +249,19 @@ impl CursorBuilder<'_> {
     /// complete source image into one temporary VMNL buffer and overwrites exactly the final
     /// hotspot pixel.
     ///
+    /// # Arguments
+    ///
+    /// - `context` supplies the live GLFW runtime. Use the context associated with the target window.
+    ///
     /// # Errors
+    ///
     /// Returns [`InvalidState`](VMNLErrorKind::InvalidState) when a dimension is zero or exceeds
     /// GLFW's signed integer range, when `pixels.len()` is not exactly `width * height * 4`, or
     /// when the hotspot is outside the image. Native creation failures retain their VMNL GLFW
     /// error category.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{common::Rgba, Context, Cursor};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {

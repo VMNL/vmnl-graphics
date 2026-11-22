@@ -159,6 +159,10 @@ struct StrokeConfig<'a> {
     colors: StrokeColors<'a>,
 }
 
+/// Produces indexed stroke geometry for the supplied centerline.
+///
+/// The caller validates shape-specific parameters and supplies colors in the selected point or
+/// segment order. This stage constructs CPU geometry before buffer creation.
 pub(super) fn tessellate_stroke(
     points: &[Vector2f],
     width: f32,

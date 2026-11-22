@@ -59,7 +59,7 @@ pub struct LineBuilder {
 }
 
 impl Default for LineOptions {
-    /// Create a default `LineOptions` instance with default values for all properties.
+    /// Creates a default `LineOptions` instance with default values for all properties.
     fn default() -> Self {
         Self {
             from: Vector2f { x: 0.0, y: 0.0 },
@@ -88,12 +88,14 @@ impl LineBuilder {
         }
     }
 
-    /// Set the width of the line.
+    /// Sets the width of the line.
     ///
     /// # Arguments
+    ///
     /// - `width`: The desired width of the line in pixels. Must be a positive value.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::d2::{Shape, Vector2f};
@@ -111,12 +113,14 @@ impl LineBuilder {
         self
     }
 
-    /// Set the line cap style.
+    /// Sets the line cap style.
     ///
     /// # Arguments
+    ///
     /// - `cap`: The desired line cap style, which can be `Butt`, `Round`, or `Square`.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::d2::{LineCap, Shape, Vector2f};
@@ -134,12 +138,14 @@ impl LineBuilder {
         self
     }
 
-    /// Set the color of the line.
+    /// Sets the color of the line.
     ///
     /// # Arguments
+    ///
     /// - `color`: Color convertible to `Rgba`, for example `Rgba::BLUE`, `[r, g, b]`, or `[r, g, b, a]`.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::d2::{Shape, Vector2f};
@@ -160,14 +166,16 @@ impl LineBuilder {
         self
     }
 
-    /// Set the preferred memory placement for the created vertex and index buffers.
+    /// Sets the preferred memory placement for the created vertex and index buffers.
     ///
     /// This is a preference, not a guarantee. Defaults to `BufferMemoryPreference::Device`.
     ///
     /// # Arguments
+    ///
     /// - `preference`: Preferred GPU buffer memory placement.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::common::BufferMemoryPreference;
@@ -186,18 +194,23 @@ impl LineBuilder {
         self
     }
 
-    /// Create a `Shape` instance by transforming the input line parameters into a vertex buffer.
+    /// Creates a `Shape` instance by transforming the input line parameters into a vertex buffer.
+    ///
+    /// Returns a `Shape` instance representing the line, ready for rendering.
     ///
     /// # Arguments
+    ///
     /// - `context`: Graphics context used to allocate GPU buffers.
     ///
-    /// # Returns
-    /// A `Shape` instance representing the line, ready for rendering.
-    ///
     /// # Errors
-    /// Returns an error if the geometry is invalid or GPU buffer creation fails.
+    ///
+    /// Returns `InvalidState` for coincident or non-finite endpoints, non-positive or
+    /// non-finite width, or invalid generated geometry or CPU storage requirements.
+    /// Returns `VulkanVertexBufferCreationFailed` or `VulkanIndexBufferCreationFailed`
+    /// if the corresponding GPU buffer cannot be created.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::common::Rgba;
@@ -254,19 +267,7 @@ impl LineBuilder {
         )
     }
 
-    /// Create a line shape from validated builder options.
-    ///
-    /// # Arguments
-    /// - `context`: Reference to the VMNL context providing the memory allocator.
-    /// - `from`: Starting point of the line as a `Vector2f`.
-    /// - `to`: Ending point of the line as a `Vector2f`.
-    /// - `width`: Width of the line in pixels.
-    /// - `cap`: Line cap style.
-    /// - `color`: RGBA color of the line.
-    /// - `buffer_memory_preference`: Preferred GPU buffer memory placement.
-    ///
-    /// # Returns
-    /// A `Shape` instance representing the line, ready for rendering.
+    // Validate the endpoints and width before generating the shared stroke mesh.
     fn line(
         context: &Context,
         from: Vector2f,

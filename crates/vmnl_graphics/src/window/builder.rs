@@ -98,6 +98,22 @@ impl PresentModeSelection {
 }
 
 /// Builder pattern for constructing a `Window` instance with customizable options.
+///
+/// # Example
+///
+/// ```rust
+/// use vmnl_graphics::{StickAngleConvention, StickConfig, RenderTargetConfig, Window};
+///
+/// let stick = StickConfig::new(0.2, StickAngleConvention::Screen2D)?;
+/// let builder = Window::builder()
+///     .joystick_event_delivery(true)
+///     .joystick_tracking(true)
+///     .left_stick_config(stick)
+///     .right_stick_config(stick)
+///     .render_target(RenderTargetConfig::default());
+/// assert_eq!(builder.render_target_value().depth_value(), None);
+/// # Ok::<(), vmnl_graphics::VMNLError>(())
+/// ```
 pub struct WindowBuilder {
     /// The configuration options for the window being built.
     pub(crate) options: WindowOptions,
@@ -205,47 +221,81 @@ pub(crate) const fn validate_window_size(width: u32, height: u32) -> VMNLResult<
 }
 
 impl WindowBuilder {
-    /// Choose whether this window receives joystick connection and disconnection events.
+    /// Chooses whether this window receives joystick connection and disconnection events.
     ///
     /// Delivery is disabled by default. This option does not enable per-window joystick state
     /// tracking; event delivery and state tracking are independent controls.
+    ///
+    /// # Arguments
+    ///
+    /// - `enabled` controls whether the window receives joystick connection changes.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn joystick_event_delivery(mut self, enabled: bool) -> Self {
         self.options.joystick_event_delivery = enabled;
         self
     }
 
-    /// Choose whether this window samples joystick state during [`Window::poll_events`].
+    /// Chooses whether this window samples joystick state during [`Window::poll_events`].
     ///
     /// Tracking is disabled by default. Enabling it initializes GLFW's joystick query subsystem
     /// and adds a sample sweep of all sixteen slots to each poll. This setting is independent of
     /// [`joystick_event_delivery`](Self::joystick_event_delivery).
+    ///
+    /// # Arguments
+    ///
+    /// - `enabled` controls whether polling samples and retains joystick state.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn joystick_tracking(mut self, enabled: bool) -> Self {
         self.options.joystick_tracking = enabled;
         self
     }
 
-    /// Configure the processed left stick for each mapped gamepad in this window.
+    /// Configures the processed left stick for each mapped gamepad in this window.
+    ///
+    /// # Arguments
+    ///
+    /// - `config` supplies the dead zone and angle convention for left sticks.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn left_stick_config(mut self, config: StickConfig) -> Self {
         self.options.left_stick_config = config;
         self
     }
 
-    /// Configure the processed right stick for each mapped gamepad in this window.
+    /// Configures the processed right stick for each mapped gamepad in this window.
+    ///
+    /// # Arguments
+    ///
+    /// - `config` supplies the dead zone and angle convention for right sticks.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn right_stick_config(mut self, config: StickConfig) -> Self {
         self.options.right_stick_config = config;
         self
     }
 
-    /// Set the window title used by the native window manager.
+    /// Sets the window title used by the native window manager.
     ///
     /// # Arguments
+    ///
     /// - `title`: New UTF-8 window title.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -262,16 +312,18 @@ impl WindowBuilder {
         self
     }
 
-    /// Set the initial window size in screen pixels.
+    /// Sets the initial window size in screen pixels.
     ///
     /// Both dimensions must be at least `64`; smaller values are rejected by
     /// [`WindowBuilder::build`].
     ///
     /// # Arguments
+    ///
     /// - `width`: Initial window width in screen pixels.
     /// - `height`: Initial window height in screen pixels.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -289,12 +341,13 @@ impl WindowBuilder {
         self
     }
 
-    /// Disable the default public event delivery configuration.
+    /// Disables the default public event delivery configuration.
     ///
     /// Keyboard and mouse-button state tracking remains active. The application must enable each
     /// public event source it wants returned by [`Window::poll_events`].
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -311,18 +364,21 @@ impl WindowBuilder {
         self
     }
 
-    /// Set optional minimum and maximum size limits for the native window.
+    /// Sets optional minimum and maximum size limits for the native window.
     ///
     /// # Arguments
+    ///
     /// - `min_width`: Optional minimum width in screen pixels.
     /// - `min_height`: Optional minimum height in screen pixels.
     /// - `max_width`: Optional maximum width in screen pixels.
     /// - `max_height`: Optional maximum height in screen pixels.
     ///
     /// # Errors
-    /// Returns an error if a minimum dimension exceeds its maximum dimension.
+    ///
+    /// Returns `InvalidWindowSize` when a minimum dimension exceeds its maximum dimension.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -348,15 +404,17 @@ impl WindowBuilder {
         Ok(self)
     }
 
-    /// Set the 2D vertex shader source.
+    /// Sets the 2D vertex shader source.
     ///
     /// The source is compiled during window creation. This replaces the default
     /// VMNL 2D vertex shader for the window.
     ///
     /// # Arguments
+    ///
     /// - `source`: Inline GLSL source or path to a GLSL source file.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, ShaderSource, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -373,15 +431,17 @@ impl WindowBuilder {
         self
     }
 
-    /// Set the 2D fragment shader source.
+    /// Sets the 2D fragment shader source.
     ///
     /// The source is compiled during window creation. This replaces the default
     /// VMNL 2D fragment shader for the window.
     ///
     /// # Arguments
+    ///
     /// - `source`: Inline GLSL source or path to a GLSL source file.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, ShaderSource, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -398,15 +458,17 @@ impl WindowBuilder {
         self
     }
 
-    /// Set the clear color used at the beginning of each submitted frame.
+    /// Sets the clear color used at the beginning of each submitted frame.
     ///
     /// This color is visible when a frame has no draw calls or where rendered
     /// geometry does not cover the framebuffer.
     ///
     /// # Arguments
+    ///
     /// - `clear_color`: Color convertible to `Rgba`, for example `Rgba::BLACK`, `[r, g, b]`, or `[r, g, b, a]`.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -426,16 +488,18 @@ impl WindowBuilder {
         self
     }
 
-    /// Set the required swapchain presentation mode.
+    /// Sets the required swapchain presentation mode.
     ///
     /// If the mode is unsupported by the surface, [`WindowBuilder::build`]
     /// returns an error. Use [`WindowBuilder::preferred_present_mode`] for a
     /// fallback behavior.
     ///
     /// # Arguments
+    ///
     /// - `present_mode`: Required swapchain presentation mode.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, PresentMode, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -455,15 +519,17 @@ impl WindowBuilder {
         self
     }
 
-    /// Set the preferred swapchain presentation mode.
+    /// Sets the preferred swapchain presentation mode.
     ///
     /// If the mode is unsupported by the surface, window creation falls back to
     /// VMNL's automatic priority order instead of returning an error.
     ///
     /// # Arguments
+    ///
     /// - `present_mode`: Preferred swapchain presentation mode.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, PresentMode, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -487,6 +553,14 @@ impl WindowBuilder {
     ///
     /// This setter is CPU-only. Build validates numeric configuration before native
     /// window creation and rejects unsupported depth formats without fallback.
+    ///
+    /// # Arguments
+    ///
+    /// - `config` supplies attachment requirements, for example from `RenderTargetConfig::default`.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn render_target(mut self, config: RenderTargetConfig) -> Self {
         self.options.render_target = config;
@@ -494,20 +568,29 @@ impl WindowBuilder {
     }
 
     /// Returns the requested render attachment configuration without GPU work.
+    ///
+    /// # Example
+    ///
+    /// See the workflow on [`Self`].
     #[must_use]
     pub const fn render_target_value(&self) -> RenderTargetConfig {
         self.options.render_target
     }
 
-    /// Build a `Window` from the configured options and an existing [`Context`].
+    /// Builds a `Window` from the configured options and an existing [`Context`].
     ///
     /// # Arguments
+    ///
     /// - `context`: Graphics context that owns the Vulkan instance/device resources.
     ///
     /// # Errors
-    /// Returns an error if the options are invalid or window initialization fails.
+    ///
+    /// Returns `InvalidWindowSize` for invalid dimensions or size limits. Propagates validation
+    /// errors for attachment or presentation requirements and backend errors encountered while
+    /// creating the GLFW window, Vulkan surface, swapchain, or default render resources.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
