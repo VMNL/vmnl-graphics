@@ -49,7 +49,7 @@ status query fails. Pending uploads join the GPU dependency chain without a host
 
 `VulkanOutOfDate` can be returned when acquisition or presentation finds the swapchain out of date, or when the framebuffer has no renderable extent. A presentation-stage error may follow queue submission; it does not mean that no work was submitted or that its resources are idle. VMNL requests swapchain recreation and preserves the synchronization state needed to keep the same window usable after it becomes renderable. Continue processing events and retry with that window.
 
-With Vulkano 0.35.2, retiring a failed presentation future can wait for the presentation queue to become idle. This error path can block the thread calling `submit` while submitted resources are retired.
+`submit` returns `VulkanDeviceLost` when presentation or the subsequent fence submission reports device loss. Error cleanup can block the calling thread while the queue retires submitted resources.
 
 Earlier `0.1.0` builds logged a presentation-stage out-of-date result and returned `Ok(())`. That result is now `Err(VulkanOutOfDate)`, matching the documented error contract. Callers that depended on the previous behavior must handle this transient error.
 

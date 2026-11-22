@@ -243,8 +243,9 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     /// mean that no work was submitted or that its resources are idle. VMNL preserves
     /// the required synchronization and requests swapchain recreation, so the same
     /// window can be used again after its framebuffer is renderable.
-    /// With Vulkano 0.35.2, retiring a failed presentation future can wait for the
-    /// presentation queue to become idle; this error path can block the calling thread.
+    /// Returns `VMNLErrorKind::VulkanDeviceLost` if presentation or the subsequent fence
+    /// submission reports device loss. Error cleanup can block the calling thread while
+    /// the queue retires submitted resources.
     ///
     /// Earlier `0.1.0` builds logged a presentation-stage out-of-date result and
     /// returned `Ok(())`. Callers that relied on that behavior must now handle

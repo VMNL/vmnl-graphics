@@ -21,6 +21,8 @@ Notable user-facing changes are recorded here.
 
 - Frame submission returns `VulkanOutOfDate` for an out-of-date presentation instead of
   logging the condition and reporting success.
+- Frame submission returns `VulkanDeviceLost` when presentation or its follow-up fence
+  submission reports device loss after a successful draw submission.
 
 ## 0.1.0 - 2026-11-12
 

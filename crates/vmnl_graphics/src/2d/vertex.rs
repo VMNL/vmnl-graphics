@@ -7,7 +7,6 @@ use super::Vector2f;
 use crate::common::Rgba;
 use bytemuck::{Pod, Zeroable};
 use std::ops::{AddAssign, Mul, Sub, SubAssign};
-use vulkano::pipeline::graphics::vertex_input::Vertex as VulkanoVertex;
 
 /// Public vertex with a 2D position and 8-bit RGBA color.
 ///
@@ -24,7 +23,7 @@ pub struct Vertex2D {
 
 /// GPU vertex format with a 2D position and normalized color.
 #[repr(C)]
-#[derive(VulkanoVertex, Pod, Zeroable, Clone, Copy, Default, Debug, PartialEq)]
+#[derive(crate::raw::Vertex, Pod, Zeroable, Clone, Copy, Default, Debug, PartialEq)]
 pub(crate) struct GpuVertex2D {
     /// Position of the vertex as `[x, y]`.
     #[format(R32G32_SFLOAT)]

@@ -82,14 +82,21 @@ impl VMNLWindow {
             graphics_queue,
             SwapchainPresentInfo::swapchain_image_index(swapchain, image_index),
         );
-        match after_present
-            .boxed_send_sync()
-            .then_signal_fence_and_flush()
-        {
+        // Mark presentation as flushed before constructing the completion fence,
+        // so destruction cannot retry a failed presentation.
+        let result = after_present.flush().and_then(|()| {
+            after_present
+                .boxed_send_sync()
+                .then_signal_fence_and_flush()
+        });
+        match result {
             Ok(flushed) => Ok(FrameSyncResult::Submitted(Arc::new(flushed))),
+            Err(Validated::Error(VulkanError::DeviceLost)) => {
+                Err(VMNLError::new(VMNLErrorKind::VulkanDeviceLost))
+            }
             Err(Validated::Error(VulkanError::OutOfDate)) => {
-                // In Vulkano 0.35.2, dropping the failed fence future waits for the present
-                // queue and retires its submitted resources before this result is returned.
+                // Dropping the failed presentation future retires its submitted work before
+                // this error is returned.
                 Ok(FrameSyncResult::SwapchainOutOfDate(None))
             }
             Err(error) => {
