@@ -1,14 +1,17 @@
 // SPDX-FileCopyrightText: 2026 VMNL contributors
 // SPDX-License-Identifier: MIT
 
-//! Elapsed-time measurement primitives.
+//! Elapsed-time measurement and caller-advanced timing primitives.
 //!
 //! [`Clock`](crate::time::Clock) is an owned monotonic clock for independent elapsed-time measurements such as frame
-//! deltas or loading phases. [`Duration`](crate::time::Duration) is the standard-library duration type re-exported
-//! unchanged, so duration values can be constructed and combined without a clock.
+//! deltas or loading phases. [`Timer`](crate::time::Timer) accumulates a duration supplied by the
+//! caller, so animation periods, cooldowns, and delayed actions follow the application's selected
+//! delta. [`Duration`](crate::time::Duration) is the standard-library duration type re-exported
+//! unchanged, so duration values can be constructed and combined without a clock or timer.
 //!
-//! Neither type requires a `Context`, a window, GLFW initialization, or a Vulkan device, and
-//! reading or transitioning a clock never advances another clock, the event queue, or rendering.
+//! None of these types require a `Context`, a window, GLFW initialization, or a Vulkan device.
+//! Reading or transitioning a clock never advances another clock, a timer, the event queue, or
+//! rendering.
 //!
 //! # Example
 //!
@@ -32,8 +35,10 @@
 //! ```
 
 mod clock;
+mod timer;
 
 pub use clock::Clock;
+pub use timer::{Timer, TimerMode};
 
 /// A nonnegative span of time.
 ///
