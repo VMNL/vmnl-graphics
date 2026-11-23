@@ -3,7 +3,7 @@ default:
     @just --list
 
 # Build an example without opening a window.
-build example='d2_shapes':
+build example='d2_rectangle':
     cargo build -p '{{ example }}'
 
 # Build every workspace target.
@@ -11,8 +11,17 @@ build-workspace:
     cargo build --workspace --all-targets
 
 # Run an example.
-run example='d2_shapes':
+run example='d2_rectangle':
     cargo run -p '{{ example }}'
+
+# Create a runnable example and register it in the workspace and catalogue.
+[positional-arguments]
+example-new domain name *options:
+    python3 tools/examples.py new "$@"
+
+# Check that every workspace example has an accurate catalogue entry.
+example-check:
+    python3 tools/examples.py check
 
 # Run the headless test suites.
 [no-exit-message]

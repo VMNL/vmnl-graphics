@@ -1,72 +1,54 @@
 # Examples
 
-Examples are user-facing programs. Most open a window or demonstrate a visual rendering workflow.
-The single non-visual exception, `examples/input/joystick_runtime`, demonstrates standalone
-`InputRuntime` access without creating a `Context`, Vulkan instance, or window. It still initializes
-GLFW and requires a usable platform backend, so it is not a headless guarantee.
+The [example catalogue](../examples/README.md) lists every runnable example in the workspace
+and its manual scenario. Examples are public-API client programs for visual or interactive
+workflows. The windowless `joystick_runtime` example also shows standalone `InputRuntime`
+access. It initializes GLFW and requires a usable backend.
 
-## Layout
+## Decide when to create an example
 
-```text
-examples/d2/advanced_geometry
-examples/d2/circles
-examples/d2/shapes
-examples/input/joystick_runtime
-examples/raw/d2_composition
-examples/raw/pipeline
-examples/raw/texture
-examples/raw/triangle
-examples/raw/uniform
-examples/window/custom_shaders
-examples/window/events_input
-examples/window/wait_events
-```
+- Create a focused example for a new shape or a public behavior that needs its own scene,
+  action, or platform/GPU prerequisite. Extract a scenario from an existing example when
+  its independent prerequisites or controls make a focused check harder to run.
+- Extend an example when the variants verify the same observable contract. For example,
+  comparing two setter orders for circle fill and width belongs in one program.
+- Keep an integration example when the interaction itself is the contract, such as viewport
+  and scissor state isolation across draws after a resize.
+- Put deterministic assertions in the appropriate [test suite](testing.md#test-types). A
+  visible correction can reuse an example that already exercises the defect. Create a
+  focused example when reproducing it requires a different visual scene.
 
-## Commands
+## Write the scenario
+
+1. Give the package one scope and a matching name. For example,
+   `examples/d2/rounded_rectangle` is built with `just build d2_rounded_rectangle` and run
+   with `just run d2_rounded_rectangle`.
+2. Document the initial state, operator action and expected observation in the catalogue.
+   Link to an API workflow for longer procedures. Give exact options, keys and prerequisites
+   where they matter. Identify physical keys where layout can change the key label.
+3. Keep the client loop and public VMNL calls visible in the source. Use stable initial
+   geometry and vary one setting at a time. Show the active setting in the title or output
+   and report resolved dimensions, formats or capabilities when they affect the result.
+4. Keep assets with their example and resolve runtime paths relative to
+   `CARGO_MANIFEST_DIR`. Request only the device features exercised by the scenario.
+
+For a graphics PR, check the changed scenario and relevant interactions. Record the command,
+actions and actual operator observations in `Validation` according to
+[CONTRIBUTING.md](../CONTRIBUTING.md#pull-request-descriptions).
+
+## Scaffold and register an example
 
 ```bash
-just run d2_shapes
-just run d2_circles
-just run d2_advanced_geometry
-just run joystick_runtime
-just run window_wait_events
-just run raw_d2_composition
-just run raw_texture
-just build raw_pipeline
+just example-new d2 rounded_rectangle --dry-run
+just example-new d2 rounded_rectangle
+cargo update --workspace
+just example-check
+just build d2_rounded_rectangle
 ```
 
-`d2_circles` demonstrates circles, ellipses, rings, sectors, and an outlined elliptical arc
-with round caps. On the right, cyan filled circles and yellow outlined circles compare both
-orders of the fill and width setters. The [circle builder contract](api/reference/d2/shapes/circle_builder.md)
-defines fill and width configuration, angles, and the required sector/cap pair.
-
-`raw_texture` draws the same half-alpha 2×2 texture through combined bindings on the left and
-separate image/sampler bindings on the right. Press `F` to switch nearest/linear filtering, `V` to
-swap red and blue through an explicit view, and `B` to cycle opaque, straight-alpha, and
-premultiplied-alpha pipelines. The title reports the active choices.
-
-Current limitation: `d2_shapes` configures a sector without `.cap(...)`, so its shape construction
-returns `InvalidState` before entering the render loop. Use `d2_circles` for the circle-family
-workflow while that example is corrected.
-
-## Invariants
-
-- An example should normally open a window or exercise a visual rendering workflow. The standalone
-  `InputRuntime` example is the sole non-visual exception.
-- An example should demonstrate usage, not encode the main test oracle.
-- Headless API behavior belongs in `tests/api`.
-- Headless executable startup belongs in `tests/smoke`.
-- Vulkan/display assertions belong in `tests/gpu`.
-
-## Adding an Example
-
-1. Create `examples/<name>/Cargo.toml`.
-2. Add it to workspace `members`.
-3. Depend on package `vmnl_graphics` through the relative path to `crates/vmnl_graphics`, and
-   import `vmnl_graphics`.
-4. Add a row to `examples/README.md`.
-5. Keep the example runnable through `just run <name>`.
-
-The `InputRuntime` exception must remain windowless and must not create a Vulkan instance. GLFW
-initialization still depends on the host's available platform backend; deterministic headless
-behavior belongs in `tests/api`.
+`example-new` creates a runnable starter in `examples/<domain>/<name>`, registers the
+workspace member, and adds a catalogue row. The supported domains are `d2`, `raw`,
+`window`, and `input`. Use `--author "Name"` to override the Git author for the SPDX header.
+Cargo updates the shared lockfile separately. Replace the starter scene and catalogue entry
+with the intended scenario. When migrating an example, move its documented observations
+and update incoming links, example commands, and defaults in the same change.

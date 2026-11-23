@@ -1,0 +1,8 @@
+[package]
+name = "input_text"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[dependencies]
+vmnl_graphics = { path = "../../../crates/vmnl_graphics" }

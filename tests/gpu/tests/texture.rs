@@ -10,8 +10,26 @@ use vmnl_graphics::{
         PixelSource, Sampler, Texture2D, TextureFormat, TextureUsage, TextureUsageRequest,
         UploadWaitOutcome,
     },
-    Context, VMNLErrorKind,
+    Context, VMNLErrorKind, VMNLResult,
 };
+
+#[test]
+#[ignore = "Requires Vulkan + GLFW display."]
+fn png_file_upload_completes_and_default_view_accepts_sampler() -> VMNLResult<()> {
+    let _guard = gpu_test_guard();
+    let context = Context::new()?;
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("fixtures/upload_texels.png");
+    let texture = Texture2D::from_file(&context, path).build()?;
+    let sampler = Sampler::builder(&context).build()?;
+
+    texture.view().validate_sampler(&sampler)?;
+    assert_eq!(texture.extent(), [2, 2]);
+    assert_eq!(
+        texture.initial_upload().wait(None)?,
+        UploadWaitOutcome::Complete
+    );
+    Ok(())
+}
 
 #[test]
 #[ignore = "Requires Vulkan + GLFW display."]

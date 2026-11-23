@@ -20,6 +20,8 @@ fn main() -> VMNLResult<()> {
     window.set_char_polling(true);
     window.set_close_polling(true);
     window.set_key_polling(true);
+    window.set_framebuffer_size_polling(true);
+    window.set_refresh_polling(true);
 
     let cool_shape = Shape::rect(320.0, 220.0)
         .position(290.0, 190.0)
@@ -35,6 +37,8 @@ fn main() -> VMNLResult<()> {
     let mut retry_after_out_of_date = false;
     println!("Press Space to change the shape or Escape to close.");
 
+    // Queue an initial wake-up so the first event wait can return without operator input.
+    window.post_empty_event();
     while window.is_open() {
         if redraw {
             let shape = if use_warm_shape {

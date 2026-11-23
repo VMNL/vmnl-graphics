@@ -154,8 +154,8 @@ fn main() -> vmnl_graphics::VMNLResult<()> {
 }
 ```
 
-Full visual program: [`d2_circles`](../../../../../examples/d2/circles/src/main.rs), run with
-`just run d2_circles`. CPU geometry/validation evidence lives in the
+Full visual program: [`d2_circle`](../../../../../examples/d2/circle/src/main.rs), run with
+`just run d2_circle`. CPU geometry/validation evidence lives in the
 [`circle` unit tests](../../../../../crates/vmnl_graphics/src/2d/shape/circle.rs).
 Related: [`Shape`](shape.md), [`LineCap`](line_cap.md),
 [`BufferMemoryPreference`](../../common/buffer_memory_preference.md), and the

@@ -1,0 +1,8 @@
+[package]
+name = "raw_texture_bindings"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[dependencies]
+vmnl_graphics = { path = "../../../crates/vmnl_graphics" }

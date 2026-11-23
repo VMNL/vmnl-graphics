@@ -1,0 +1,8 @@
+[package]
+name = "window_config"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[dependencies]
+vmnl_graphics = { path = "../../../crates/vmnl_graphics" }

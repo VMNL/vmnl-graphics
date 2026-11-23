@@ -1,0 +1,29 @@
+// SPDX-FileCopyrightText: @YEAR@ @AUTHOR@
+// SPDX-License-Identifier: MIT
+
+//! Render a rectangle in a minimal VMNL window.
+
+use vmnl_graphics::{common::Rgba, d2::Shape, Context, VMNLResult, Window};
+
+fn main() -> VMNLResult<()> {
+    let context = Context::new()?;
+    let mut window = Window::builder()
+        .title("VMNL @PACKAGE@")
+        .size(640, 480)
+        .set_clear_color(Rgba::rgb(12, 16, 24))
+        .build(&context)?;
+
+    let rectangle = Shape::rect(200.0, 120.0)
+        .position(220.0, 180.0)
+        .color(Rgba::CYAN)
+        .build(&context)?;
+
+    while window.is_open() {
+        for _ in window.poll_events() {}
+        if window.is_open() {
+            window.render().draw2d([&rectangle]).submit()?;
+        }
+    }
+
+    Ok(())
+}

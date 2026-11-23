@@ -38,7 +38,7 @@ Do not reorder applicable completion checks without documenting the technical re
 - New or changed GLFW calls follow the
   [GLFW portability protocol](docs/api/maintenance/glfw_portability_protocol.md), update the
   canonical TOML inventory, and add a backend test or explicit justification.
-- Visual workflows belong in `examples/`; headless checks belong in `tests/`.
+- Use the [example rules](docs/examples.md#decide-when-to-create-an-example) to choose a focused visual workflow or the appropriate test suite.
 - Every feature or fix must assess Rustdoc, technical and user documentation, examples,
   documentation navigation, and release-note impact. Follow the concise changelog policy in
   [docs/deployment.md](docs/deployment.md#release-notes); do not create per-change entries before

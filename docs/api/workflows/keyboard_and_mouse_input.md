@@ -32,7 +32,9 @@ fn main() -> vmnl_graphics::VMNLResult<()> {
 }
 ```
 
-The complete usage remains in [`events_input`](../../../examples/window/events_input/src/main.rs).
+Run [`input_keyboard`](../../../examples/input/keyboard/src/main.rs) for physical key events and the keyboard snapshot.
+Run [`input_mouse`](../../../examples/input/mouse/src/main.rs) for motion, button state and scroll.
+Run [`input_text`](../../../examples/input/text/src/main.rs) for Unicode character events and text delivery controls.
 See [`KeyboardState`](../reference/window/input/keyboard_state.md),
 [`MouseState`](../reference/window/input/mouse_state.md), and
 [cursor controls](../reference/window/cursor.md).

@@ -44,7 +44,7 @@ vulkaninfo
 ```
 
 - If `vulkaninfo` fails, repair the loader or driver before debugging VMNL.
-- If it succeeds but an example fails, retry with `just build d2_shapes` and retain the first Vulkan error.
+- If it succeeds but an example fails, retry with `just build d2_rectangle` and retain the first Vulkan error.
 - Keep shaderc diagnosis separate: shader compilation discovery does not establish driver availability.
 
 ## GLFW or Display Failure

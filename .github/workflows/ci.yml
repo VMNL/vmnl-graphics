@@ -53,6 +53,8 @@ jobs:
             libwayland-dev libxkbcommon-dev xorg-dev
       - name: Check Rustdoc comments
         run: python3 tools/check_comments.py
+      - name: Check example catalogue
+        run: python3 tools/examples.py check
       - name: Run Clippy
         run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
 

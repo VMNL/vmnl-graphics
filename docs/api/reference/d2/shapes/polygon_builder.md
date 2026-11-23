@@ -118,7 +118,7 @@ fn main() -> vmnl_graphics::VMNLResult<()> {
 }
 ```
 
-The [advanced geometry example](../../../../../examples/d2/advanced_geometry/src/main.rs)
+The [polygon example](../../../../../examples/d2/polygon/src/main.rs)
 shows a multicolored convex pentagon alongside a concave polygon with an inward
 notch. Both use boundary vertices without a center vertex and are submitted in
 alternating `PerObject` and `Batched` modes.

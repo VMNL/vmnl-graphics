@@ -128,4 +128,5 @@ Related: [`Cursor`](input/cursor.md), [`CursorBuilder`](input/cursor_builder.md)
 [`StandardCursor`](input/standard_cursor.md),
 [`StandardCursorBuilder`](input/standard_cursor_builder.md),
 [`EventKind::MouseMoved`](events/event_kind.md), [polling](polling.md), and the
-[`events_input`](../../../../examples/window/events_input/src/main.rs) example.
+[`input_cursor`](../../../../examples/input/cursor/src/main.rs) and
+[`input_cursor_modes`](../../../../examples/input/cursor_modes/src/main.rs) examples.

@@ -1,0 +1,8 @@
+[package]
+name = "d2_ellipse"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[dependencies]
+vmnl_graphics = { path = "../../../crates/vmnl_graphics" }

@@ -48,6 +48,6 @@ Requires a built window/render pass and device support for selected shader/layou
 
 ## Example and related types
 
-See the existing [`examples/raw/pipeline`](../../../../../examples/raw/pipeline/src/main.rs) workflow; the [pipeline workflow](../../../workflows/create_raw_pipeline.md) explains the steps without duplicating it.
+See the existing [`raw_triangle`](../../../../../examples/raw/triangle/src/main.rs) workflow; the [pipeline workflow](../../../workflows/create_raw_pipeline.md) explains the steps without duplicating it.
 
 Related: [`PipelineSpec`](pipeline_spec.md), [`ColorBlendConfig`](../../common/color_blend_config.md), [`Geometry`](../geometry/geometry.md), and [`FrameRenderer`](../../window/rendering/frame_renderer.md).

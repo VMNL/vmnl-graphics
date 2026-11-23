@@ -117,11 +117,15 @@ Before acquiring a swapchain image, submission checks each referenced upload's
 status without waiting for GPU completion. A known upload failure returns
 `TextureUploadFailed` and leaves the window available for a subsequent valid frame.
 
-Run `just run raw_texture` for a maintained client example. It draws combined
-`sampler2D` and separate `texture2D`/`sampler` bindings side by side. Press `F`
-to switch nearest/linear filtering, `V` to use an explicit red/blue-swizzled
-view, and `B` to cycle opaque, straight-alpha, and premultiplied-alpha pipelines.
-The example builds static descriptor sets during setup. When a `Resources`
+Use the focused sampling examples:
+
+- `just run raw_texture_bindings` compares identical draws using a combined or separate binding.
+- `just run raw_texture_filter` compares nearest and linear sampling of the same texels.
+- `just run raw_texture_view` compares identity and red/blue-swizzled views with the same sampler.
+- `just run raw_texture_png` loads and displays a file-backed texture.
+- `just run raw_blend` compares opaque, straight-alpha and premultiplied-alpha output.
+
+The sampling examples build static descriptor sets during setup. When a `Resources`
 value binds `FrameUniform`, those descriptor sets are allocated during frame
 recording for the acquired swapchain image instead.
 

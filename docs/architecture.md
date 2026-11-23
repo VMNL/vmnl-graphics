@@ -67,18 +67,7 @@ Core crates:
 - `crates/vmnl_graphics`: public graphics crate, windowing, input, raw rendering, and 2D types.
 - `crates/vmnl_macros`: internal proc macros re-exported through the graphics crate's `raw` module.
 
-Runnable visual examples:
-
-- `examples/d2/shapes`
-- `examples/d2/circles`
-- `examples/d2/advanced_geometry`
-- `examples/window/events_input`
-- `examples/window/custom_shaders`
-- `examples/window/wait_events`
-- `examples/raw/triangle`
-- `examples/raw/pipeline`
-- `examples/raw/uniform`
-- `examples/raw/d2_composition`
+The [example catalogue](../examples/README.md) lists runnable client workflows.
 
 Test crates:
 
