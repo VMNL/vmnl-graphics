@@ -13,7 +13,7 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self::set_cursor`].
+    /// See [`cursor` in the shared example](Self#example-window-cursor).
     #[inline]
     #[must_use]
     pub fn cursor(&self) -> Option<&Cursor> {
@@ -40,6 +40,8 @@ impl Window {
     ///
     /// # Example
     ///
+    /// <a id="example-window-cursor"></a>
+    ///
     /// ```rust,no_run
     /// use vmnl_graphics::{Context, Cursor, CursorMode, StandardCursor, Window};
     ///
@@ -52,13 +54,17 @@ impl Window {
     /// window.set_sticky_mouse_buttons(true);
     /// window.set_sticky_keys(true);
     /// window.set_lock_key_modifier_reporting(true);
-    /// let _options = (window.is_sticky_mouse_buttons_enabled(),
-    ///     window.is_sticky_keys_enabled(), window.is_lock_key_modifier_reporting_enabled());
+    /// assert!(window.is_sticky_mouse_buttons_enabled());
+    /// assert!(window.is_sticky_keys_enabled());
+    /// assert!(window.is_lock_key_modifier_reporting_enabled());
     ///
     /// window.set_cursor_mode(CursorMode::Disabled)?;
     /// window.set_cursor_position(100.0, 60.0)?;
-    /// let _position = window.get_cursor_position();
-    /// let _cursor_state = (window.get_cursor_mode(), window.is_cursor_hovered());
+    /// assert_eq!(window.get_cursor_mode(), CursorMode::Disabled);
+    /// if window.is_cursor_hovered() {
+    ///     let (x, y) = window.get_cursor_position();
+    ///     println!("Cursor in the content area at ({x}, {y})");
+    /// }
     /// if context.is_raw_mouse_motion_supported() {
     ///     window.set_raw_mouse_motion(true)?;
     ///     assert!(window.is_raw_mouse_motion_enabled());
@@ -80,7 +86,7 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self::set_cursor`].
+    /// See [`get_cursor_position` in the shared example](Self#example-window-cursor).
     #[inline]
     #[must_use]
     pub fn get_cursor_position(&self) -> (f64, f64) {
@@ -107,7 +113,7 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self::set_cursor`].
+    /// See [`set_cursor_position` in the shared example](Self#example-window-cursor).
     #[inline]
     pub fn set_cursor_position(&mut self, x: f64, y: f64) -> VMNLResult<()> {
         self.inner.set_cursor_position(x, y)
@@ -120,7 +126,7 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self::set_cursor`].
+    /// See [`is_cursor_hovered` in the shared example](Self#example-window-cursor).
     #[inline]
     #[must_use]
     pub fn is_cursor_hovered(&self) -> bool {
@@ -135,7 +141,7 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self::set_cursor`].
+    /// See [`get_cursor_mode` in the shared example](Self#example-window-cursor).
     #[inline]
     #[must_use]
     pub fn get_cursor_mode(&self) -> CursorMode {
@@ -161,7 +167,7 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self::set_cursor`].
+    /// See [`set_cursor_mode` in the shared example](Self#example-window-cursor).
     #[inline]
     pub fn set_cursor_mode(&mut self, mode: CursorMode) -> VMNLResult<()> {
         self.inner.set_cursor_mode(mode)
@@ -175,7 +181,7 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self::set_cursor`].
+    /// See [`is_sticky_mouse_buttons_enabled` in the shared example](Self#example-window-cursor).
     #[inline]
     #[must_use]
     pub fn is_sticky_mouse_buttons_enabled(&self) -> bool {
@@ -194,7 +200,7 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self::set_cursor`].
+    /// See [`set_sticky_mouse_buttons` in the shared example](Self#example-window-cursor).
     #[inline]
     pub fn set_sticky_mouse_buttons(&mut self, enabled: bool) {
         self.inner.set_sticky_mouse_buttons(enabled);
@@ -208,7 +214,7 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self::set_cursor`].
+    /// See [`is_sticky_keys_enabled` in the shared example](Self#example-window-cursor).
     #[inline]
     #[must_use]
     pub fn is_sticky_keys_enabled(&self) -> bool {
@@ -227,7 +233,7 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self::set_cursor`].
+    /// See [`set_sticky_keys` in the shared example](Self#example-window-cursor).
     #[inline]
     pub fn set_sticky_keys(&mut self, enabled: bool) {
         self.inner.set_sticky_keys(enabled);
@@ -241,7 +247,8 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self::set_cursor`].
+    /// See [`is_lock_key_modifier_reporting_enabled` in the shared
+    /// example](Self#example-window-cursor).
     #[inline]
     #[must_use]
     pub fn is_lock_key_modifier_reporting_enabled(&self) -> bool {
@@ -260,7 +267,7 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self::set_cursor`].
+    /// See [`set_lock_key_modifier_reporting` in the shared example](Self#example-window-cursor).
     #[inline]
     pub fn set_lock_key_modifier_reporting(&mut self, enabled: bool) {
         self.inner.set_lock_key_modifier_reporting(enabled);
@@ -273,7 +280,7 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self::set_cursor`].
+    /// See [`is_raw_mouse_motion_enabled` in the shared example](Self#example-window-cursor).
     #[inline]
     #[must_use]
     pub fn is_raw_mouse_motion_enabled(&self) -> bool {
@@ -298,7 +305,7 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self::set_cursor`].
+    /// See [`set_raw_mouse_motion` in the shared example](Self#example-window-cursor).
     #[inline]
     pub fn set_raw_mouse_motion(&mut self, enabled: bool) -> VMNLResult<()> {
         self.inner.set_raw_mouse_motion(enabled)

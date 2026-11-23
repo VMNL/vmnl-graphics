@@ -48,7 +48,7 @@ impl TextureDefaults {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_mutable_format_views` in the shared example](Self#example).
     #[must_use]
     pub const fn with_mutable_format_views(mut self, value: Option<bool>) -> Self {
         self.mutable_format_views = value;
@@ -59,7 +59,7 @@ impl TextureDefaults {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`mutable_format_views` in the shared example](Self#example).
     #[must_use]
     pub const fn mutable_format_views(self) -> Option<bool> {
         self.mutable_format_views
@@ -74,7 +74,7 @@ impl TextureDefaults {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_view_format` in the shared example](Self#example).
     #[must_use]
     pub const fn with_view_format(mut self, value: Option<TextureFormat>) -> Self {
         self.view_format = value;
@@ -85,7 +85,7 @@ impl TextureDefaults {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`view_format` in the shared example](Self#example).
     #[must_use]
     pub const fn view_format(self) -> Option<TextureFormat> {
         self.view_format
@@ -100,7 +100,7 @@ impl TextureDefaults {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_view_component_mapping` in the shared example](Self#example).
     #[must_use]
     pub const fn with_view_component_mapping(
         mut self,
@@ -114,7 +114,7 @@ impl TextureDefaults {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`view_component_mapping` in the shared example](Self#example).
     #[must_use]
     pub const fn view_component_mapping(self) -> Option<TextureComponentMapping> {
         self.view_component_mapping
@@ -129,7 +129,7 @@ impl TextureDefaults {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_view_interpretation` in the shared example](Self#example).
     #[must_use]
     pub const fn with_view_interpretation(
         mut self,
@@ -143,7 +143,7 @@ impl TextureDefaults {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`view_interpretation` in the shared example](Self#example).
     #[must_use]
     pub const fn view_interpretation(self) -> Option<TextureViewInterpretation> {
         self.view_interpretation

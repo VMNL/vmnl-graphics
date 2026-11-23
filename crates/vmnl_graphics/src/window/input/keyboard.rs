@@ -41,7 +41,7 @@ impl Scancode {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`from_raw` in the shared example](Self#example).
     #[must_use]
     pub const fn from_raw(raw: i32) -> Self {
         Self(raw)
@@ -51,7 +51,7 @@ impl Scancode {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`as_raw` in the shared example](Self#example).
     #[must_use]
     pub const fn as_raw(self) -> i32 {
         self.0

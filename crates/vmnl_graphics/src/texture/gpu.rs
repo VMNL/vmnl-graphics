@@ -182,7 +182,7 @@ impl<'a> Texture2DBuilder<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`from_pixels` in the shared example](Self#example).
     #[must_use]
     pub fn from_pixels(context: &Context, source: PixelSource<'a>) -> Self {
         Self {
@@ -204,7 +204,7 @@ impl<'a> Texture2DBuilder<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`from_png` in the shared example](Self#example).
     #[must_use]
     pub fn from_png(context: &Context, bytes: &'a [u8]) -> Self {
         Self {
@@ -226,7 +226,7 @@ impl<'a> Texture2DBuilder<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`from_file` in the shared example](Self#example).
     #[must_use]
     pub fn from_file(context: &Context, path: impl Into<PathBuf>) -> Self {
         Self {
@@ -247,7 +247,7 @@ impl<'a> Texture2DBuilder<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_png_options` in the shared example](Self#example).
     #[must_use]
     pub const fn with_png_options(mut self, options: PngDecodeOptions) -> Self {
         self.png_options = options;
@@ -268,7 +268,7 @@ impl<'a> Texture2DBuilder<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_usage` in the shared example](Self#example).
     #[must_use]
     pub const fn with_usage(mut self, usage: TextureUsageRequest) -> Self {
         self.usage_override = Some(usage);
@@ -287,7 +287,7 @@ impl<'a> Texture2DBuilder<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_mutable_format_views` in the shared example](Self#example).
     #[must_use]
     pub const fn with_mutable_format_views(mut self, enabled: bool) -> Self {
         self.mutable_format_views = Some(enabled);
@@ -299,7 +299,7 @@ impl<'a> Texture2DBuilder<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`mutable_format_views_requested` in the shared example](Self#example).
     #[must_use]
     pub const fn mutable_format_views_requested(&self) -> bool {
         matches!(self.mutable_format_views, Some(true))
@@ -309,7 +309,7 @@ impl<'a> Texture2DBuilder<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`mutable_format_views_override` in the shared example](Self#example).
     #[must_use]
     pub const fn mutable_format_views_override(&self) -> Option<bool> {
         self.mutable_format_views
@@ -326,7 +326,7 @@ impl<'a> Texture2DBuilder<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`retirement_policy` in the shared example](Self#example).
     #[must_use]
     pub const fn retirement_policy(mut self, policy: TextureRetirementPolicy) -> Self {
         self.retirement_policy = policy;
@@ -350,7 +350,7 @@ impl<'a> Texture2DBuilder<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`prepare` in the shared example](Self#example).
     pub fn prepare(self) -> VMNLResult<PreparedTexture2D> {
         let mutable_format_views = self
             .mutable_format_views
@@ -465,7 +465,7 @@ impl<'a> Texture2DBuilder<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`build` in the shared example](Self#example).
     pub fn build(self) -> VMNLResult<Texture2D> {
         self.prepare()?.submit()
     }
@@ -515,7 +515,8 @@ pub enum TextureRetirementPolicy {
 ///
 /// ```rust,no_run
 /// use vmnl_graphics::Context;
-/// use vmnl_graphics::texture::{PixelSource, Texture2D, TextureFormat};
+/// use vmnl_graphics::texture::{AlphaMode, ColorEncoding, PixelSource, Texture2D, TextureFormat,
+///     TextureUsage, UploadWaitOutcome};
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let context = Context::new()?;
@@ -526,10 +527,13 @@ pub enum TextureRetirementPolicy {
 /// assert!(texture.is_sampleable());
 /// assert!(texture.supports_view_format(texture.format()));
 /// assert!(texture.shares_storage_with(&texture.clone()));
-/// let _metadata = (texture.encoding(), texture.alpha_mode(), texture.usage());
-/// let _mutable_views = texture.mutable_format_views_enabled();
-/// let _view = texture.view();
-/// let _ = texture.initial_upload().wait(None)?;
+/// assert_eq!(texture.encoding(), ColorEncoding::Linear);
+/// assert_eq!(texture.alpha_mode(), AlphaMode::Straight);
+/// assert!(texture.usage().contains(TextureUsage::SAMPLED));
+/// assert!(!texture.mutable_format_views_enabled());
+/// let view = texture.view();
+/// assert_eq!(view.format(), texture.format());
+/// assert_eq!(texture.initial_upload().wait(None)?, UploadWaitOutcome::Complete);
 ///
 /// let png = std::fs::read("sprite.png")?;
 /// let _encoded = Texture2D::from_png(&context, &png);
@@ -597,7 +601,7 @@ impl Texture2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`from_pixels` in the shared example](Self#example).
     #[must_use]
     pub fn from_pixels<'a>(context: &Context, source: PixelSource<'a>) -> Texture2DBuilder<'a> {
         Texture2DBuilder::from_pixels(context, source)
@@ -612,7 +616,7 @@ impl Texture2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`from_png` in the shared example](Self#example).
     #[must_use]
     pub fn from_png<'a>(context: &Context, bytes: &'a [u8]) -> Texture2DBuilder<'a> {
         Texture2DBuilder::from_png(context, bytes)
@@ -627,7 +631,7 @@ impl Texture2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`from_file` in the shared example](Self#example).
     #[must_use]
     pub fn from_file(context: &Context, path: impl Into<PathBuf>) -> Texture2DBuilder<'static> {
         Texture2DBuilder::from_file(context, path)
@@ -637,7 +641,7 @@ impl Texture2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`extent` in the shared example](Self#example).
     #[must_use]
     pub fn extent(&self) -> [u32; 2] {
         self.storage.extent
@@ -647,7 +651,7 @@ impl Texture2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`format` in the shared example](Self#example).
     #[must_use]
     pub fn format(&self) -> TextureFormat {
         self.storage.format
@@ -657,7 +661,7 @@ impl Texture2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`encoding` in the shared example](Self#example).
     #[must_use]
     pub fn encoding(&self) -> ColorEncoding {
         self.storage.encoding
@@ -667,7 +671,7 @@ impl Texture2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`alpha_mode` in the shared example](Self#example).
     #[must_use]
     pub fn alpha_mode(&self) -> AlphaMode {
         self.storage.alpha_mode
@@ -677,7 +681,7 @@ impl Texture2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`usage` in the shared example](Self#example).
     #[must_use]
     pub fn usage(&self) -> TextureUsage {
         self.storage.usage
@@ -687,7 +691,7 @@ impl Texture2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`is_sampleable` in the shared example](Self#example).
     #[must_use]
     pub fn is_sampleable(&self) -> bool {
         self.storage.usage.contains(TextureUsage::SAMPLED)
@@ -697,7 +701,7 @@ impl Texture2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`mutable_format_views_enabled` in the shared example](Self#example).
     #[must_use]
     pub fn mutable_format_views_enabled(&self) -> bool {
         self.storage.mutable_format_views
@@ -715,7 +719,7 @@ impl Texture2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`supports_view_format` in the shared example](Self#example).
     #[must_use]
     pub fn supports_view_format(&self, format: TextureFormat) -> bool {
         format == self.storage.format
@@ -727,7 +731,7 @@ impl Texture2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`view` in the shared example](Self#example).
     #[must_use]
     pub fn view(&self) -> TextureView2D {
         TextureView2D {
@@ -750,7 +754,7 @@ impl Texture2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`initial_upload` in the shared example](Self#example).
     #[must_use]
     pub fn initial_upload(&self) -> UploadTicket {
         UploadTicket {
@@ -773,7 +777,7 @@ impl Texture2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`shares_storage_with` in the shared example](Self#example).
     #[must_use]
     pub fn shares_storage_with(&self, other: &Self) -> bool {
         Rc::ptr_eq(&self.storage, &other.storage)
@@ -821,8 +825,9 @@ impl Texture2D {
 /// assert_eq!(view.requested_interpretation(), Some(interpretation));
 /// assert_eq!(view.sampled_interpretation(), Some(interpretation));
 ///
-/// let sampler = Sampler::builder(&context).config(SamplerConfig::nearest()).build()?;
-/// let _requested = sampler.config();
+/// let requested = SamplerConfig::nearest();
+/// let sampler = Sampler::builder(&context).config(requested).build()?;
+/// assert_eq!(sampler.config(), requested);
 /// view.validate_sampler(&sampler)?;
 /// # Ok(())
 /// # }
@@ -909,7 +914,7 @@ impl TextureComponentMapping {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`new` in the shared example](Self#example).
     #[must_use]
     pub const fn new(
         red: TextureComponent,
@@ -929,7 +934,7 @@ impl TextureComponentMapping {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`identity` in the shared example](Self#example).
     #[must_use]
     pub const fn identity() -> Self {
         Self::new(
@@ -944,7 +949,7 @@ impl TextureComponentMapping {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`red` in the shared example](Self#example).
     #[must_use]
     pub const fn red(self) -> TextureComponent {
         self.red
@@ -954,7 +959,7 @@ impl TextureComponentMapping {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`green` in the shared example](Self#example).
     #[must_use]
     pub const fn green(self) -> TextureComponent {
         self.green
@@ -964,7 +969,7 @@ impl TextureComponentMapping {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`blue` in the shared example](Self#example).
     #[must_use]
     pub const fn blue(self) -> TextureComponent {
         self.blue
@@ -974,7 +979,7 @@ impl TextureComponentMapping {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`alpha` in the shared example](Self#example).
     #[must_use]
     pub const fn alpha(self) -> TextureComponent {
         self.alpha
@@ -984,7 +989,7 @@ impl TextureComponentMapping {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`is_identity` in the shared example](Self#example).
     #[must_use]
     pub const fn is_identity(self) -> bool {
         matches!(self.red, TextureComponent::Red)
@@ -1031,7 +1036,7 @@ impl TextureViewInterpretation {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`new` in the shared example](Self#example).
     #[must_use]
     pub const fn new(encoding: ColorEncoding, alpha_mode: AlphaMode) -> Self {
         Self {
@@ -1044,7 +1049,7 @@ impl TextureViewInterpretation {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`encoding` in the shared example](Self#example).
     #[must_use]
     pub const fn encoding(self) -> ColorEncoding {
         self.encoding
@@ -1054,7 +1059,7 @@ impl TextureViewInterpretation {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`alpha_mode` in the shared example](Self#example).
     #[must_use]
     pub const fn alpha_mode(self) -> AlphaMode {
         self.alpha_mode
@@ -1081,7 +1086,7 @@ impl TextureView2DBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`TextureView2D`].
+    /// See [`format` in the shared example](TextureView2D#example).
     #[must_use]
     pub const fn format(mut self, format: TextureFormat) -> Self {
         self.format = Some(format);
@@ -1098,7 +1103,7 @@ impl TextureView2DBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`TextureView2D`].
+    /// See [`component_mapping` in the shared example](TextureView2D#example).
     #[must_use]
     pub const fn component_mapping(mut self, mapping: TextureComponentMapping) -> Self {
         self.component_mapping = Some(mapping);
@@ -1118,7 +1123,7 @@ impl TextureView2DBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`TextureView2D`].
+    /// See [`interpretation` in the shared example](TextureView2D#example).
     #[must_use]
     pub const fn interpretation(mut self, interpretation: TextureViewInterpretation) -> Self {
         self.interpretation = Some(interpretation);
@@ -1131,7 +1136,7 @@ impl TextureView2DBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`TextureView2D`].
+    /// See [`use_default_interpretation` in the shared example](TextureView2D#example).
     #[must_use]
     pub const fn use_default_interpretation(mut self) -> Self {
         self.interpretation = None;
@@ -1153,7 +1158,7 @@ impl TextureView2DBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`TextureView2D`].
+    /// See [`build` in the shared example](TextureView2D#example).
     pub fn build(self) -> VMNLResult<TextureView2D> {
         let defaults = self.texture.storage.context.texture_defaults();
         let effective_format = self
@@ -1217,7 +1222,7 @@ impl TextureView2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`builder` in the shared example](Self#example).
     #[must_use]
     pub fn builder(texture: &Texture2D) -> TextureView2DBuilder {
         TextureView2DBuilder {
@@ -1233,7 +1238,7 @@ impl TextureView2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`texture` in the shared example](Self#example).
     #[must_use]
     pub const fn texture(&self) -> &Texture2D {
         &self.texture
@@ -1247,7 +1252,7 @@ impl TextureView2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`shares_storage_with` in the shared example](Self#example).
     #[must_use]
     pub fn shares_storage_with(&self, texture: &Texture2D) -> bool {
         self.texture.shares_storage_with(texture)
@@ -1257,7 +1262,7 @@ impl TextureView2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`extent` in the shared example](Self#example).
     #[must_use]
     pub fn extent(&self) -> [u32; 2] {
         self.texture.extent()
@@ -1267,7 +1272,7 @@ impl TextureView2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`format` in the shared example](Self#example).
     #[must_use]
     pub fn format(&self) -> TextureFormat {
         self.effective_format
@@ -1277,7 +1282,7 @@ impl TextureView2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`requested_format` in the shared example](Self#example).
     #[must_use]
     pub const fn requested_format(&self) -> Option<TextureFormat> {
         self.requested_format
@@ -1287,7 +1292,7 @@ impl TextureView2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`effective_format` in the shared example](Self#example).
     #[must_use]
     pub const fn effective_format(&self) -> TextureFormat {
         self.effective_format
@@ -1297,7 +1302,7 @@ impl TextureView2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`requested_component_mapping` in the shared example](Self#example).
     #[must_use]
     pub const fn requested_component_mapping(&self) -> Option<TextureComponentMapping> {
         self.requested_component_mapping
@@ -1307,7 +1312,7 @@ impl TextureView2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`effective_component_mapping` in the shared example](Self#example).
     #[must_use]
     pub const fn effective_component_mapping(&self) -> TextureComponentMapping {
         self.effective_component_mapping
@@ -1317,7 +1322,7 @@ impl TextureView2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`requested_interpretation` in the shared example](Self#example).
     #[must_use]
     pub const fn requested_interpretation(&self) -> Option<TextureViewInterpretation> {
         self.requested_interpretation
@@ -1327,7 +1332,7 @@ impl TextureView2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`uses_default_interpretation` in the shared example](Self#example).
     #[must_use]
     pub const fn uses_default_interpretation(&self) -> bool {
         self.use_default_interpretation
@@ -1341,7 +1346,7 @@ impl TextureView2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`sampled_interpretation` in the shared example](Self#example).
     #[must_use]
     pub const fn sampled_interpretation(&self) -> Option<TextureViewInterpretation> {
         self.sampled_interpretation
@@ -1365,7 +1370,7 @@ impl TextureView2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`validate_sampler` in the shared example](Self#example).
     pub fn validate_sampler(&self, sampler: &Sampler) -> VMNLResult<()> {
         validate_sampled_image_sampler(
             &self.inner,
@@ -1624,7 +1629,7 @@ impl PreparedTexture2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Texture2DBuilder`].
+    /// See [`extent` in the shared example](Texture2DBuilder#example).
     #[must_use]
     pub const fn extent(&self) -> [u32; 2] {
         self.extent
@@ -1634,7 +1639,7 @@ impl PreparedTexture2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Texture2DBuilder`].
+    /// See [`mutable_format_views_enabled` in the shared example](Texture2DBuilder#example).
     #[must_use]
     pub const fn mutable_format_views_enabled(&self) -> bool {
         self.mutable_format_views
@@ -1651,7 +1656,7 @@ impl PreparedTexture2D {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Texture2DBuilder`].
+    /// See [`submit` in the shared example](Texture2DBuilder#example).
     pub fn submit(self) -> VMNLResult<Texture2D> {
         let future = Arc::new(
             now(self.context.inner.device.clone())
@@ -1762,7 +1767,7 @@ impl UploadTicket {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Texture2DBuilder`].
+    /// See [`is_complete` in the shared example](Texture2DBuilder#example).
     pub fn is_complete(&self) -> VMNLResult<bool> {
         self.poll()
     }
@@ -1785,7 +1790,7 @@ impl UploadTicket {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Texture2DBuilder`].
+    /// See [`wait` in the shared example](Texture2DBuilder#example).
     pub fn wait(&self, timeout: Option<Duration>) -> VMNLResult<UploadWaitOutcome> {
         let started = Instant::now();
         loop {
@@ -1886,7 +1891,7 @@ impl Sampler {
     ///
     /// # Example
     ///
-    /// See the workflow on [`TextureView2D`].
+    /// See [`builder` in the shared example](TextureView2D#example).
     #[must_use]
     pub fn builder(context: &Context) -> SamplerBuilder {
         SamplerBuilder {
@@ -1899,7 +1904,7 @@ impl Sampler {
     ///
     /// # Example
     ///
-    /// See the workflow on [`TextureView2D`].
+    /// See [`config` in the shared example](TextureView2D#example).
     #[must_use]
     pub const fn config(&self) -> SamplerConfig {
         self.config
@@ -2001,7 +2006,7 @@ impl SamplerBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`TextureView2D`].
+    /// See [`config` in the shared example](TextureView2D#example).
     #[must_use]
     pub const fn config(mut self, config: SamplerConfig) -> Self {
         self.config = config;
@@ -2019,7 +2024,7 @@ impl SamplerBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`TextureView2D`].
+    /// See [`build` in the shared example](TextureView2D#example).
     pub fn build(self) -> VMNLResult<Sampler> {
         self.config.validate()?;
         let device = &self.context.inner.device;

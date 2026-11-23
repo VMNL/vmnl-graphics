@@ -135,7 +135,7 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self::render_target_info`].
+    /// See [`render_target_config` in the shared example](Self#example-window-render-target).
     #[must_use]
     pub const fn render_target_config(&self) -> RenderTargetConfig {
         self.inner.config.render_target
@@ -151,6 +151,8 @@ impl Window {
     ///
     /// # Example
     ///
+    /// <a id="example-window-render-target"></a>
+    ///
     /// ```rust,no_run
     /// use vmnl_graphics::{Context, Window};
     ///
@@ -161,7 +163,7 @@ impl Window {
     /// let info = window.render_target_info();
     /// assert_eq!(info.depth_format(), config.depth_value());
     /// assert_eq!(info.sample_count(), 1);
-    /// let _resolved_color_format = info.color_format();
+    /// println!("Actual swapchain color format {}", info.color_format());
     /// # Ok(())
     /// # }
     /// ```

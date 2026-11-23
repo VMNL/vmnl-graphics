@@ -122,7 +122,7 @@ impl PolylineBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`width` in the shared example](Self#example).
     #[must_use]
     pub fn width(mut self, width: f32) -> Self {
         self.options.width = width;
@@ -140,7 +140,7 @@ impl PolylineBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`cap` in the shared example](Self#example).
     #[must_use]
     pub fn cap(mut self, cap: super::LineCap) -> Self {
         self.options.cap = cap;
@@ -158,7 +158,7 @@ impl PolylineBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`join` in the shared example](Self#example).
     #[must_use]
     pub fn join(mut self, join: LineJoin) -> Self {
         self.options.join = join;
@@ -176,7 +176,7 @@ impl PolylineBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`miter_limit` in the shared example](Self#example).
     #[must_use]
     pub fn miter_limit(mut self, limit: f32) -> Self {
         self.options.miter_limit = limit;
@@ -195,7 +195,7 @@ impl PolylineBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`color` in the shared example](Self#example).
     #[must_use]
     pub fn color<C>(mut self, color: C) -> Self
     where
@@ -218,7 +218,7 @@ impl PolylineBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`point_colors` in the shared example](Self#example).
     #[must_use]
     pub fn point_colors<C>(mut self, colors: C) -> Self
     where
@@ -242,7 +242,7 @@ impl PolylineBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`segment_colors` in the shared example](Self#example).
     #[must_use]
     pub fn segment_colors<C>(mut self, colors: C) -> Self
     where
@@ -259,7 +259,7 @@ impl PolylineBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`closed` in the shared example](Self#example).
     #[must_use]
     pub fn closed(mut self) -> Self {
         self.options.closed = true;
@@ -278,7 +278,7 @@ impl PolylineBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`buffer_memory_preference` in the shared example](Self#example).
     #[must_use]
     pub fn buffer_memory_preference(mut self, preference: BufferMemoryPreference) -> Self {
         self.options.buffer_memory_preference = preference;
@@ -303,7 +303,7 @@ impl PolylineBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`build` in the shared example](Self#example).
     pub fn build(self, context: &Context) -> VMNLResult<Shape> {
         validate_parameters(&self.options)?;
         let colors: StrokeColors<'_> = match &self.options.color_mode {

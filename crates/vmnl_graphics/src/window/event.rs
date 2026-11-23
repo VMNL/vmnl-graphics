@@ -19,16 +19,17 @@ use super::{
 /// # Example
 ///
 /// ```rust,no_run
-/// use vmnl_graphics::{Context, Window};
+/// use vmnl_graphics::{Context, EventKind, Window};
 ///
 /// # fn main() -> vmnl_graphics::VMNLResult<()> {
 /// let context = Context::new()?;
 /// let mut window = Window::new(&context)?;
+/// let mut queued: Vec<EventKind> = Vec::new();
 /// for event in window.poll_events() {
-///     let _timestamp = event.timestamp_seconds();
-///     let _borrowed = event.kind();
-///     let _owned = event.into_kind();
+///     println!("At {:.3} s received {:?}", event.timestamp_seconds(), event.kind());
+///     queued.push(event.into_kind());
 /// }
+/// println!("Queued {} owned event payloads", queued.len());
 /// # Ok(())
 /// # }
 /// ```
@@ -50,7 +51,7 @@ impl Event {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`timestamp_seconds` in the shared example](Self#example).
     #[must_use]
     pub const fn timestamp_seconds(&self) -> f64 {
         self.timestamp_seconds
@@ -60,7 +61,7 @@ impl Event {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`kind` in the shared example](Self#example).
     #[must_use]
     pub const fn kind(&self) -> &EventKind {
         &self.kind
@@ -70,7 +71,7 @@ impl Event {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`into_kind` in the shared example](Self#example).
     #[must_use]
     pub fn into_kind(self) -> EventKind {
         self.kind

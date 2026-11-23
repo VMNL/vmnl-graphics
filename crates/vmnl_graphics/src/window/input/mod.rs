@@ -104,7 +104,7 @@ impl Input {
     ///
     /// # Example
     ///
-    /// See the example on [`crate::Window::set_joystick_tracking`].
+    /// See [`joystick` in the shared example](crate::Window#example-joystick-tracking).
     #[inline]
     #[must_use]
     pub const fn joystick(&self, id: JoystickId) -> &JoystickState {

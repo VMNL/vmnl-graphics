@@ -114,7 +114,7 @@ impl CornerRadii {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`all` in the shared example](Self#example).
     #[must_use]
     pub const fn all(radius: f32) -> Self {
         Self {
@@ -136,7 +136,7 @@ impl CornerRadii {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`new` in the shared example](Self#example).
     #[must_use]
     pub const fn new(top_left: f32, top_right: f32, bottom_right: f32, bottom_left: f32) -> Self {
         Self {

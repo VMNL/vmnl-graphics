@@ -120,7 +120,7 @@ impl CircleBuilder {
     ///
     /// # Example
     ///
-    /// See the example on [`Shape::circle`].
+    /// See [`position` in the shared example](Shape#example-circle-sector).
     #[must_use]
     pub fn position(mut self, x: f32, y: f32) -> Self {
         self.options.position = Vector2f { x, y };
@@ -135,7 +135,7 @@ impl CircleBuilder {
     ///
     /// # Example
     ///
-    /// See the example on [`Shape::circle`].
+    /// See [`ellipse` in the shared example](Shape#example-circle-sector).
     #[must_use]
     pub fn ellipse(mut self, radius: f32) -> Self {
         self.options.radii.y = radius;
@@ -153,7 +153,7 @@ impl CircleBuilder {
     ///
     /// # Example
     ///
-    /// See the example on [`Shape::circle`].
+    /// See [`filled` in the shared example](Shape#example-circle-sector).
     #[must_use]
     pub fn filled(mut self, filled: bool) -> Self {
         self.options.filled = filled;
@@ -164,7 +164,7 @@ impl CircleBuilder {
     ///
     /// # Example
     ///
-    /// See the example on [`Shape::circle`].
+    /// See [`is_filled` in the shared example](Shape#example-circle-sector).
     #[must_use]
     pub const fn is_filled(&self) -> bool {
         self.options.filled
@@ -181,7 +181,7 @@ impl CircleBuilder {
     ///
     /// # Example
     ///
-    /// See the example on [`Shape::circle`].
+    /// See [`inner` in the shared example](Shape#example-circle-sector).
     #[must_use]
     pub fn inner(mut self, w: f32) -> Self {
         self.options.outline_width.inner = w;
@@ -194,7 +194,7 @@ impl CircleBuilder {
     ///
     /// # Example
     ///
-    /// See the example on [`Shape::circle`].
+    /// See [`inner_width` in the shared example](Shape#example-circle-sector).
     #[must_use]
     pub const fn inner_width(&self) -> f32 {
         self.options.outline_width.inner
@@ -211,7 +211,7 @@ impl CircleBuilder {
     ///
     /// # Example
     ///
-    /// See the example on [`Shape::circle`].
+    /// See [`outer` in the shared example](Shape#example-circle-sector).
     #[must_use]
     pub fn outer(mut self, w: f32) -> Self {
         self.options.outline_width.outer = w;
@@ -224,7 +224,7 @@ impl CircleBuilder {
     ///
     /// # Example
     ///
-    /// See the example on [`Shape::circle`].
+    /// See [`outer_width` in the shared example](Shape#example-circle-sector).
     #[must_use]
     pub const fn outer_width(&self) -> f32 {
         self.options.outline_width.outer
@@ -241,7 +241,7 @@ impl CircleBuilder {
     ///
     /// # Example
     ///
-    /// See the example on [`Shape::circle`].
+    /// See [`width` in the shared example](Shape#example-circle-sector).
     #[must_use]
     pub fn width(mut self, width: f32) -> Self {
         self.options.outline_width = Outline {
@@ -265,7 +265,7 @@ impl CircleBuilder {
     ///
     /// # Example
     ///
-    /// See the example on [`Shape::circle`].
+    /// See [`sector` in the shared example](Shape#example-circle-sector).
     #[must_use]
     pub fn sector(mut self, start: f32, sweep: f32) -> Self {
         self.options.sector = Some(Sector { start, sweep });
@@ -287,7 +287,7 @@ impl CircleBuilder {
     ///
     /// # Example
     ///
-    /// See the example on [`Shape::circle`].
+    /// See [`cap` in the shared example](Shape#example-circle-sector).
     #[must_use]
     pub fn cap(mut self, cap: LineCap) -> Self {
         self.options.cap = Some(cap);
@@ -304,7 +304,7 @@ impl CircleBuilder {
     ///
     /// # Example
     ///
-    /// See the example on [`Shape::circle`].
+    /// See [`segments` in the shared example](Shape#example-circle-sector).
     #[must_use]
     pub fn segments(mut self, segments: u16) -> Self {
         self.options.segment_count = segments;
@@ -320,7 +320,7 @@ impl CircleBuilder {
     ///
     /// # Example
     ///
-    /// See the example on [`Shape::circle`].
+    /// See [`color` in the shared example](Shape#example-circle-sector).
     #[must_use]
     pub fn color<C>(mut self, color: C) -> Self
     where
@@ -341,7 +341,7 @@ impl CircleBuilder {
     ///
     /// # Example
     ///
-    /// See the example on [`Shape::circle`].
+    /// See [`buffer_memory_preference` in the shared example](Shape#example-circle-sector).
     #[must_use]
     pub const fn buffer_memory_preference(mut self, preference: BufferMemoryPreference) -> Self {
         self.options.buffer_memory_preference = preference;

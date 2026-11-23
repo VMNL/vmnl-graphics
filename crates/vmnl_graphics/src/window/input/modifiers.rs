@@ -43,7 +43,7 @@ impl Modifiers {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`is_empty` in the shared example](Self#example).
     #[must_use]
     pub const fn is_empty(self) -> bool {
         self.0 == 0
@@ -57,7 +57,7 @@ impl Modifiers {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`contains` in the shared example](Self#example).
     #[must_use]
     pub const fn contains(self, other: Self) -> bool {
         self.0 & other.0 == other.0
@@ -67,7 +67,7 @@ impl Modifiers {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`bits` in the shared example](Self#example).
     #[must_use]
     pub const fn bits(self) -> u8 {
         self.0

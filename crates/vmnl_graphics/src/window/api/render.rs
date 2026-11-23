@@ -139,6 +139,8 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     ///
     /// # Example
     ///
+    /// <a id="example-draw-raw-2d"></a>
+    ///
     /// ```rust,no_run
     /// use vmnl_graphics::{Window, VMNLResult};
     /// use vmnl_graphics::raw::{BufferContents, FrameUniform, Geometry, Pipeline, Resources};
@@ -193,7 +195,7 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self::draw_raw_2d`].
+    /// See [`draw_raw_2d_with` in the shared example](Self#example-draw-raw-2d).
     #[must_use]
     pub fn draw_raw_2d_with<TVertex, const N: usize>(
         mut self,
@@ -230,7 +232,7 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self::draw_raw_2d`].
+    /// See [`write_frame_uniform` in the shared example](Self#example-draw-raw-2d).
     #[must_use]
     pub fn write_frame_uniform<TData>(
         mut self,

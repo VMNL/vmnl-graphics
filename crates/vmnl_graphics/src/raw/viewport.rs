@@ -66,7 +66,7 @@ impl ViewportPolicy {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`resolve` in the shared example](Self#example).
     pub fn resolve(self, framebuffer_extent: [u32; 2]) -> VMNLResult<Viewport> {
         let viewport = match self {
             Self::FullFramebuffer => Viewport {
@@ -134,7 +134,7 @@ impl ScissorPolicy {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`resolve` in the shared example](Self#example).
     pub fn resolve(self, framebuffer_extent: [u32; 2]) -> VMNLResult<Scissor> {
         let scissor = match self {
             Self::FullFramebuffer => Scissor {

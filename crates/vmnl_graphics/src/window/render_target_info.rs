@@ -57,7 +57,7 @@ impl RenderTargetInfo {
     ///
     /// # Example
     ///
-    /// See the example on [`crate::Window::render_target_info`].
+    /// See [`color_format` in the shared example](crate::Window#example-window-render-target).
     #[must_use]
     pub const fn color_format(self) -> ColorFormat {
         self.color_format
@@ -67,7 +67,7 @@ impl RenderTargetInfo {
     ///
     /// # Example
     ///
-    /// See the example on [`crate::Window::render_target_info`].
+    /// See [`sample_count` in the shared example](crate::Window#example-window-render-target).
     #[must_use]
     pub const fn sample_count(self) -> u32 {
         self.sample_count
@@ -78,7 +78,7 @@ impl RenderTargetInfo {
     ///
     /// # Example
     ///
-    /// See the example on [`crate::Window::render_target_info`].
+    /// See [`depth_format` in the shared example](crate::Window#example-window-render-target).
     #[must_use]
     pub const fn depth_format(self) -> Option<DepthFormat> {
         self.depth_format

@@ -46,7 +46,7 @@ impl PngDecodeOptions {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_encoding` in the shared example](Self#example).
     #[must_use]
     pub const fn with_encoding(mut self, encoding: ColorEncoding) -> Self {
         self.color_encoding = Some(encoding);
@@ -61,7 +61,7 @@ impl PngDecodeOptions {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_alpha_mode` in the shared example](Self#example).
     #[must_use]
     pub const fn with_alpha_mode(mut self, alpha_mode: AlphaMode) -> Self {
         self.alpha_mode = Some(alpha_mode);
@@ -72,7 +72,7 @@ impl PngDecodeOptions {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`encoding` in the shared example](Self#example).
     #[must_use]
     pub const fn encoding(self) -> Option<ColorEncoding> {
         self.color_encoding
@@ -82,7 +82,7 @@ impl PngDecodeOptions {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`alpha_mode` in the shared example](Self#example).
     #[must_use]
     pub const fn alpha_mode(self) -> Option<AlphaMode> {
         self.alpha_mode
@@ -115,7 +115,7 @@ impl PngDecodeOptions {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`decode_png` in the shared example](Self#example).
     pub fn decode_png(self, bytes: &[u8]) -> VMNLResult<PreparedPixelData> {
         decode_png_impl(bytes, self)
     }

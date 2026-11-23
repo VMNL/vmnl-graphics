@@ -287,7 +287,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`depth` in the shared example](Self#example).
     #[must_use]
     pub fn depth(mut self, state: DepthState) -> Self {
         self.depth = state;
@@ -298,7 +298,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`depth_value` in the shared example](Self#example).
     #[must_use]
     pub const fn depth_value(&self) -> DepthState {
         self.depth
@@ -313,7 +313,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`vertex_shader` in the shared example](Self#example).
     #[must_use]
     pub fn vertex_shader(mut self, source: ShaderSource) -> Self {
         self.vertex_shader = Some(source);
@@ -329,7 +329,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`fragment_shader` in the shared example](Self#example).
     #[must_use]
     pub fn fragment_shader(mut self, source: ShaderSource) -> Self {
         self.fragment_shader = Some(source);
@@ -345,7 +345,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`topology` in the shared example](Self#example).
     #[must_use]
     pub fn topology(mut self, topology: PrimitiveTopology) -> Self {
         self.topology = topology;
@@ -364,7 +364,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`blend_mode` in the shared example](Self#example).
     #[must_use]
     pub fn blend_mode(mut self, blend_mode: BlendMode) -> Self {
         self.blend_mode = Some(blend_mode);
@@ -385,7 +385,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`color_blend` in the shared example](Self#example).
     #[must_use]
     pub fn color_blend(mut self, config: ColorBlendConfig) -> Self {
         self.color_blend = Some(ColorBlendOverrides::from_config(config));
@@ -404,7 +404,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`color_blend_overrides` in the shared example](Self#example).
     #[must_use]
     pub fn color_blend_overrides(mut self, overrides: ColorBlendOverrides) -> Self {
         self.color_blend = Some(overrides);
@@ -419,7 +419,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`cull_mode` in the shared example](Self#example).
     #[must_use]
     pub fn cull_mode(mut self, cull_mode: CullMode) -> Self {
         self.cull_mode = cull_mode;
@@ -436,7 +436,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`front_face` in the shared example](Self#example).
     #[must_use]
     pub fn front_face(mut self, front_face: FrontFace) -> Self {
         self.front_face = front_face;
@@ -456,7 +456,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`polygon_mode` in the shared example](Self#example).
     #[must_use]
     pub fn polygon_mode(mut self, mode: PolygonMode) -> Self {
         self.polygon_mode = mode;
@@ -478,7 +478,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`line_width` in the shared example](Self#example).
     #[must_use]
     pub fn line_width(mut self, width: f32) -> Self {
         self.line_width = width;
@@ -498,7 +498,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`viewport` in the shared example](Self#example).
     #[must_use]
     pub fn viewport(mut self, policy: ViewportPolicy) -> Self {
         self.viewport = policy;
@@ -515,7 +515,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`scissor` in the shared example](Self#example).
     #[must_use]
     pub fn scissor(mut self, policy: ScissorPolicy) -> Self {
         self.scissor = policy;
@@ -526,7 +526,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`viewport_value` in the shared example](Self#example).
     #[must_use]
     pub const fn viewport_value(&self) -> ViewportPolicy {
         self.viewport
@@ -536,7 +536,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`scissor_value` in the shared example](Self#example).
     #[must_use]
     pub const fn scissor_value(&self) -> ScissorPolicy {
         self.scissor
@@ -546,7 +546,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`polygon_mode_value` in the shared example](Self#example).
     #[must_use]
     pub const fn polygon_mode_value(&self) -> PolygonMode {
         self.polygon_mode
@@ -556,7 +556,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`line_width_value` in the shared example](Self#example).
     #[must_use]
     pub const fn line_width_value(&self) -> f32 {
         self.line_width
@@ -566,7 +566,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`topology_value` in the shared example](Self#example).
     #[must_use]
     pub const fn topology_value(&self) -> PrimitiveTopology {
         self.topology
@@ -576,7 +576,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`blend_mode_value` in the shared example](Self#example).
     #[must_use]
     pub const fn blend_mode_value(&self) -> BlendMode {
         match self.blend_mode {
@@ -590,7 +590,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`color_blend_config_value` in the shared example](Self#example).
     #[must_use]
     pub const fn color_blend_config_value(&self) -> ColorBlendConfig {
         self.color_blend_overrides_value()
@@ -601,7 +601,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`color_blend_overrides_value` in the shared example](Self#example).
     #[must_use]
     pub const fn color_blend_overrides_value(&self) -> ColorBlendOverrides {
         match self.color_blend {
@@ -622,7 +622,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`cull_mode_value` in the shared example](Self#example).
     #[must_use]
     pub const fn cull_mode_value(&self) -> CullMode {
         self.cull_mode
@@ -632,7 +632,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`front_face_value` in the shared example](Self#example).
     #[must_use]
     pub const fn front_face_value(&self) -> FrontFace {
         self.front_face
@@ -661,9 +661,11 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Example
     ///
+    /// <a id="example-pipeline-build"></a>
+    ///
     /// ```rust,no_run
     /// use vmnl_graphics::{Context, Window};
-    /// use vmnl_graphics::raw::{self, Pipeline, ShaderSource};
+    /// use vmnl_graphics::raw::{self, Pipeline, PolygonMode, ShaderSource};
     ///
     /// #[repr(C)]
     /// #[derive(Clone, Copy, raw::Vertex, raw::Pod, raw::Zeroable)]
@@ -686,13 +688,19 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///     ))
     ///     .build(&window)?;
     /// pipeline.validate_target(&window)?;
-    /// let _target = pipeline.render_target_info();
-    /// let _depth = pipeline.depth_value();
-    /// let _viewport = pipeline.viewport_value();
-    /// let _scissor = pipeline.scissor_value();
-    /// let _rasterization = pipeline.polygon_mode_value();
-    /// let _line_width = pipeline.line_width_value();
-    /// let _blend = pipeline.color_blend_config_value();
+    /// assert_eq!(pipeline.render_target_info(), window.render_target_info());
+    ///
+    /// let (width, height) = window.get_framebuffer_size();
+    /// if width > 0 && height > 0 {
+    ///     let extent = [width, height];
+    ///     let viewport = pipeline.viewport_value().resolve(extent)?;
+    ///     let scissor = pipeline.scissor_value().resolve(extent)?;
+    ///     assert_eq!(viewport.extent, [width as f32, height as f32]);
+    ///     assert_eq!(scissor.extent, extent);
+    /// }
+    /// assert_eq!(pipeline.polygon_mode_value(), PolygonMode::Fill);
+    /// assert_eq!(pipeline.line_width_value(), 1.0);
+    /// assert!(!pipeline.color_blend_config_value().blend_enabled());
     /// # Ok(())
     /// # }
     /// ```
@@ -828,7 +836,7 @@ impl<TVertex> Pipeline<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`PipelineSpec::build`].
+    /// See [`render_target_info` in the shared example](PipelineSpec#example-pipeline-build).
     #[must_use]
     pub const fn render_target_info(&self) -> RenderTargetInfo {
         self.render_target_info
@@ -855,7 +863,7 @@ impl<TVertex> Pipeline<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`PipelineSpec::build`].
+    /// See [`validate_target` in the shared example](PipelineSpec#example-pipeline-build).
     pub fn validate_target(&self, window: &Window) -> VMNLResult<()> {
         if !pipeline_targets_window(
             &self.device,
@@ -874,7 +882,18 @@ impl<TVertex> Pipeline<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`PipelineSpec::build`].
+    /// Check that a pipeline used for a depth-writing pass has writes enabled.
+    ///
+    /// ```rust
+    /// use vmnl_graphics::raw::{DepthState, Pipeline};
+    ///
+    /// fn require_depth_writes<V>(pipeline: &Pipeline<V>) -> Result<(), &'static str> {
+    ///     match pipeline.depth_value() {
+    ///         DepthState::Test { write_enable: true, .. } => Ok(()),
+    ///         _ => Err("This pass requires depth writes"),
+    ///     }
+    /// }
+    /// ```
     #[must_use]
     pub const fn depth_value(&self) -> DepthState {
         self.depth
@@ -888,7 +907,7 @@ impl<TVertex> Pipeline<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`PipelineSpec::build`].
+    /// See [`color_blend_config_value` in the shared example](PipelineSpec#example-pipeline-build).
     #[must_use]
     pub const fn color_blend_config_value(&self) -> ColorBlendConfig {
         self.color_blend
@@ -898,7 +917,7 @@ impl<TVertex> Pipeline<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`PipelineSpec::build`].
+    /// See [`builder` in the shared example](PipelineSpec#example-pipeline-build).
     #[must_use]
     pub fn builder() -> PipelineSpec<TVertex> {
         PipelineSpec::default()
@@ -908,7 +927,7 @@ impl<TVertex> Pipeline<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`PipelineSpec::build`].
+    /// See [`polygon_mode_value` in the shared example](PipelineSpec#example-pipeline-build).
     #[must_use]
     pub const fn polygon_mode_value(&self) -> PolygonMode {
         self.polygon_mode
@@ -920,7 +939,7 @@ impl<TVertex> Pipeline<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`PipelineSpec::build`].
+    /// See [`line_width_value` in the shared example](PipelineSpec#example-pipeline-build).
     #[must_use]
     pub const fn line_width_value(&self) -> f32 {
         self.line_width
@@ -930,7 +949,7 @@ impl<TVertex> Pipeline<TVertex> {
     ///
     /// # Example
     ///
-    /// See the example on [`PipelineSpec::build`].
+    /// See [`viewport_value` in the shared example](PipelineSpec#example-pipeline-build).
     #[must_use]
     pub const fn viewport_value(&self) -> ViewportPolicy {
         self.viewport
@@ -940,7 +959,7 @@ impl<TVertex> Pipeline<TVertex> {
     ///
     /// # Example
     ///
-    /// See the example on [`PipelineSpec::build`].
+    /// See [`scissor_value` in the shared example](PipelineSpec#example-pipeline-build).
     #[must_use]
     pub const fn scissor_value(&self) -> ScissorPolicy {
         self.scissor
@@ -1044,7 +1063,7 @@ impl<TVertex> Geometry<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`builder` in the shared example](Self#example).
     #[must_use]
     pub fn builder<V>(vertices: V) -> GeometryBuilder<TVertex>
     where
@@ -1086,7 +1105,7 @@ impl<TVertex> GeometryBuilder<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Geometry`].
+    /// See [`indices` in the shared example](Geometry#example).
     #[must_use]
     pub fn indices<I>(mut self, indices: I) -> Self
     where
@@ -1105,7 +1124,7 @@ impl<TVertex> GeometryBuilder<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Geometry`].
+    /// See [`buffer_memory_preference` in the shared example](Geometry#example).
     #[must_use]
     pub fn buffer_memory_preference(mut self, preference: BufferMemoryPreference) -> Self {
         self.memory_preference = preference;
@@ -1131,7 +1150,7 @@ impl<TVertex> GeometryBuilder<TVertex> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Geometry`].
+    /// See [`build` in the shared example](Geometry#example).
     pub fn build(self, context: &Context) -> VMNLResult<Geometry<TVertex>>
     where
         TVertex: BufferContents,
@@ -1208,7 +1227,7 @@ impl<TData> Uniform<TData> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`builder` in the shared example](Self#example).
     #[must_use]
     pub fn builder(data: TData) -> UniformBuilder<TData> {
         UniformBuilder {
@@ -1236,7 +1255,7 @@ impl<TData> Uniform<TData> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`write` in the shared example](Self#example).
     pub fn write(&mut self, data: TData) -> VMNLResult<()>
     where
         TData: BufferContents,
@@ -1273,7 +1292,7 @@ impl<TData> UniformBuilder<TData> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Uniform`].
+    /// See [`buffer_memory_preference` in the shared example](Uniform#example).
     #[must_use]
     pub fn buffer_memory_preference(mut self, preference: BufferMemoryPreference) -> Self {
         self.memory_preference = preference;
@@ -1294,7 +1313,7 @@ impl<TData> UniformBuilder<TData> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Uniform`].
+    /// See [`build` in the shared example](Uniform#example).
     pub fn build(self, context: &Context) -> VMNLResult<Uniform<TData>>
     where
         TData: BufferContents,
@@ -1363,7 +1382,7 @@ impl<TData> FrameUniform<TData> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`builder` in the shared example](Self#example).
     #[must_use]
     pub fn builder(data: TData) -> FrameUniformBuilder<TData> {
         FrameUniformBuilder {
@@ -1426,7 +1445,7 @@ impl<TData> FrameUniformBuilder<TData> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`FrameUniform`].
+    /// See [`buffer_memory_preference` in the shared example](FrameUniform#example).
     #[must_use]
     pub fn buffer_memory_preference(mut self, preference: BufferMemoryPreference) -> Self {
         self.memory_preference = preference;
@@ -1448,7 +1467,7 @@ impl<TData> FrameUniformBuilder<TData> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`FrameUniform`].
+    /// See [`build` in the shared example](FrameUniform#example).
     pub fn build(self, window: &Window) -> VMNLResult<FrameUniform<TData>>
     where
         TData: BufferContents + Clone,
@@ -1563,7 +1582,7 @@ impl Resources {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`builder` in the shared example](Self#example).
     #[must_use]
     pub fn builder<TVertex>(pipeline: &Pipeline<TVertex>) -> ResourcesBuilder {
         let pipeline_layout = pipeline.inner.layout().clone();
@@ -1617,7 +1636,7 @@ impl ResourcesBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Resources`].
+    /// See [`frame_uniform` in the shared example](Resources#example).
     #[must_use]
     pub fn frame_uniform<TData>(
         mut self,
@@ -1662,7 +1681,7 @@ impl ResourcesBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Resources`].
+    /// See [`uniform` in the shared example](Resources#example).
     #[must_use]
     pub fn uniform<TData>(mut self, set: u32, binding: u32, uniform: &Uniform<TData>) -> Self {
         let old = self.bindings.entry(set).or_default().insert(
@@ -1696,7 +1715,7 @@ impl ResourcesBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Resources`].
+    /// See [`sampled_texture` in the shared example](Resources#example).
     #[must_use]
     pub fn sampled_texture(
         mut self,
@@ -1733,7 +1752,7 @@ impl ResourcesBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Resources`].
+    /// See [`sampled_texture_view` in the shared example](Resources#example).
     #[must_use]
     pub fn sampled_texture_view(
         mut self,
@@ -1769,7 +1788,7 @@ impl ResourcesBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Resources`].
+    /// See [`texture` in the shared example](Resources#example).
     #[must_use]
     pub fn texture(mut self, set: u32, binding: u32, texture: &Texture2D) -> Self {
         let old = self.bindings.entry(set).or_default().insert(
@@ -1798,7 +1817,7 @@ impl ResourcesBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Resources`].
+    /// See [`texture_view` in the shared example](Resources#example).
     #[must_use]
     pub fn texture_view(mut self, set: u32, binding: u32, view: &TextureView2D) -> Self {
         let old = self.bindings.entry(set).or_default().insert(
@@ -1826,7 +1845,7 @@ impl ResourcesBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Resources`].
+    /// See [`sampler` in the shared example](Resources#example).
     #[must_use]
     pub fn sampler(mut self, set: u32, binding: u32, sampler: &Sampler) -> Self {
         let old = self
@@ -1857,7 +1876,7 @@ impl ResourcesBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Resources`].
+    /// See [`build` in the shared example](Resources#example).
     pub fn build(self, context: &Context) -> VMNLResult<Resources> {
         let Self {
             pipeline_device,

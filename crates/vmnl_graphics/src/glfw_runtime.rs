@@ -44,7 +44,7 @@ impl InputRuntimeConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`InputRuntime`].
+    /// See [`hat_buttons` in the shared example](InputRuntime#example).
     #[inline]
     #[must_use]
     pub const fn hat_buttons(self) -> bool {
@@ -74,7 +74,7 @@ impl Default for InputRuntimeConfig {
 /// # Example
 ///
 /// ```rust,no_run
-/// use vmnl_graphics::{InputRuntime, JoystickId};
+/// use vmnl_graphics::{EventKind, InputRuntime, JoystickId};
 ///
 /// # fn main() -> vmnl_graphics::VMNLResult<()> {
 /// // Configure the first acquisition.
@@ -83,12 +83,18 @@ impl Default for InputRuntimeConfig {
 /// assert!(!observer.configuration().hat_buttons());
 ///
 /// runtime.set_joystick_callback(|event, _user_pointer| {
-///     let _connection_change = event.kind();
+///     if let EventKind::JoystickConnected { id } = event.kind() {
+///         println!("Joystick connected at {id:?}");
+///     }
 /// });
+/// let mut connection_changes = Vec::new();
 /// for event in runtime.poll_events() {
-///     let _connection_change = event.into_kind();
+///     connection_changes.push(event.into_kind());
 /// }
-/// let _snapshot = runtime.sample_joystick(JoystickId::Joystick1)?;
+/// println!("Queued {} connection changes", connection_changes.len());
+/// if let Some(snapshot) = runtime.sample_joystick(JoystickId::Joystick1)? {
+///     println!("Joystick 1 reports {} axes", snapshot.axes().len());
+/// }
 /// runtime.unset_joystick_callback();
 /// # Ok(())
 /// # }
@@ -113,7 +119,7 @@ impl InputRuntime {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`acquire` in the shared example](Self#example).
     pub fn acquire() -> VMNLResult<Self> {
         Ok(Self {
             runtime: GlfwRuntime::acquire(None)?,
@@ -127,7 +133,7 @@ impl InputRuntime {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`builder` in the shared example](Self#example).
     #[must_use]
     pub const fn builder() -> InputRuntimeBuilder {
         InputRuntimeBuilder { hat_buttons: None }
@@ -137,7 +143,7 @@ impl InputRuntime {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`configuration` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub fn configuration(&self) -> InputRuntimeConfig {
@@ -167,7 +173,7 @@ impl InputRuntime {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`sample_joystick` in the shared example](Self#example).
     pub fn sample_joystick(
         &self,
         id: crate::JoystickId,
@@ -192,7 +198,7 @@ impl InputRuntime {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`poll_events` in the shared example](Self#example).
     #[must_use]
     pub fn poll_events(&mut self) -> Vec<crate::Event> {
         self.has_polled_joystick_events = true;
@@ -225,7 +231,7 @@ impl InputRuntime {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`set_joystick_callback` in the shared example](Self#example).
     pub fn set_joystick_callback(
         &mut self,
         callback: impl FnMut(&crate::Event, *mut std::ffi::c_void) + 'static,
@@ -242,7 +248,7 @@ impl InputRuntime {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`unset_joystick_callback` in the shared example](Self#example).
     pub fn unset_joystick_callback(&mut self) {
         self.joystick_events.borrow_mut().callback = JoystickCallbackState::Unset;
         if !self.has_polled_joystick_events {
@@ -335,7 +341,7 @@ impl InputRuntime {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self::set_joystick_user_pointer`].
+    /// See [`joystick_user_pointer` in the shared example](Self#example-joystick-user-pointer).
     #[must_use]
     pub unsafe fn joystick_user_pointer(&self, id: crate::JoystickId) -> *mut std::ffi::c_void {
         crate::glfw_backend::get_joystick_user_pointer(id)
@@ -360,6 +366,8 @@ impl InputRuntime {
     /// synchronized by the caller, and no Rust reference may outlive the allocation.
     ///
     /// # Example
+    ///
+    /// <a id="example-joystick-user-pointer"></a>
     ///
     /// ```rust,no_run
     /// use vmnl_graphics::{InputRuntime, JoystickId};
@@ -411,7 +419,7 @@ impl InputRuntimeBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`InputRuntime`].
+    /// See [`hat_buttons` in the shared example](InputRuntime#example).
     #[inline]
     #[must_use]
     pub const fn hat_buttons(mut self, enabled: bool) -> Self {
@@ -429,7 +437,7 @@ impl InputRuntimeBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`InputRuntime`].
+    /// See [`build` in the shared example](InputRuntime#example).
     pub fn build(self) -> VMNLResult<InputRuntime> {
         let requested = self
             .hat_buttons

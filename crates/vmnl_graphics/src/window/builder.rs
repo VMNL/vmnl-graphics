@@ -235,7 +235,7 @@ impl WindowBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`joystick_event_delivery` in the shared example](Self#example).
     #[must_use]
     pub const fn joystick_event_delivery(mut self, enabled: bool) -> Self {
         self.options.joystick_event_delivery = enabled;
@@ -254,7 +254,7 @@ impl WindowBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`joystick_tracking` in the shared example](Self#example).
     #[must_use]
     pub const fn joystick_tracking(mut self, enabled: bool) -> Self {
         self.options.joystick_tracking = enabled;
@@ -269,7 +269,7 @@ impl WindowBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`left_stick_config` in the shared example](Self#example).
     #[must_use]
     pub const fn left_stick_config(mut self, config: StickConfig) -> Self {
         self.options.left_stick_config = config;
@@ -284,7 +284,7 @@ impl WindowBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`right_stick_config` in the shared example](Self#example).
     #[must_use]
     pub const fn right_stick_config(mut self, config: StickConfig) -> Self {
         self.options.right_stick_config = config;
@@ -562,7 +562,7 @@ impl WindowBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`render_target` in the shared example](Self#example).
     #[must_use]
     pub const fn render_target(mut self, config: RenderTargetConfig) -> Self {
         self.options.render_target = config;
@@ -573,7 +573,7 @@ impl WindowBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`render_target_value` in the shared example](Self#example).
     #[must_use]
     pub const fn render_target_value(&self) -> RenderTargetConfig {
         self.options.render_target

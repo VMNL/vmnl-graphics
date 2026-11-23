@@ -107,7 +107,7 @@ impl DeviceConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`require_feature` in the shared example](Self#example).
     #[must_use]
     pub fn require_feature(mut self, feature: DeviceFeature) -> Self {
         if !self.required_features.contains(&feature) {
@@ -126,7 +126,7 @@ impl DeviceConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`require_features` in the shared example](Self#example).
     #[must_use]
     pub fn require_features(mut self, features: impl IntoIterator<Item = DeviceFeature>) -> Self {
         for feature in features {
@@ -140,7 +140,7 @@ impl DeviceConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`required_features` in the shared example](Self#example).
     #[must_use]
     pub fn required_features(&self) -> &[DeviceFeature] {
         &self.required_features
@@ -212,7 +212,7 @@ impl ContextBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`device` in the shared example](Self#example).
     #[must_use]
     pub fn device(mut self, config: DeviceConfig) -> Self {
         self.device = config;
@@ -223,7 +223,7 @@ impl ContextBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`device_config` in the shared example](Self#example).
     #[must_use]
     pub const fn device_config(&self) -> &DeviceConfig {
         &self.device
@@ -238,7 +238,7 @@ impl ContextBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`texture_defaults` in the shared example](Self#example).
     #[must_use]
     pub const fn texture_defaults(mut self, defaults: TextureDefaults) -> Self {
         self.textures = defaults;
@@ -249,7 +249,7 @@ impl ContextBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`texture_defaults_config` in the shared example](Self#example).
     #[must_use]
     pub const fn texture_defaults_config(&self) -> TextureDefaults {
         self.textures
@@ -263,7 +263,7 @@ impl ContextBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`raw_color_blend` in the shared example](Self#example).
     #[must_use]
     pub const fn raw_color_blend(mut self, defaults: ColorBlendOverrides) -> Self {
         self.raw_color_blend = defaults;
@@ -274,7 +274,7 @@ impl ContextBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`raw_color_blend_defaults` in the shared example](Self#example).
     #[must_use]
     pub const fn raw_color_blend_defaults(&self) -> ColorBlendOverrides {
         self.raw_color_blend

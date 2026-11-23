@@ -127,7 +127,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`linear` in the shared example](Self#example).
     #[must_use]
     pub const fn linear() -> Self {
         Self {
@@ -149,7 +149,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`nearest` in the shared example](Self#example).
     #[must_use]
     pub const fn nearest() -> Self {
         Self {
@@ -168,7 +168,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_min_filter` in the shared example](Self#example).
     #[must_use]
     pub const fn with_min_filter(mut self, filter: Filter) -> Self {
         self.min_filter = filter;
@@ -183,7 +183,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_mag_filter` in the shared example](Self#example).
     #[must_use]
     pub const fn with_mag_filter(mut self, filter: Filter) -> Self {
         self.mag_filter = filter;
@@ -198,7 +198,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_mipmap_filter` in the shared example](Self#example).
     #[must_use]
     pub const fn with_mipmap_filter(mut self, filter: Filter) -> Self {
         self.mipmap_filter = filter;
@@ -213,7 +213,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_address_u` in the shared example](Self#example).
     #[must_use]
     pub const fn with_address_u(mut self, mode: AddressMode) -> Self {
         self.address_u = mode;
@@ -228,7 +228,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_address_v` in the shared example](Self#example).
     #[must_use]
     pub const fn with_address_v(mut self, mode: AddressMode) -> Self {
         self.address_v = mode;
@@ -244,7 +244,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_border_color` in the shared example](Self#example).
     #[must_use]
     pub const fn with_border_color(mut self, color: SamplerBorderColor) -> Self {
         self.border_color = color;
@@ -259,7 +259,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_min_lod` in the shared example](Self#example).
     #[must_use]
     pub const fn with_min_lod(mut self, value: f32) -> Self {
         self.min_lod = value;
@@ -275,7 +275,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_max_lod` in the shared example](Self#example).
     #[must_use]
     pub const fn with_max_lod(mut self, limit: SamplerLodLimit) -> Self {
         self.max_lod = limit;
@@ -290,7 +290,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_lod_bias` in the shared example](Self#example).
     #[must_use]
     pub const fn with_lod_bias(mut self, value: f32) -> Self {
         self.lod_bias = value;
@@ -305,7 +305,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_anisotropy` in the shared example](Self#example).
     #[must_use]
     pub const fn with_anisotropy(mut self, value: f32) -> Self {
         self.anisotropy = value;
@@ -324,7 +324,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_coordinate_mode` in the shared example](Self#example).
     #[must_use]
     pub const fn with_coordinate_mode(mut self, mode: SamplerCoordinateMode) -> Self {
         self.coordinate_mode = mode;
@@ -335,7 +335,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`min_filter` in the shared example](Self#example).
     #[must_use]
     pub const fn min_filter(self) -> Filter {
         self.min_filter
@@ -345,7 +345,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`mag_filter` in the shared example](Self#example).
     #[must_use]
     pub const fn mag_filter(self) -> Filter {
         self.mag_filter
@@ -355,7 +355,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`mipmap_filter` in the shared example](Self#example).
     #[must_use]
     pub const fn mipmap_filter(self) -> Filter {
         self.mipmap_filter
@@ -365,7 +365,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`address_u` in the shared example](Self#example).
     #[must_use]
     pub const fn address_u(self) -> AddressMode {
         self.address_u
@@ -375,7 +375,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`address_v` in the shared example](Self#example).
     #[must_use]
     pub const fn address_v(self) -> AddressMode {
         self.address_v
@@ -385,7 +385,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`border_color` in the shared example](Self#example).
     #[must_use]
     pub const fn border_color(self) -> SamplerBorderColor {
         self.border_color
@@ -395,7 +395,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`min_lod` in the shared example](Self#example).
     #[must_use]
     pub const fn min_lod(self) -> f32 {
         self.min_lod
@@ -405,7 +405,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`max_lod` in the shared example](Self#example).
     #[must_use]
     pub const fn max_lod(self) -> SamplerLodLimit {
         self.max_lod
@@ -415,7 +415,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`lod_bias` in the shared example](Self#example).
     #[must_use]
     pub const fn lod_bias(self) -> f32 {
         self.lod_bias
@@ -425,7 +425,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`anisotropy` in the shared example](Self#example).
     #[must_use]
     pub const fn anisotropy(self) -> f32 {
         self.anisotropy
@@ -435,7 +435,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`coordinate_mode` in the shared example](Self#example).
     #[must_use]
     pub const fn coordinate_mode(self) -> SamplerCoordinateMode {
         self.coordinate_mode
@@ -452,7 +452,7 @@ impl SamplerConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`validate` in the shared example](Self#example).
     pub fn validate(self) -> VMNLResult<()> {
         if !self.min_lod.is_finite() || !self.lod_bias.is_finite() {
             return Err(invalid_state("sampler LOD values must be finite"));

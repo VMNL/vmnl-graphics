@@ -75,7 +75,7 @@ impl Clock {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`new` in the shared example](Self#example).
     #[must_use]
     pub fn new() -> Self {
         Self::from_origin(Instant::now())
@@ -90,7 +90,7 @@ impl Clock {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`elapsed` in the shared example](Self#example).
     #[must_use]
     pub fn elapsed(&self) -> Duration {
         match self.running_since {
@@ -133,7 +133,7 @@ impl Clock {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`pause` in the shared example](Self#example).
     pub fn pause(&mut self) {
         if self.running_since.is_some() {
             self.pause_at(Instant::now());
@@ -148,7 +148,7 @@ impl Clock {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`resume` in the shared example](Self#example).
     pub fn resume(&mut self) {
         if self.running_since.is_none() {
             self.resume_at(Instant::now());
@@ -159,7 +159,7 @@ impl Clock {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`is_paused` in the shared example](Self#example).
     #[must_use]
     pub fn is_paused(&self) -> bool {
         self.running_since.is_none()

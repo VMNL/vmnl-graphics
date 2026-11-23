@@ -91,7 +91,7 @@ impl Cursor {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`standard` in the shared example](Self#example).
     pub const fn standard(shape: StandardCursor) -> StandardCursorBuilder {
         StandardCursorBuilder { shape }
     }
@@ -110,7 +110,7 @@ impl Cursor {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`rgba8` in the shared example](Self#example).
     pub const fn rgba8(width: u32, height: u32, pixels: &[u8]) -> CursorBuilder<'_> {
         CursorBuilder {
             width,
@@ -214,7 +214,7 @@ impl CursorBuilder<'_> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Cursor`].
+    /// See [`hotspot` in the shared example](Cursor#example).
     pub const fn hotspot(mut self, x: u32, y: u32) -> Self {
         self.hotspot = (x, y);
         self
@@ -233,7 +233,7 @@ impl CursorBuilder<'_> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Cursor`].
+    /// See [`hotspot_marker` in the shared example](Cursor#example).
     pub fn hotspot_marker<C>(mut self, color: C) -> Self
     where
         C: Into<Rgba>,

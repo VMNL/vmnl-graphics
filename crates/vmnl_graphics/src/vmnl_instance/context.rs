@@ -55,22 +55,42 @@ fn wayland_scancode_name(
 ///
 /// ```rust,no_run
 /// use vmnl_graphics::{Context, DeviceFeature, Key};
+/// use vmnl_graphics::common::ColorBlendConfig;
 ///
 /// # fn main() -> vmnl_graphics::VMNLResult<()> {
 /// let context = Context::builder().build()?;
-/// let _gpu = context.device_name();
-/// let _widths = context.line_width_limits();
-/// let _defaults = (context.texture_defaults(), context.raw_color_blend_defaults(),
-///     context.raw_color_blend_config());
-/// let feature = DeviceFeature::WideLines;
-/// let _available = context.is_device_feature_supported(feature);
-/// let _active = context.is_device_feature_enabled(feature);
-/// let _raw_motion = context.is_raw_mouse_motion_supported();
-/// let _name = context.get_key_name(Key::A);
-/// if let Some(scancode) = context.get_key_scancode(Key::A) {
-///     let _native_name = context.get_scancode_name(scancode);
+/// println!("Selected GPU {}", context.device_name());
+/// let wide_lines = DeviceFeature::WideLines;
+/// if context.is_device_feature_supported(wide_lines) {
+///     let limits = context.line_width_limits();
+///     if context.is_device_feature_enabled(wide_lines) {
+///         println!("Wide lines enabled in {}..={} framebuffer units", limits.min, limits.max);
+///     } else {
+///         println!("Request WideLines to use the device's {}..={} range", limits.min, limits.max);
+///     }
 /// }
-/// let _released = context.collect_texture_retirements()?;
+/// if context.is_raw_mouse_motion_supported() {
+///     println!("Raw mouse motion is available as an input option");
+/// }
+///
+/// let blend = context.raw_color_blend_defaults().resolve(ColorBlendConfig::opaque());
+/// assert_eq!(context.raw_color_blend_config(), blend);
+/// if let Some(enabled) = context.texture_defaults().mutable_format_views() {
+///     println!("Context default for mutable-format views is {enabled}");
+/// }
+///
+/// let label = context.get_key_name(Key::A).or_else(|| {
+///     let scancode = context.get_key_scancode(Key::A)?;
+///     context.get_scancode_name(scancode)
+/// });
+/// if let Some(label) = label {
+///     println!("Action shortcut {label}");
+/// }
+///
+/// let released = context.collect_texture_retirements()?;
+/// if released > 0 {
+///     println!("Retired {released} texture allocations");
+/// }
 /// # Ok(())
 /// # }
 /// ```
@@ -86,7 +106,7 @@ impl Context {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`builder` in the shared example](Self#example).
     #[must_use]
     pub fn builder() -> ContextBuilder {
         ContextBuilder::default()
@@ -96,7 +116,7 @@ impl Context {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`texture_defaults` in the shared example](Self#example).
     #[must_use]
     pub fn texture_defaults(&self) -> TextureDefaults {
         self.inner.texture_defaults
@@ -106,7 +126,7 @@ impl Context {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`raw_color_blend_defaults` in the shared example](Self#example).
     #[must_use]
     pub fn raw_color_blend_defaults(&self) -> ColorBlendOverrides {
         self.inner.raw_color_blend_defaults
@@ -116,7 +136,7 @@ impl Context {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`raw_color_blend_config` in the shared example](Self#example).
     #[must_use]
     pub fn raw_color_blend_config(&self) -> ColorBlendConfig {
         self.raw_color_blend_defaults()
@@ -129,7 +149,7 @@ impl Context {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`device_name` in the shared example](Self#example).
     #[must_use]
     pub fn device_name(&self) -> &str {
         &self.inner.physical_device.properties().device_name
@@ -143,7 +163,7 @@ impl Context {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`line_width_limits` in the shared example](Self#example).
     #[must_use]
     pub fn line_width_limits(&self) -> LineWidthLimits {
         LineWidthLimits::from_physical_device(&self.inner.physical_device)
@@ -160,7 +180,7 @@ impl Context {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`is_device_feature_supported` in the shared example](Self#example).
     #[must_use]
     pub fn is_device_feature_supported(&self, feature: DeviceFeature) -> bool {
         feature.is_set_in(self.inner.physical_device.supported_features())
@@ -177,7 +197,7 @@ impl Context {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`is_device_feature_enabled` in the shared example](Self#example).
     #[must_use]
     pub fn is_device_feature_enabled(&self, feature: DeviceFeature) -> bool {
         feature.is_set_in(self.inner.device.enabled_features())
@@ -199,7 +219,7 @@ impl Context {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`collect_texture_retirements` in the shared example](Self#example).
     pub fn collect_texture_retirements(&self) -> VMNLResult<usize> {
         self.inner.texture_retirements.collect()
     }
@@ -220,7 +240,7 @@ impl Context {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`get_key_name` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub fn get_key_name(&self, key: Key) -> Option<String> {
@@ -250,7 +270,7 @@ impl Context {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`get_scancode_name` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub fn get_scancode_name(&self, scancode: Scancode) -> Option<String> {
@@ -283,7 +303,7 @@ impl Context {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`get_key_scancode` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub fn get_key_scancode(&self, key: Key) -> Option<Scancode> {
@@ -299,7 +319,7 @@ impl Context {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`is_raw_mouse_motion_supported` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub fn is_raw_mouse_motion_supported(&self) -> bool {

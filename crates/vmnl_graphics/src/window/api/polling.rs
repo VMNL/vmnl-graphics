@@ -25,6 +25,8 @@ impl Window {
     ///
     /// # Example
     ///
+    /// <a id="example-joystick-tracking"></a>
+    ///
     /// ```rust,no_run
     /// use vmnl_graphics::{Context, JoystickId, StickAngleConvention, StickConfig, Window};
     ///
@@ -41,7 +43,9 @@ impl Window {
     /// assert!(window.is_joystick_tracking_enabled());
     /// assert!(window.is_joystick_event_delivery_enabled());
     /// let _ = window.poll_events();
-    /// let _movement = window.input().joystick(JoystickId::Joystick1).left_stick();
+    /// if let Some(stick) = window.input().joystick(JoystickId::Joystick1).left_stick() {
+    ///     println!("Movement input ({}, {})", stick.x(), stick.y());
+    /// }
     /// # Ok(())
     /// # }
     /// ```
@@ -53,7 +57,7 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self::set_joystick_tracking`].
+    /// See [`is_joystick_tracking_enabled` in the shared example](Self#example-joystick-tracking).
     #[inline]
     #[must_use]
     pub const fn is_joystick_tracking_enabled(&self) -> bool {
@@ -72,7 +76,7 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self::set_joystick_tracking`].
+    /// See [`set_stick_configs` in the shared example](Self#example-joystick-tracking).
     pub fn set_stick_configs(&mut self, left: StickConfig, right: StickConfig) {
         self.inner.handle.input.set_stick_configs(left, right);
     }
@@ -85,7 +89,7 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self::set_joystick_tracking`].
+    /// See [`set_left_stick_config` in the shared example](Self#example-joystick-tracking).
     pub fn set_left_stick_config(&mut self, config: StickConfig) {
         self.inner.handle.input.set_left_stick_config(config);
     }
@@ -98,7 +102,7 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self::set_joystick_tracking`].
+    /// See [`set_right_stick_config` in the shared example](Self#example-joystick-tracking).
     pub fn set_right_stick_config(&mut self, config: StickConfig) {
         self.inner.handle.input.set_right_stick_config(config);
     }
@@ -114,7 +118,7 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self::set_joystick_tracking`].
+    /// See [`set_joystick_event_delivery` in the shared example](Self#example-joystick-tracking).
     #[inline]
     pub fn set_joystick_event_delivery(&mut self, enabled: bool) {
         self.inner.set_joystick_event_delivery(enabled);
@@ -124,7 +128,8 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self::set_joystick_tracking`].
+    /// See [`is_joystick_event_delivery_enabled` in the shared
+    /// example](Self#example-joystick-tracking).
     #[inline]
     #[must_use]
     pub const fn is_joystick_event_delivery_enabled(&self) -> bool {
@@ -138,6 +143,8 @@ impl Window {
     /// - `enabled`: `true` to receive character events, `false` to stop receiving them.
     ///
     /// # Example
+    ///
+    /// <a id="example-set-char-polling"></a>
     ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
@@ -158,7 +165,7 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the example on [`Self::set_char_polling`].
+    /// See [`is_char_polling_enabled` in the shared example](Self#example-set-char-polling).
     #[inline]
     #[must_use]
     pub const fn is_char_polling_enabled(&self) -> bool {
@@ -174,6 +181,8 @@ impl Window {
     /// - `enabled`: `true` to receive mouse button events, `false` to stop receiving them.
     ///
     /// # Example
+    ///
+    /// <a id="example-set-mouse-button-polling"></a>
     ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
@@ -196,7 +205,8 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the example on [`Self::set_mouse_button_polling`].
+    /// See [`is_mouse_button_polling_enabled` in the shared
+    /// example](Self#example-set-mouse-button-polling).
     #[inline]
     #[must_use]
     pub const fn is_mouse_button_polling_enabled(&self) -> bool {
@@ -210,6 +220,8 @@ impl Window {
     /// - `enabled`: `true` to receive cursor position events, `false` to stop receiving them.
     ///
     /// # Example
+    ///
+    /// <a id="example-set-cursor-pos-polling"></a>
     ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
@@ -230,7 +242,8 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the example on [`Self::set_cursor_pos_polling`].
+    /// See [`is_cursor_pos_polling_enabled` in the shared
+    /// example](Self#example-set-cursor-pos-polling).
     #[inline]
     #[must_use]
     pub const fn is_cursor_pos_polling_enabled(&self) -> bool {
@@ -244,6 +257,8 @@ impl Window {
     /// - `enabled`: `true` to receive cursor enter/leave events, `false` to stop receiving them.
     ///
     /// # Example
+    ///
+    /// <a id="example-set-cursor-enter-polling"></a>
     ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
@@ -265,7 +280,8 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the example on [`Self::set_cursor_enter_polling`].
+    /// See [`is_cursor_enter_polling_enabled` in the shared
+    /// example](Self#example-set-cursor-enter-polling).
     #[inline]
     #[must_use]
     pub const fn is_cursor_enter_polling_enabled(&self) -> bool {
@@ -279,6 +295,8 @@ impl Window {
     /// - `enabled`: `true` to receive scroll events, `false` to stop receiving them.
     ///
     /// # Example
+    ///
+    /// <a id="example-set-scroll-polling"></a>
     ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
@@ -299,7 +317,7 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the example on [`Self::set_scroll_polling`].
+    /// See [`is_scroll_polling_enabled` in the shared example](Self#example-set-scroll-polling).
     #[inline]
     #[must_use]
     pub const fn is_scroll_polling_enabled(&self) -> bool {
@@ -404,6 +422,8 @@ impl Window {
     ///
     /// # Example
     ///
+    /// <a id="example-set-key-polling"></a>
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -425,7 +445,7 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the example on [`Self::set_key_polling`].
+    /// See [`is_key_polling_enabled` in the shared example](Self#example-set-key-polling).
     #[inline]
     #[must_use]
     pub const fn is_key_polling_enabled(&self) -> bool {
@@ -442,6 +462,8 @@ impl Window {
     /// - `enabled`: `true` to receive modified text input events, `false` to stop receiving them.
     ///
     /// # Example
+    ///
+    /// <a id="example-set-char-mods-polling"></a>
     ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
@@ -466,7 +488,8 @@ impl Window {
     ///
     /// # Example
     ///
-    /// See the example on [`Self::set_char_mods_polling`].
+    /// See [`is_char_mods_polling_enabled` in the shared
+    /// example](Self#example-set-char-mods-polling).
     #[inline]
     #[must_use]
     pub const fn is_char_mods_polling_enabled(&self) -> bool {

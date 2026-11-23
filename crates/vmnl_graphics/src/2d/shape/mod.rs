@@ -164,6 +164,8 @@ impl Shape {
     /// # }
     /// ```
     ///
+    /// <a id="example-circle-sector"></a>
+    ///
     /// Configure an outlined sector with independent inward and outward offsets.
     ///
     /// ```rust,no_run

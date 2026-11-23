@@ -148,7 +148,7 @@ impl ColorBlendConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`opaque` in the shared example](Self#example).
     #[must_use]
     pub const fn opaque() -> Self {
         Self {
@@ -169,7 +169,7 @@ impl ColorBlendConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`straight_alpha` in the shared example](Self#example).
     #[must_use]
     pub const fn straight_alpha() -> Self {
         Self {
@@ -191,7 +191,7 @@ impl ColorBlendConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`premultiplied_alpha` in the shared example](Self#example).
     #[must_use]
     pub const fn premultiplied_alpha() -> Self {
         Self {
@@ -214,7 +214,7 @@ impl ColorBlendConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_blend_enabled` in the shared example](Self#example).
     #[must_use]
     pub const fn with_blend_enabled(mut self, enabled: bool) -> Self {
         self.blend_enabled = enabled;
@@ -233,7 +233,7 @@ impl ColorBlendConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_color_blend` in the shared example](Self#example).
     #[must_use]
     pub const fn with_color_blend(
         mut self,
@@ -258,7 +258,7 @@ impl ColorBlendConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_alpha_blend` in the shared example](Self#example).
     #[must_use]
     pub const fn with_alpha_blend(
         mut self,
@@ -281,7 +281,7 @@ impl ColorBlendConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_blend_constants` in the shared example](Self#example).
     #[must_use]
     pub const fn with_blend_constants(mut self, rgba: [f32; 4]) -> Self {
         self.blend_constants = rgba;
@@ -292,7 +292,7 @@ impl ColorBlendConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`blend_enabled` in the shared example](Self#example).
     #[must_use]
     pub const fn blend_enabled(self) -> bool {
         self.blend_enabled
@@ -302,7 +302,7 @@ impl ColorBlendConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`color_source_factor` in the shared example](Self#example).
     #[must_use]
     pub const fn color_source_factor(self) -> ColorBlendFactor {
         self.color_source_factor
@@ -312,7 +312,7 @@ impl ColorBlendConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`color_destination_factor` in the shared example](Self#example).
     #[must_use]
     pub const fn color_destination_factor(self) -> ColorBlendFactor {
         self.color_destination_factor
@@ -322,7 +322,7 @@ impl ColorBlendConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`color_operation` in the shared example](Self#example).
     #[must_use]
     pub const fn color_operation(self) -> ColorBlendOperation {
         self.color_operation
@@ -332,7 +332,7 @@ impl ColorBlendConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`alpha_source_factor` in the shared example](Self#example).
     #[must_use]
     pub const fn alpha_source_factor(self) -> ColorBlendFactor {
         self.alpha_source_factor
@@ -342,7 +342,7 @@ impl ColorBlendConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`alpha_destination_factor` in the shared example](Self#example).
     #[must_use]
     pub const fn alpha_destination_factor(self) -> ColorBlendFactor {
         self.alpha_destination_factor
@@ -352,7 +352,7 @@ impl ColorBlendConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`alpha_operation` in the shared example](Self#example).
     #[must_use]
     pub const fn alpha_operation(self) -> ColorBlendOperation {
         self.alpha_operation
@@ -362,7 +362,7 @@ impl ColorBlendConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`blend_constants` in the shared example](Self#example).
     #[must_use]
     pub const fn blend_constants(self) -> [f32; 4] {
         self.blend_constants
@@ -447,7 +447,7 @@ impl ColorBlendOverrides {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`from_config` in the shared example](Self#example).
     #[must_use]
     pub const fn from_config(config: ColorBlendConfig) -> Self {
         Self {
@@ -470,7 +470,7 @@ impl ColorBlendOverrides {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`resolve` in the shared example](Self#example).
     #[must_use]
     pub const fn resolve(self, mut base: ColorBlendConfig) -> ColorBlendConfig {
         if let Some(value) = self.blend_enabled {
@@ -508,7 +508,7 @@ impl ColorBlendOverrides {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_blend_enabled` in the shared example](Self#example).
     #[must_use]
     pub const fn with_blend_enabled(mut self, value: bool) -> Self {
         self.blend_enabled = Some(value);
@@ -519,7 +519,7 @@ impl ColorBlendOverrides {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`blend_enabled` in the shared example](Self#example).
     #[must_use]
     pub const fn blend_enabled(self) -> Option<bool> {
         self.blend_enabled
@@ -533,7 +533,7 @@ impl ColorBlendOverrides {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_color_source_factor` in the shared example](Self#example).
     #[must_use]
     pub const fn with_color_source_factor(mut self, value: ColorBlendFactor) -> Self {
         self.color_source_factor = Some(value);
@@ -544,7 +544,7 @@ impl ColorBlendOverrides {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`color_source_factor` in the shared example](Self#example).
     #[must_use]
     pub const fn color_source_factor(self) -> Option<ColorBlendFactor> {
         self.color_source_factor
@@ -559,7 +559,7 @@ impl ColorBlendOverrides {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_color_destination_factor` in the shared example](Self#example).
     #[must_use]
     pub const fn with_color_destination_factor(mut self, value: ColorBlendFactor) -> Self {
         self.color_destination_factor = Some(value);
@@ -570,7 +570,7 @@ impl ColorBlendOverrides {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`color_destination_factor` in the shared example](Self#example).
     #[must_use]
     pub const fn color_destination_factor(self) -> Option<ColorBlendFactor> {
         self.color_destination_factor
@@ -585,7 +585,7 @@ impl ColorBlendOverrides {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_color_operation` in the shared example](Self#example).
     #[must_use]
     pub const fn with_color_operation(mut self, value: ColorBlendOperation) -> Self {
         self.color_operation = Some(value);
@@ -596,7 +596,7 @@ impl ColorBlendOverrides {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`color_operation` in the shared example](Self#example).
     #[must_use]
     pub const fn color_operation(self) -> Option<ColorBlendOperation> {
         self.color_operation
@@ -610,7 +610,7 @@ impl ColorBlendOverrides {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_alpha_source_factor` in the shared example](Self#example).
     #[must_use]
     pub const fn with_alpha_source_factor(mut self, value: ColorBlendFactor) -> Self {
         self.alpha_source_factor = Some(value);
@@ -621,7 +621,7 @@ impl ColorBlendOverrides {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`alpha_source_factor` in the shared example](Self#example).
     #[must_use]
     pub const fn alpha_source_factor(self) -> Option<ColorBlendFactor> {
         self.alpha_source_factor
@@ -636,7 +636,7 @@ impl ColorBlendOverrides {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_alpha_destination_factor` in the shared example](Self#example).
     #[must_use]
     pub const fn with_alpha_destination_factor(mut self, value: ColorBlendFactor) -> Self {
         self.alpha_destination_factor = Some(value);
@@ -647,7 +647,7 @@ impl ColorBlendOverrides {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`alpha_destination_factor` in the shared example](Self#example).
     #[must_use]
     pub const fn alpha_destination_factor(self) -> Option<ColorBlendFactor> {
         self.alpha_destination_factor
@@ -661,7 +661,7 @@ impl ColorBlendOverrides {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_alpha_operation` in the shared example](Self#example).
     #[must_use]
     pub const fn with_alpha_operation(mut self, value: ColorBlendOperation) -> Self {
         self.alpha_operation = Some(value);
@@ -672,7 +672,7 @@ impl ColorBlendOverrides {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`alpha_operation` in the shared example](Self#example).
     #[must_use]
     pub const fn alpha_operation(self) -> Option<ColorBlendOperation> {
         self.alpha_operation
@@ -686,7 +686,7 @@ impl ColorBlendOverrides {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_blend_constants` in the shared example](Self#example).
     #[must_use]
     pub const fn with_blend_constants(mut self, value: [f32; 4]) -> Self {
         self.blend_constants = Some(value);
@@ -697,7 +697,7 @@ impl ColorBlendOverrides {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`blend_constants` in the shared example](Self#example).
     #[must_use]
     pub const fn blend_constants(self) -> Option<[f32; 4]> {
         self.blend_constants

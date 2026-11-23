@@ -73,7 +73,7 @@ impl PolygonBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`color` in the shared example](Self#example).
     #[must_use]
     pub fn color<C>(mut self, color: C) -> Self
     where
@@ -99,7 +99,7 @@ impl PolygonBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`buffer_memory_preference` in the shared example](Self#example).
     #[must_use]
     pub fn buffer_memory_preference(mut self, preference: BufferMemoryPreference) -> Self {
         self.buffer_memory_preference = preference;
@@ -117,7 +117,7 @@ impl PolygonBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`vertex_colors` in the shared example](Self#example).
     #[must_use]
     pub fn vertex_colors<I, C>(mut self, colors: I) -> Self
     where
@@ -550,7 +550,7 @@ impl PolygonBuilder {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`build` in the shared example](Self#example).
     pub fn build(mut self, context: &Context) -> VMNLResult<Shape> {
         self.apply_vertex_colors()?;
         let indices = self.triangulate()?;

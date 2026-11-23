@@ -70,7 +70,7 @@ impl JoystickId {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`from_index` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub const fn from_index(index: usize) -> Option<Self> {
@@ -99,7 +99,7 @@ impl JoystickId {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`index` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub const fn index(self) -> usize {
@@ -137,7 +137,7 @@ impl JoystickButtonState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`as_raw` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub const fn as_raw(self) -> u8 {
@@ -152,7 +152,7 @@ impl JoystickButtonState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`is_pressed` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub const fn is_pressed(self) -> bool {
@@ -211,7 +211,7 @@ impl JoystickHatState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`from_raw` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub const fn from_raw(value: u8) -> Self {
@@ -222,7 +222,7 @@ impl JoystickHatState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`as_raw` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub const fn as_raw(self) -> u8 {
@@ -233,7 +233,7 @@ impl JoystickHatState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`is_up` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub const fn is_up(self) -> bool {
@@ -244,7 +244,7 @@ impl JoystickHatState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`is_right` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub const fn is_right(self) -> bool {
@@ -255,7 +255,7 @@ impl JoystickHatState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`is_down` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub const fn is_down(self) -> bool {
@@ -266,7 +266,7 @@ impl JoystickHatState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`is_left` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub const fn is_left(self) -> bool {
@@ -359,7 +359,7 @@ impl GamepadState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`JoystickState`].
+    /// See [`name` in the shared example](JoystickState#example).
     #[inline]
     #[must_use]
     pub fn name(&self) -> Option<&str> {
@@ -374,7 +374,7 @@ impl GamepadState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`JoystickState`].
+    /// See [`button` in the shared example](JoystickState#example).
     #[inline]
     #[must_use]
     pub const fn button(&self, button: GamepadButton) -> JoystickButtonState {
@@ -385,7 +385,7 @@ impl GamepadState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`JoystickState`].
+    /// See [`buttons` in the shared example](JoystickState#example).
     #[inline]
     #[must_use]
     pub const fn buttons(&self) -> &[JoystickButtonState; GamepadButton::COUNT] {
@@ -400,7 +400,7 @@ impl GamepadState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`JoystickState`].
+    /// See [`axis` in the shared example](JoystickState#example).
     #[inline]
     #[must_use]
     pub const fn axis(&self, axis: GamepadAxis) -> f32 {
@@ -411,7 +411,7 @@ impl GamepadState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`JoystickState`].
+    /// See [`axes` in the shared example](JoystickState#example).
     #[inline]
     #[must_use]
     pub const fn axes(&self) -> &[f32; GamepadAxis::COUNT] {
@@ -486,7 +486,7 @@ impl StickConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`new` in the shared example](Self#example).
     pub fn new(radial_dead_zone: f32, angle_convention: StickAngleConvention) -> VMNLResult<Self> {
         if !radial_dead_zone.is_finite() || !(0.0..1.0).contains(&radial_dead_zone) {
             return Err(VMNLError::new(VMNLErrorKind::InvalidState(
@@ -504,7 +504,7 @@ impl StickConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`radial_dead_zone` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub const fn radial_dead_zone(self) -> f32 {
@@ -515,7 +515,7 @@ impl StickConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`angle_convention` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub const fn angle_convention(self) -> StickAngleConvention {
@@ -534,7 +534,7 @@ impl StickConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_radial_dead_zone` in the shared example](Self#example).
     pub fn with_radial_dead_zone(self, radial_dead_zone: f32) -> VMNLResult<Self> {
         Self::new(radial_dead_zone, self.angle_convention)
     }
@@ -548,7 +548,7 @@ impl StickConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_angle_convention` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub const fn with_angle_convention(mut self, angle_convention: StickAngleConvention) -> Self {
@@ -569,7 +569,7 @@ impl StickConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`process` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub fn process(self, x: f32, y: f32) -> StickState {
@@ -613,7 +613,7 @@ impl StickState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`StickConfig`].
+    /// See [`x` in the shared example](StickConfig#example).
     #[inline]
     #[must_use]
     pub const fn x(self) -> f32 {
@@ -624,7 +624,7 @@ impl StickState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`StickConfig`].
+    /// See [`y` in the shared example](StickConfig#example).
     #[inline]
     #[must_use]
     pub const fn y(self) -> f32 {
@@ -635,7 +635,7 @@ impl StickState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`StickConfig`].
+    /// See [`magnitude` in the shared example](StickConfig#example).
     #[inline]
     #[must_use]
     pub const fn magnitude(self) -> f32 {
@@ -651,7 +651,7 @@ impl StickState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`StickConfig`].
+    /// See [`angle` in the shared example](StickConfig#example).
     #[must_use]
     pub fn angle(self) -> Option<f32> {
         if (self.x == 0.0 && self.y == 0.0) || !self.x.is_finite() || !self.y.is_finite() {
@@ -693,34 +693,58 @@ pub enum JoystickStatus {
 /// # Example
 ///
 /// ```rust,no_run
-/// use vmnl_graphics::{Context, GamepadAxis, GamepadButton, JoystickId, Window};
+/// use vmnl_graphics::{Context, GamepadAxis, GamepadButton, JoystickId, JoystickStatus, Window};
 ///
 /// # fn main() -> vmnl_graphics::VMNLResult<()> {
 /// let context = Context::new()?;
 /// let mut window = Window::builder().joystick_tracking(true).build(&context)?;
 /// let _events = window.poll_events();
 /// let state = window.input().joystick(JoystickId::Joystick1);
-/// let _status = state.status();
-/// let _movement = state.left_stick();
-/// let _aim = state.right_stick();
-/// let _held = state.is_down(GamepadButton::A);
-/// let _pressed = state.is_pressed(GamepadButton::A);
-/// let _released = state.is_released(GamepadButton::A);
+/// if state.status() != JoystickStatus::Present {
+///     println!("Joystick 1 is unavailable");
+///     return Ok(());
+/// }
+/// if let Some(movement) = state.left_stick() {
+///     println!("Movement input ({}, {})", movement.x(), movement.y());
+/// }
+/// if let Some(aim) = state.right_stick().and_then(|stick| stick.angle()) {
+///     println!("Aim angle {aim:.2} radians");
+/// }
+/// if state.is_down(GamepadButton::A) {
+///     println!("Action is held");
+/// }
+/// if state.is_pressed(GamepadButton::A) {
+///     println!("Start action");
+/// }
+/// if state.is_released(GamepadButton::A) {
+///     println!("End action");
+/// }
 ///
 /// let actions = [GamepadButton::A, GamepadButton::B];
-/// let _any_held = state.is_any_down(&actions);
-/// let _any_pressed = state.is_any_pressed(&actions);
-/// let _any_released = state.is_any_released(&actions);
+/// if state.is_any_down(&actions) {
+///     println!("An action binding is held");
+/// }
+/// if state.is_any_pressed(&actions) {
+///     println!("An action binding was pressed this batch");
+/// }
+/// if state.is_any_released(&actions) {
+///     println!("An action binding was released this batch");
+/// }
 /// if let Some(sample) = state.sample() {
-///     let _identity = (sample.id(), sample.name(), sample.guid());
-///     let _raw_controls = (sample.axes(), sample.buttons(), sample.hats());
-///     let _mapped_sample = sample.gamepad();
+///     println!("Slot {:?}, device {}, GUID {}", sample.id(),
+///         sample.name().unwrap_or("Unknown"), sample.guid().unwrap_or("Unavailable"));
+///     if sample.gamepad().is_none() {
+///         println!("Raw controls only: {} axes, {} buttons, {} hats",
+///             sample.axes().len(), sample.buttons().len(), sample.hats().len());
+///     }
 /// }
 /// if let Some(gamepad) = state.gamepad() {
-///     let _name = gamepad.name();
-///     let _controls = (gamepad.buttons(), gamepad.axes());
-///     let _jump = gamepad.button(GamepadButton::A);
-///     let _horizontal = gamepad.axis(GamepadAxis::LeftX);
+///     println!("Mapped device {} with {} buttons and {} axes",
+///         gamepad.name().unwrap_or("Unknown"), gamepad.buttons().len(), gamepad.axes().len());
+///     if gamepad.button(GamepadButton::A).is_pressed() {
+///         println!("Mapped A is held");
+///     }
+///     println!("Mapped left X {:.2}", gamepad.axis(GamepadAxis::LeftX));
 /// }
 /// # Ok(())
 /// # }
@@ -815,7 +839,7 @@ impl JoystickState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`status` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub const fn status(&self) -> JoystickStatus {
@@ -826,7 +850,7 @@ impl JoystickState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`sample` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub const fn sample(&self) -> Option<&JoystickSample> {
@@ -837,7 +861,7 @@ impl JoystickState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`gamepad` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub fn gamepad(&self) -> Option<&GamepadState> {
@@ -848,7 +872,7 @@ impl JoystickState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`left_stick` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub fn left_stick(&self) -> Option<StickState> {
@@ -863,7 +887,7 @@ impl JoystickState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`right_stick` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub fn right_stick(&self) -> Option<StickState> {
@@ -882,7 +906,7 @@ impl JoystickState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`is_down` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub const fn is_down(&self, button: GamepadButton) -> bool {
@@ -898,7 +922,7 @@ impl JoystickState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`is_pressed` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub const fn is_pressed(&self, button: GamepadButton) -> bool {
@@ -914,7 +938,7 @@ impl JoystickState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`is_released` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub const fn is_released(&self, button: GamepadButton) -> bool {
@@ -930,7 +954,7 @@ impl JoystickState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`is_any_down` in the shared example](Self#example).
     #[must_use]
     pub fn is_any_down(&self, buttons: &[GamepadButton]) -> bool {
         buttons.iter().any(|button| self.is_down(*button))
@@ -945,7 +969,7 @@ impl JoystickState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`is_any_pressed` in the shared example](Self#example).
     #[must_use]
     pub fn is_any_pressed(&self, buttons: &[GamepadButton]) -> bool {
         buttons.iter().any(|button| self.is_pressed(*button))
@@ -960,7 +984,7 @@ impl JoystickState {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`is_any_released` in the shared example](Self#example).
     #[must_use]
     pub fn is_any_released(&self, buttons: &[GamepadButton]) -> bool {
         buttons.iter().any(|button| self.is_released(*button))
@@ -1027,7 +1051,7 @@ impl JoystickSample {
     ///
     /// # Example
     ///
-    /// See the workflow on [`JoystickState`].
+    /// See [`id` in the shared example](JoystickState#example).
     #[inline]
     #[must_use]
     pub const fn id(&self) -> JoystickId {
@@ -1038,7 +1062,7 @@ impl JoystickSample {
     ///
     /// # Example
     ///
-    /// See the workflow on [`JoystickState`].
+    /// See [`name` in the shared example](JoystickState#example).
     #[inline]
     #[must_use]
     pub fn name(&self) -> Option<&str> {
@@ -1049,7 +1073,7 @@ impl JoystickSample {
     ///
     /// # Example
     ///
-    /// See the workflow on [`JoystickState`].
+    /// See [`guid` in the shared example](JoystickState#example).
     #[inline]
     #[must_use]
     pub fn guid(&self) -> Option<&str> {
@@ -1060,7 +1084,7 @@ impl JoystickSample {
     ///
     /// # Example
     ///
-    /// See the workflow on [`JoystickState`].
+    /// See [`axes` in the shared example](JoystickState#example).
     #[inline]
     #[must_use]
     pub fn axes(&self) -> &[f32] {
@@ -1071,7 +1095,7 @@ impl JoystickSample {
     ///
     /// # Example
     ///
-    /// See the workflow on [`JoystickState`].
+    /// See [`buttons` in the shared example](JoystickState#example).
     #[inline]
     #[must_use]
     pub fn buttons(&self) -> &[JoystickButtonState] {
@@ -1082,7 +1106,7 @@ impl JoystickSample {
     ///
     /// # Example
     ///
-    /// See the workflow on [`JoystickState`].
+    /// See [`hats` in the shared example](JoystickState#example).
     #[inline]
     #[must_use]
     pub fn hats(&self) -> &[JoystickHatState] {
@@ -1093,7 +1117,7 @@ impl JoystickSample {
     ///
     /// # Example
     ///
-    /// See the workflow on [`JoystickState`].
+    /// See [`gamepad` in the shared example](JoystickState#example).
     #[inline]
     #[must_use]
     pub const fn gamepad(&self) -> Option<&GamepadState> {

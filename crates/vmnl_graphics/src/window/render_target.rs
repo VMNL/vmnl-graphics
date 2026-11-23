@@ -75,7 +75,7 @@ impl RenderTargetConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`depth` in the shared example](Self#example).
     #[must_use]
     pub const fn depth(mut self, format: DepthFormat) -> Self {
         self.depth = Some(format);
@@ -86,7 +86,7 @@ impl RenderTargetConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`without_depth` in the shared example](Self#example).
     #[must_use]
     pub const fn without_depth(mut self) -> Self {
         self.depth = None;
@@ -104,7 +104,7 @@ impl RenderTargetConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`clear_depth` in the shared example](Self#example).
     #[must_use]
     pub const fn clear_depth(mut self, value: f32) -> Self {
         self.clear_depth = value;
@@ -115,7 +115,7 @@ impl RenderTargetConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`depth_value` in the shared example](Self#example).
     #[must_use]
     pub const fn depth_value(self) -> Option<DepthFormat> {
         self.depth
@@ -125,7 +125,7 @@ impl RenderTargetConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`clear_depth_value` in the shared example](Self#example).
     #[must_use]
     pub const fn clear_depth_value(self) -> f32 {
         self.clear_depth
@@ -141,7 +141,7 @@ impl RenderTargetConfig {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`validate` in the shared example](Self#example).
     pub fn validate(self) -> VMNLResult<()> {
         if !self.clear_depth.is_finite() || !(0.0..=1.0).contains(&self.clear_depth) {
             return Err(VMNLError::new(VMNLErrorKind::InvalidState(

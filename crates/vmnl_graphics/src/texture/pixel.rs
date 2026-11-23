@@ -80,7 +80,7 @@ impl PixelLayout {
     ///
     /// # Example
     ///
-    /// See the workflow on [`PixelSource`].
+    /// See [`new` in the shared example](PixelSource#example).
     #[must_use]
     pub const fn new(offset: usize, row_stride: usize, origin: PixelOrigin) -> Self {
         Self {
@@ -94,7 +94,7 @@ impl PixelLayout {
     ///
     /// # Example
     ///
-    /// See the workflow on [`PixelSource`].
+    /// See [`offset` in the shared example](PixelSource#example).
     #[must_use]
     pub const fn offset(self) -> usize {
         self.offset
@@ -104,7 +104,7 @@ impl PixelLayout {
     ///
     /// # Example
     ///
-    /// See the workflow on [`PixelSource`].
+    /// See [`row_stride` in the shared example](PixelSource#example).
     #[must_use]
     pub const fn row_stride(self) -> usize {
         self.row_stride
@@ -114,7 +114,7 @@ impl PixelLayout {
     ///
     /// # Example
     ///
-    /// See the workflow on [`PixelSource`].
+    /// See [`origin` in the shared example](PixelSource#example).
     #[must_use]
     pub const fn origin(self) -> PixelOrigin {
         self.origin
@@ -157,7 +157,7 @@ impl PixelRect {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`new` in the shared example](Self#example).
     pub fn new(x: u32, y: u32, width: u32, height: u32) -> VMNLResult<Self> {
         if width == 0 || height == 0 {
             return Err(invalid_state("pixel rectangle dimensions must be nonzero"));
@@ -180,7 +180,7 @@ impl PixelRect {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`x` in the shared example](Self#example).
     #[must_use]
     pub const fn x(self) -> u32 {
         self.x
@@ -190,7 +190,7 @@ impl PixelRect {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`y` in the shared example](Self#example).
     #[must_use]
     pub const fn y(self) -> u32 {
         self.y
@@ -200,7 +200,7 @@ impl PixelRect {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`width` in the shared example](Self#example).
     #[must_use]
     pub const fn width(self) -> u32 {
         self.width
@@ -210,7 +210,7 @@ impl PixelRect {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`height` in the shared example](Self#example).
     #[must_use]
     pub const fn height(self) -> u32 {
         self.height
@@ -229,7 +229,7 @@ impl PixelRect {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`validate_within` in the shared example](Self#example).
     pub fn validate_within(self, image_width: u32, image_height: u32) -> VMNLResult<()> {
         if self.x + self.width > image_width || self.y + self.height > image_height {
             return Err(invalid_state("pixel rectangle is outside the image extent"));
@@ -274,7 +274,7 @@ impl TextureUsage {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`union` in the shared example](Self#example).
     #[must_use]
     pub const fn union(self, other: Self) -> Self {
         Self(self.0 | other.0)
@@ -288,7 +288,7 @@ impl TextureUsage {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`contains` in the shared example](Self#example).
     #[must_use]
     pub const fn contains(self, other: Self) -> bool {
         self.0 & other.0 == other.0
@@ -298,7 +298,7 @@ impl TextureUsage {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`is_empty` in the shared example](Self#example).
     #[must_use]
     pub const fn is_empty(self) -> bool {
         self.0 == 0
@@ -388,7 +388,7 @@ impl<'a> PixelSource<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`new` in the shared example](Self#example).
     pub fn new(
         width: u32,
         height: u32,
@@ -423,7 +423,7 @@ impl<'a> PixelSource<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_byte_range` in the shared example](Self#example).
     #[must_use]
     pub fn with_byte_range(mut self, range: Range<usize>) -> Self {
         self.explicit_byte_range = Some(range);
@@ -439,7 +439,7 @@ impl<'a> PixelSource<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_layout` in the shared example](Self#example).
     #[must_use]
     pub const fn with_layout(mut self, layout: PixelLayout) -> Self {
         self.layout = layout;
@@ -455,7 +455,7 @@ impl<'a> PixelSource<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_encoding` in the shared example](Self#example).
     #[must_use]
     pub const fn with_encoding(mut self, encoding: ColorEncoding) -> Self {
         self.encoding = encoding;
@@ -471,7 +471,7 @@ impl<'a> PixelSource<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_alpha_mode` in the shared example](Self#example).
     #[must_use]
     pub const fn with_alpha_mode(mut self, alpha_mode: AlphaMode) -> Self {
         self.alpha_mode = alpha_mode;
@@ -488,7 +488,7 @@ impl<'a> PixelSource<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`with_usage` in the shared example](Self#example).
     #[must_use]
     pub const fn with_usage(mut self, usage: TextureUsageRequest) -> Self {
         self.usage = usage;
@@ -499,7 +499,7 @@ impl<'a> PixelSource<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`extent` in the shared example](Self#example).
     #[must_use]
     pub const fn extent(&self) -> [u32; 2] {
         [self.width, self.height]
@@ -509,7 +509,7 @@ impl<'a> PixelSource<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`format` in the shared example](Self#example).
     #[must_use]
     pub const fn format(&self) -> TextureFormat {
         self.format
@@ -519,7 +519,7 @@ impl<'a> PixelSource<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`byte_range` in the shared example](Self#example).
     #[must_use]
     pub fn byte_range(&self) -> Option<Range<usize>> {
         self.explicit_byte_range.clone()
@@ -529,7 +529,7 @@ impl<'a> PixelSource<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`encoding` in the shared example](Self#example).
     #[must_use]
     pub const fn encoding(&self) -> ColorEncoding {
         self.encoding
@@ -539,7 +539,7 @@ impl<'a> PixelSource<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`alpha_mode` in the shared example](Self#example).
     #[must_use]
     pub const fn alpha_mode(&self) -> AlphaMode {
         self.alpha_mode
@@ -549,7 +549,7 @@ impl<'a> PixelSource<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`layout` in the shared example](Self#example).
     #[must_use]
     pub const fn layout(&self) -> PixelLayout {
         self.layout
@@ -559,7 +559,7 @@ impl<'a> PixelSource<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`usage` in the shared example](Self#example).
     #[must_use]
     pub const fn usage(&self) -> TextureUsageRequest {
         self.usage
@@ -574,7 +574,7 @@ impl<'a> PixelSource<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`validate` in the shared example](Self#example).
     pub fn validate(&self) -> VMNLResult<()> {
         if self.width == 0 || self.height == 0 {
             return Err(invalid_state("pixel source dimensions must be nonzero"));
@@ -637,7 +637,7 @@ impl<'a> PixelSource<'a> {
     ///
     /// # Example
     ///
-    /// See the workflow on [`Self`].
+    /// See [`prepare` in the shared example](Self#example).
     pub fn prepare(&self) -> VMNLResult<PreparedPixelData> {
         self.validate()?;
 
@@ -743,7 +743,7 @@ impl PreparedPixelData {
     ///
     /// # Example
     ///
-    /// See the workflow on [`PixelSource`].
+    /// See [`extent` in the shared example](PixelSource#example).
     #[must_use]
     pub const fn extent(&self) -> [u32; 2] {
         [self.width, self.height]
@@ -753,7 +753,7 @@ impl PreparedPixelData {
     ///
     /// # Example
     ///
-    /// See the workflow on [`PixelSource`].
+    /// See [`format` in the shared example](PixelSource#example).
     #[must_use]
     pub const fn format(&self) -> TextureFormat {
         self.format
@@ -763,7 +763,7 @@ impl PreparedPixelData {
     ///
     /// # Example
     ///
-    /// See the workflow on [`PixelSource`].
+    /// See [`encoding` in the shared example](PixelSource#example).
     #[must_use]
     pub const fn encoding(&self) -> ColorEncoding {
         self.encoding
@@ -773,7 +773,7 @@ impl PreparedPixelData {
     ///
     /// # Example
     ///
-    /// See the workflow on [`PixelSource`].
+    /// See [`alpha_mode` in the shared example](PixelSource#example).
     #[must_use]
     pub const fn alpha_mode(&self) -> AlphaMode {
         self.alpha_mode
@@ -783,7 +783,7 @@ impl PreparedPixelData {
     ///
     /// # Example
     ///
-    /// See the workflow on [`PixelSource`].
+    /// See [`bytes` in the shared example](PixelSource#example).
     #[must_use]
     pub fn bytes(&self) -> &[u8] {
         &self.bytes
@@ -793,7 +793,7 @@ impl PreparedPixelData {
     ///
     /// # Example
     ///
-    /// See the workflow on [`PixelSource`].
+    /// See [`into_bytes` in the shared example](PixelSource#example).
     #[must_use]
     pub fn into_bytes(self) -> Vec<u8> {
         self.bytes

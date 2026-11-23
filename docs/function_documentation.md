@@ -66,9 +66,16 @@ implementation-specific behavior where callers of that implementation discover i
 
 Write examples against public import paths and show where important inputs come from. Use doctests
 that run for deterministic headless examples and `rust,no_run` when execution requires a GPU or a
-window. A link to an existing example that shows the call can replace a local snippet. For a simple
-accessor, the summary can suffice when the type's example already demonstrates the call. Follow the
-[completion checks](../CONTRIBUTING.md#before-submission) when Rustdoc changes.
+window. Follow the [completion checks](../CONTRIBUTING.md#before-submission) when Rustdoc changes.
+
+When interpreting a return value requires a choice, show how the caller uses it in a branch,
+validation, or subsequent call. For example, match a pipeline's depth policy before using it for
+a pass that requires depth writes. Use a focused example with an existing resource as an input
+when the decision is easier to explain on its own.
+
+A shared example can replace a local snippet when it shows the exact call and any meaningful use
+of the result. Link directly to that example block. For a simple accessor, the summary can
+suffice when the type's example already demonstrates the call.
 
 ### Choosing and constructing arguments
 
