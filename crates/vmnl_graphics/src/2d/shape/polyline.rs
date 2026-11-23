@@ -72,6 +72,35 @@ impl PolylineOptions {
 /// and one index buffer. The resulting shape owns those context-associated
 /// buffers; changing the path requires building a new shape. Build requires a
 /// Vulkan context, and drawing requires a compatible window/render backend.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use vmnl_graphics::{Context, common::{BufferMemoryPreference, Rgba}};
+/// use vmnl_graphics::d2::{LineCap, LineJoin, Shape, Vector2f};
+///
+/// # fn main() -> vmnl_graphics::VMNLResult<()> {
+/// let context = Context::new()?;
+/// let points = [
+///     Vector2f { x: 20.0, y: 20.0 },
+///     Vector2f { x: 80.0, y: 20.0 },
+///     Vector2f { x: 80.0, y: 60.0 },
+/// ];
+/// let _open = Shape::polyline(points)
+///     .width(4.0)
+///     .join(LineJoin::Miter)
+///     .miter_limit(3.0)
+///     .cap(LineCap::Round)
+///     .point_colors([Rgba::RED, Rgba::GREEN, Rgba::BLUE])
+///     .buffer_memory_preference(BufferMemoryPreference::Host)
+///     .build(&context)?;
+/// let _closed = Shape::polyline(points).closed()
+///     .segment_colors([Rgba::RED, Rgba::GREEN, Rgba::BLUE])
+///     .build(&context)?;
+/// let _uniform = Shape::polyline(points).color(Rgba::WHITE).build(&context)?;
+/// # Ok(())
+/// # }
+/// ```
 pub struct PolylineBuilder {
     options: PolylineOptions,
 }
@@ -83,49 +112,90 @@ impl PolylineBuilder {
         }
     }
 
-    /// Set the uniform stroke width in pixel-like 2D units.
+    /// Sets the uniform stroke width in pixel-like 2D units.
     ///
     /// Defaults to `1.0`; the value must be finite and strictly positive.
+    ///
+    /// # Arguments
+    ///
+    /// - `width` supplies the positive finite stroke width in pixel-like 2D units.
+    ///
+    /// # Example
+    ///
+    /// See [`width` in the shared example](Self#example).
     #[must_use]
     pub fn width(mut self, width: f32) -> Self {
         self.options.width = width;
         self
     }
 
-    /// Set the cap style at the first and last points of an open path.
+    /// Sets the cap style at the first and last points of an open path.
     ///
     /// Defaults to `LineCap::Butt`. Closed paths have no endpoint caps.
+    ///
+    /// # Arguments
+    ///
+    /// - `cap` selects the end treatment for an open path from the [`LineCap`](super::LineCap)
+    ///   variants. Closing the path disables end caps.
+    ///
+    /// # Example
+    ///
+    /// See [`cap` in the shared example](Self#example).
     #[must_use]
     pub fn cap(mut self, cap: super::LineCap) -> Self {
         self.options.cap = cap;
         self
     }
 
-    /// Set the join style at each intermediate point, or every point when closed.
+    /// Sets the join style at each intermediate point, or every point when closed.
     ///
     /// Defaults to `LineJoin::Bevel`. Miter joins longer than `miter_limit`
     /// times half the stroke width fall back to bevel joins.
+    ///
+    /// # Arguments
+    ///
+    /// - `join` selects how adjacent segments meet at a corner from the [`LineJoin`] variants.
+    ///
+    /// # Example
+    ///
+    /// See [`join` in the shared example](Self#example).
     #[must_use]
     pub fn join(mut self, join: LineJoin) -> Self {
         self.options.join = join;
         self
     }
 
-    /// Set the maximum miter length as a multiple of half the stroke width.
+    /// Sets the maximum miter length as a multiple of half the stroke width.
     ///
     /// Defaults to `4.0`. The value must be finite and strictly positive;
     /// it affects only `LineJoin::Miter`.
+    ///
+    /// # Arguments
+    ///
+    /// - `limit` supplies the miter length limit in multiples of half the stroke width.
+    ///
+    /// # Example
+    ///
+    /// See [`miter_limit` in the shared example](Self#example).
     #[must_use]
     pub fn miter_limit(mut self, limit: f32) -> Self {
         self.options.miter_limit = limit;
         self
     }
 
-    /// Set one color for the complete stroke.
+    /// Sets one color for the complete stroke.
     ///
     /// Calling this method selects uniform color and replaces any prior point
     /// or segment color mode. If the color alpha is below 255, the shape uses
     /// the existing alpha blend mode.
+    ///
+    /// # Arguments
+    ///
+    /// - `color` supplies the stroke color as an [`Rgba`] value or an RGB/RGBA byte array.
+    ///
+    /// # Example
+    ///
+    /// See [`color` in the shared example](Self#example).
     #[must_use]
     pub fn color<C>(mut self, color: C) -> Self
     where
@@ -135,12 +205,20 @@ impl PolylineBuilder {
         self
     }
 
-    /// Set one color for each input point.
+    /// Sets one color for each input point.
     ///
     /// Colors interpolate component-wise along each segment. Join vertices
     /// use the color at their shared point, including the last-to-first segment
     /// of a closed path. The slice must contain exactly one color per point.
     /// Calling this method replaces the selected uniform or segment color mode.
+    ///
+    /// # Arguments
+    ///
+    /// - `colors` supplies one color per source point in path order, as an array or vector.
+    ///
+    /// # Example
+    ///
+    /// See [`point_colors` in the shared example](Self#example).
     #[must_use]
     pub fn point_colors<C>(mut self, colors: C) -> Self
     where
@@ -150,12 +228,21 @@ impl PolylineBuilder {
         self
     }
 
-    /// Set one flat color for each path segment.
+    /// Sets one flat color for each path segment.
     ///
-    /// Open paths need `points.len() - 1` colors; closed paths need one color
-    /// per point. Adjacent segments with different colors meet at a hard,
-    /// deterministic transition through the join. Calling this method replaces
-    /// the selected uniform or point color mode.
+    /// Open paths need `points.len() - 1` colors. Paths made closed by [`Self::closed`]
+    /// need one color per point, including the closing segment. [`Self::build`] checks the
+    /// count. Adjacent segments with different colors meet at a hard transition through
+    /// the join. This call replaces the selected uniform or point color mode.
+    ///
+    /// # Arguments
+    ///
+    /// - `colors` supplies one [`Rgba`] per path segment, in traversal order. Pass an array or
+    ///   vector of colors.
+    ///
+    /// # Example
+    ///
+    /// See [`segment_colors` in the shared example](Self#example).
     #[must_use]
     pub fn segment_colors<C>(mut self, colors: C) -> Self
     where
@@ -165,34 +252,58 @@ impl PolylineBuilder {
         self
     }
 
-    /// Close the path with an implicit segment from the last point to the first.
+    /// Closes the path with an implicit segment from the last point to the first.
     ///
     /// Closed paths need at least three points, use one join per point, and
     /// have no endpoint caps.
+    ///
+    /// # Example
+    ///
+    /// See [`closed` in the shared example](Self#example).
     #[must_use]
     pub fn closed(mut self) -> Self {
         self.options.closed = true;
         self
     }
 
-    /// Set the preferred memory placement for the vertex and index buffers.
+    /// Sets the preferred memory placement for the vertex and index buffers.
     ///
     /// Defaults to `BufferMemoryPreference::Device`. This is a preference,
     /// not a guarantee.
+    ///
+    /// # Arguments
+    ///
+    /// - `preference` selects preferred host or device placement for the vertex and index buffers. See
+    ///   [`BufferMemoryPreference`].
+    ///
+    /// # Example
+    ///
+    /// See [`buffer_memory_preference` in the shared example](Self#example).
     #[must_use]
     pub fn buffer_memory_preference(mut self, preference: BufferMemoryPreference) -> Self {
         self.options.buffer_memory_preference = preference;
         self
     }
 
-    /// Generate and upload one indexed polyline shape.
+    /// Generates and upload one indexed polyline shape.
     ///
     /// Invalid points, dimensions, miter limits, color counts, or backend count
     /// conversions return `InvalidState` before GPU buffer allocation.
     ///
+    /// # Arguments
+    ///
+    /// - `context` supplies the device and allocator. Reuse the context of the window that will
+    ///   render the stroke.
+    ///
     /// # Errors
-    /// Returns `InvalidState` for invalid stroke input or unrepresentable geometry,
-    /// and propagates context buffer allocation/upload failures.
+    ///
+    /// Returns `InvalidState` for invalid stroke input, unrepresentable geometry, or
+    /// failed temporary storage reservation. Returns `VulkanVertexBufferCreationFailed`
+    /// or `VulkanIndexBufferCreationFailed` if the corresponding GPU buffer cannot be created.
+    ///
+    /// # Example
+    ///
+    /// See [`build` in the shared example](Self#example).
     pub fn build(self, context: &Context) -> VMNLResult<Shape> {
         validate_parameters(&self.options)?;
         let colors: StrokeColors<'_> = match &self.options.color_mode {

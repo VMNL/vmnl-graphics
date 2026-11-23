@@ -81,7 +81,14 @@ pub(crate) struct VMNLFrameUbo {
 
 /// Shared GPU buffer construction helpers for render resources.
 pub(crate) trait GraphicsResourceFactory {
-    /// Create a GPU buffer from an iterator of data.
+    /// Allocates and initializes a buffer from an exact-size iterator of GPU-ready elements.
+    ///
+    /// The iterator length sizes the allocation. Use the allocator for the device that will
+    /// consume the buffer. Memory placement is a preference and preserves host write access.
+    ///
+    /// # Errors
+    ///
+    /// Reports `error_kind` if creation or initialization fails.
     fn create_buffer_from_iter<T, I>(
         iter: I,
         usage: BufferUsage,
@@ -109,7 +116,14 @@ pub(crate) trait GraphicsResourceFactory {
         .map_err(|_| VMNLError::new(error_kind))
     }
 
-    /// Create a GPU buffer from a single data item.
+    /// Allocates and initializes a buffer for one GPU-ready value.
+    ///
+    /// Use the allocator for the device that will consume the buffer. Memory placement is a
+    /// preference and preserves host write access.
+    ///
+    /// # Errors
+    ///
+    /// Reports `error_kind` if creation or initialization fails.
     fn create_buffer_from_data<T>(
         data: T,
         usage: BufferUsage,
@@ -135,7 +149,7 @@ pub(crate) trait GraphicsResourceFactory {
         .map_err(|_| VMNLError::new(error_kind))
     }
 
-    /// Create a vertex buffer from GPU-ready vertices.
+    /// Allocates and initializes the vertex buffer from GPU-ready vertices.
     fn create_vertex_buffer<T, I>(
         vertices: I,
         memory_preference: BufferMemoryPreference,
@@ -156,7 +170,7 @@ pub(crate) trait GraphicsResourceFactory {
         .map(VertexBuffer)
     }
 
-    /// Create an index buffer from `u32` indices.
+    /// Allocates and initializes the index buffer from caller-validated `u32` indices.
     fn create_index_buffer(
         indices: &[u32],
         memory_preference: BufferMemoryPreference,
@@ -172,7 +186,7 @@ pub(crate) trait GraphicsResourceFactory {
         .map(IndexBuffer)
     }
 
-    /// Create a uniform buffer for frame data.
+    /// Allocates and initializes a uniform buffer for frame data.
     #[allow(dead_code)]
     fn create_frame_ubo_buffer(
         ubo: VMNLFrameUbo,

@@ -65,11 +65,10 @@ pub struct Monitors {
 impl Monitors {
     /// Creates a new `Monitors` instance by querying the connected monitors from GLFW.
     ///
+    /// Returns a `Monitors` instance containing information about all connected monitors.
+    ///
     /// # Arguments
     /// - `glfw`: A mutable reference to the GLFW instance to access monitor information.
-    ///
-    /// # Returns
-    /// A `Monitors` instance containing information about all connected monitors.
     pub(crate) fn new(glfw: &mut glfw::Glfw) -> Self {
         Self {
             info: glfw.with_connected_monitors(|_, monitors| {
@@ -96,7 +95,9 @@ impl Monitors {
     }
 
     /// Returns a slice of `MonitorInfo` for all connected monitors.
+    ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -125,6 +126,7 @@ impl Monitors {
     /// Returns a vector of monitor names for all connected monitors.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -143,6 +145,7 @@ impl Monitors {
     /// Returns a reference to the primary monitor's information, if available.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {

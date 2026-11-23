@@ -19,6 +19,7 @@ impl<const N: usize> TransitionState<N> {
         }
     }
 
+    /// Advances the transition batch so new edges are reported only for the current poll.
     pub(super) const fn begin_batch(&mut self) {
         self.clear_transitions();
     }
@@ -53,11 +54,13 @@ impl<const N: usize> TransitionState<N> {
         self.released[index]
     }
 
+    /// Clears current edge transitions while preserving held controls.
     pub(super) const fn clear_transitions(&mut self) {
         self.pressed = [false; N];
         self.released = [false; N];
     }
 
+    /// Clears both held controls and their transitions.
     pub(super) const fn reset(&mut self) {
         self.down = [false; N];
         self.clear_transitions();

@@ -69,6 +69,18 @@ pub struct PixelLayout {
 
 impl PixelLayout {
     /// Creates a byte layout. `offset` is relative to the source byte subrange.
+    ///
+    /// # Arguments
+    ///
+    /// - `offset` supplies the byte offset from the start of the declared source range to the first
+    ///   stored row.
+    /// - `row_stride` supplies the byte distance between consecutive stored rows, including any
+    ///   padding.
+    /// - `origin` identifies which image row is stored first. See [`PixelOrigin`].
+    ///
+    /// # Example
+    ///
+    /// See [`new` in the shared example](PixelSource#example).
     #[must_use]
     pub const fn new(offset: usize, row_stride: usize, origin: PixelOrigin) -> Self {
         Self {
@@ -79,18 +91,30 @@ impl PixelLayout {
     }
 
     /// Returns the byte offset from the beginning of the declared source subrange.
+    ///
+    /// # Example
+    ///
+    /// See [`offset` in the shared example](PixelSource#example).
     #[must_use]
     pub const fn offset(self) -> usize {
         self.offset
     }
 
     /// Returns the distance in bytes between the starts of adjacent input rows.
+    ///
+    /// # Example
+    ///
+    /// See [`row_stride` in the shared example](PixelSource#example).
     #[must_use]
     pub const fn row_stride(self) -> usize {
         self.row_stride
     }
 
     /// Returns the logical origin of the first input row.
+    ///
+    /// # Example
+    ///
+    /// See [`origin` in the shared example](PixelSource#example).
     #[must_use]
     pub const fn origin(self) -> PixelOrigin {
         self.origin
@@ -98,6 +122,17 @@ impl PixelLayout {
 }
 
 /// A non-empty, half-open rectangle in top-left-origin pixel coordinates.
+///
+/// # Example
+///
+/// ```rust
+/// use vmnl_graphics::texture::PixelRect;
+///
+/// let region = PixelRect::new(8, 16, 32, 32)?;
+/// region.validate_within(64, 64)?;
+/// assert_eq!([region.x(), region.y(), region.width(), region.height()], [8, 16, 32, 32]);
+/// # Ok::<(), vmnl_graphics::VMNLError>(())
+/// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct PixelRect {
     x: u32,
@@ -109,9 +144,20 @@ pub struct PixelRect {
 impl PixelRect {
     /// Creates a rectangle, rejecting empty extents and overflowing ends.
     ///
+    /// # Arguments
+    ///
+    /// - `x` supplies the horizontal start in texels from the left edge.
+    /// - `y` supplies the vertical start in texels from the top edge.
+    /// - `width` supplies the nonzero horizontal extent in texels.
+    /// - `height` supplies the nonzero vertical extent in texels.
+    ///
     /// # Errors
     ///
     /// Returns `InvalidState` when either dimension is zero or either end overflows.
+    ///
+    /// # Example
+    ///
+    /// See [`new` in the shared example](Self#example).
     pub fn new(x: u32, y: u32, width: u32, height: u32) -> VMNLResult<Self> {
         if width == 0 || height == 0 {
             return Err(invalid_state("pixel rectangle dimensions must be nonzero"));
@@ -131,24 +177,40 @@ impl PixelRect {
     }
 
     /// Returns the left edge in pixels.
+    ///
+    /// # Example
+    ///
+    /// See [`x` in the shared example](Self#example).
     #[must_use]
     pub const fn x(self) -> u32 {
         self.x
     }
 
     /// Returns the top edge in pixels.
+    ///
+    /// # Example
+    ///
+    /// See [`y` in the shared example](Self#example).
     #[must_use]
     pub const fn y(self) -> u32 {
         self.y
     }
 
     /// Returns the rectangle width in pixels.
+    ///
+    /// # Example
+    ///
+    /// See [`width` in the shared example](Self#example).
     #[must_use]
     pub const fn width(self) -> u32 {
         self.width
     }
 
     /// Returns the rectangle height in pixels.
+    ///
+    /// # Example
+    ///
+    /// See [`height` in the shared example](Self#example).
     #[must_use]
     pub const fn height(self) -> u32 {
         self.height
@@ -156,9 +218,18 @@ impl PixelRect {
 
     /// Checks that the half-open rectangle is within an image extent.
     ///
+    /// # Arguments
+    ///
+    /// - `image_width` supplies the source image width in texels.
+    /// - `image_height` supplies the source image height in texels.
+    ///
     /// # Errors
     ///
     /// Returns `InvalidState` when the rectangle extends outside the image.
+    ///
+    /// # Example
+    ///
+    /// See [`validate_within` in the shared example](Self#example).
     pub fn validate_within(self, image_width: u32, image_height: u32) -> VMNLResult<()> {
         if self.x + self.width > image_width || self.y + self.height > image_height {
             return Err(invalid_state("pixel rectangle is outside the image extent"));
@@ -172,6 +243,16 @@ impl PixelRect {
 ///
 /// This is a closed bit set. Image support and the selected effective usage are
 /// checked against a `Context` when GPU resource creation is introduced.
+///
+/// # Example
+///
+/// ```rust
+/// use vmnl_graphics::texture::TextureUsage;
+///
+/// let usage = TextureUsage::SAMPLED.union(TextureUsage::TRANSFER_DESTINATION);
+/// assert!(usage.contains(TextureUsage::INITIAL_UPLOAD));
+/// assert!(!usage.is_empty());
+/// ```
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct TextureUsage(u8);
 
@@ -186,18 +267,38 @@ impl TextureUsage {
     pub const INITIAL_UPLOAD: Self = Self(Self::SAMPLED.0 | Self::TRANSFER_DESTINATION.0);
 
     /// Returns the union of two usage sets.
+    ///
+    /// # Arguments
+    ///
+    /// - `other` supplies the additional usage flags to include.
+    ///
+    /// # Example
+    ///
+    /// See [`union` in the shared example](Self#example).
     #[must_use]
     pub const fn union(self, other: Self) -> Self {
         Self(self.0 | other.0)
     }
 
     /// Returns whether every bit in `other` is present in this usage set.
+    ///
+    /// # Arguments
+    ///
+    /// - `other` supplies the complete set of flags to test.
+    ///
+    /// # Example
+    ///
+    /// See [`contains` in the shared example](Self#example).
     #[must_use]
     pub const fn contains(self, other: Self) -> bool {
         self.0 & other.0 == other.0
     }
 
     /// Returns whether this set requests no image usages.
+    ///
+    /// # Example
+    ///
+    /// See [`is_empty` in the shared example](Self#example).
     #[must_use]
     pub const fn is_empty(self) -> bool {
         self.0 == 0
@@ -223,6 +324,40 @@ pub enum TextureUsageRequest {
 /// when a larger slice contains unrelated or trailing bytes.
 ///
 /// [`with_byte_range`]: Self::with_byte_range
+///
+/// # Example
+///
+/// ```rust
+/// use vmnl_graphics::texture::{AlphaMode, ColorEncoding, PixelLayout, PixelOrigin,
+///     PixelSource, TextureFormat, TextureUsageRequest};
+///
+/// let bytes = [0, 0, 0, 0, 255, 0, 0, 255];
+/// let source = PixelSource::new(1, 1, TextureFormat::Rgba8Unorm, &bytes)?
+///     .with_byte_range(4..8)
+///     .with_layout(PixelLayout::new(0, 4, PixelOrigin::TopLeft))
+///     .with_encoding(ColorEncoding::Linear)
+///     .with_alpha_mode(AlphaMode::Straight)
+///     .with_usage(TextureUsageRequest::Automatic);
+/// assert_eq!(source.extent(), [1, 1]);
+/// assert_eq!(source.format(), TextureFormat::Rgba8Unorm);
+/// assert_eq!(source.byte_range(), Some(4..8));
+/// assert_eq!(source.encoding(), ColorEncoding::Linear);
+/// assert_eq!(source.alpha_mode(), AlphaMode::Straight);
+/// assert_eq!(source.layout().offset(), 0);
+/// assert_eq!(source.layout().row_stride(), 4);
+/// assert_eq!(source.layout().origin(), PixelOrigin::TopLeft);
+/// assert_eq!(source.usage(), TextureUsageRequest::Automatic);
+/// source.validate()?;
+///
+/// let prepared = source.prepare()?;
+/// assert_eq!(prepared.extent(), [1, 1]);
+/// assert_eq!(prepared.format(), TextureFormat::Rgba8Unorm);
+/// assert_eq!(prepared.encoding(), ColorEncoding::Linear);
+/// assert_eq!(prepared.alpha_mode(), AlphaMode::Straight);
+/// assert_eq!(prepared.bytes(), &bytes[4..]);
+/// assert_eq!(prepared.into_bytes(), bytes[4..]);
+/// # Ok::<(), vmnl_graphics::VMNLError>(())
+/// ```
 #[derive(Debug)]
 pub struct PixelSource<'a> {
     width: u32,
@@ -239,9 +374,21 @@ pub struct PixelSource<'a> {
 impl<'a> PixelSource<'a> {
     /// Creates a source whose default layout is tightly packed and top-left-origin.
     ///
+    /// # Arguments
+    ///
+    /// - `width` supplies the source image width in texels.
+    /// - `height` supplies the source image height in texels.
+    /// - `format` describes the representation of the source texels. See [`TextureFormat`].
+    /// - `bytes` supplies the borrowed source pixels, including any padding described by a custom
+    ///   layout.
+    ///
     /// # Errors
     ///
     /// Returns `InvalidState` if the default RGBA8 row size overflows the host address space.
+    ///
+    /// # Example
+    ///
+    /// See [`new` in the shared example](Self#example).
     pub fn new(
         width: u32,
         height: u32,
@@ -267,6 +414,16 @@ impl<'a> PixelSource<'a> {
     ///
     /// Extra bytes after the required pixel rows may be ignored within this
     /// explicit range. Bytes before or after the range are never read.
+    ///
+    /// # Arguments
+    ///
+    /// - `range` selects a half-open byte interval in the source slice. The offset in
+    ///   [`PixelLayout`] is measured from the start of this interval. Omit this call to use
+    ///   the source slice starting at byte zero. [`Self::validate`] checks the resulting coverage.
+    ///
+    /// # Example
+    ///
+    /// See [`with_byte_range` in the shared example](Self#example).
     #[must_use]
     pub fn with_byte_range(mut self, range: Range<usize>) -> Self {
         self.explicit_byte_range = Some(range);
@@ -274,6 +431,15 @@ impl<'a> PixelSource<'a> {
     }
 
     /// Replaces the source row layout.
+    ///
+    /// # Arguments
+    ///
+    /// - `layout` is a [`PixelLayout`] for the first-row offset, stride, and origin. Match it
+    ///   to the image dimensions and any interval set through [`Self::with_byte_range`].
+    ///
+    /// # Example
+    ///
+    /// See [`with_layout` in the shared example](Self#example).
     #[must_use]
     pub const fn with_layout(mut self, layout: PixelLayout) -> Self {
         self.layout = layout;
@@ -281,6 +447,15 @@ impl<'a> PixelSource<'a> {
     }
 
     /// Declares the channel encoding without converting supplied values.
+    ///
+    /// # Arguments
+    ///
+    /// - `encoding` declares how the color values in the source bytes are encoded. See
+    ///   [`ColorEncoding`].
+    ///
+    /// # Example
+    ///
+    /// See [`with_encoding` in the shared example](Self#example).
     #[must_use]
     pub const fn with_encoding(mut self, encoding: ColorEncoding) -> Self {
         self.encoding = encoding;
@@ -288,6 +463,15 @@ impl<'a> PixelSource<'a> {
     }
 
     /// Declares the supplied alpha representation without converting supplied values.
+    ///
+    /// # Arguments
+    ///
+    /// - `alpha_mode` declares whether the source color channels are premultiplied by alpha. See
+    ///   [`AlphaMode`].
+    ///
+    /// # Example
+    ///
+    /// See [`with_alpha_mode` in the shared example](Self#example).
     #[must_use]
     pub const fn with_alpha_mode(mut self, alpha_mode: AlphaMode) -> Self {
         self.alpha_mode = alpha_mode;
@@ -295,6 +479,16 @@ impl<'a> PixelSource<'a> {
     }
 
     /// Replaces the requested image usage policy.
+    ///
+    /// # Arguments
+    ///
+    /// - `usage` supplies the [`TextureUsageRequest`] retained with the prepared pixel data.
+    ///   [`Self::validate`] requires a nonempty set for [`TextureUsageRequest::Exact`].
+    ///   [`crate::texture::Texture2DBuilder::prepare`] checks the initial upload requirements.
+    ///
+    /// # Example
+    ///
+    /// See [`with_usage` in the shared example](Self#example).
     #[must_use]
     pub const fn with_usage(mut self, usage: TextureUsageRequest) -> Self {
         self.usage = usage;
@@ -302,42 +496,70 @@ impl<'a> PixelSource<'a> {
     }
 
     /// Returns the image extent in pixels.
+    ///
+    /// # Example
+    ///
+    /// See [`extent` in the shared example](Self#example).
     #[must_use]
     pub const fn extent(&self) -> [u32; 2] {
         [self.width, self.height]
     }
 
     /// Returns the requested format.
+    ///
+    /// # Example
+    ///
+    /// See [`format` in the shared example](Self#example).
     #[must_use]
     pub const fn format(&self) -> TextureFormat {
         self.format
     }
 
     /// Returns the optional half-open byte range in the supplied slice.
+    ///
+    /// # Example
+    ///
+    /// See [`byte_range` in the shared example](Self#example).
     #[must_use]
     pub fn byte_range(&self) -> Option<Range<usize>> {
         self.explicit_byte_range.clone()
     }
 
     /// Returns the requested color encoding.
+    ///
+    /// # Example
+    ///
+    /// See [`encoding` in the shared example](Self#example).
     #[must_use]
     pub const fn encoding(&self) -> ColorEncoding {
         self.encoding
     }
 
     /// Returns the requested alpha representation.
+    ///
+    /// # Example
+    ///
+    /// See [`alpha_mode` in the shared example](Self#example).
     #[must_use]
     pub const fn alpha_mode(&self) -> AlphaMode {
         self.alpha_mode
     }
 
     /// Returns the input row layout.
+    ///
+    /// # Example
+    ///
+    /// See [`layout` in the shared example](Self#example).
     #[must_use]
     pub const fn layout(&self) -> PixelLayout {
         self.layout
     }
 
     /// Returns the requested image usage policy.
+    ///
+    /// # Example
+    ///
+    /// See [`usage` in the shared example](Self#example).
     #[must_use]
     pub const fn usage(&self) -> TextureUsageRequest {
         self.usage
@@ -349,6 +571,10 @@ impl<'a> PixelSource<'a> {
     ///
     /// Returns `InvalidState` for zero dimensions, conflicting declarations, invalid ranges,
     /// row strides, empty exact usage, or insufficient/ambiguous byte coverage.
+    ///
+    /// # Example
+    ///
+    /// See [`validate` in the shared example](Self#example).
     pub fn validate(&self) -> VMNLResult<()> {
         if self.width == 0 || self.height == 0 {
             return Err(invalid_state("pixel source dimensions must be nonzero"));
@@ -403,13 +629,15 @@ impl<'a> PixelSource<'a> {
     /// Copies source rows into tightly packed RGBA8 bytes with a top-left origin.
     ///
     /// This allocates one owned output buffer and preserves all channel values.
-    /// Returns [`crate::VMNLErrorKind::InvalidState`] for an invalid descriptor or
-    /// [`crate::VMNLErrorKind::TextureCpuAllocationFailed`] if the copy buffer cannot
-    /// be allocated.
     ///
     /// # Errors
     ///
-    /// Returns the same validation errors as [`Self::validate`] or a CPU allocation error.
+    /// Returns `InvalidState` for invalid descriptors or row/size arithmetic that overflows
+    /// the host address space. Returns `TextureCpuAllocationFailed` if allocating the output fails.
+    ///
+    /// # Example
+    ///
+    /// See [`prepare` in the shared example](Self#example).
     pub fn prepare(&self) -> VMNLResult<PreparedPixelData> {
         self.validate()?;
 
@@ -512,36 +740,60 @@ impl PreparedPixelData {
     }
 
     /// Returns the image extent in pixels.
+    ///
+    /// # Example
+    ///
+    /// See [`extent` in the shared example](PixelSource#example).
     #[must_use]
     pub const fn extent(&self) -> [u32; 2] {
         [self.width, self.height]
     }
 
     /// Returns the RGBA8 format to request for sampling.
+    ///
+    /// # Example
+    ///
+    /// See [`format` in the shared example](PixelSource#example).
     #[must_use]
     pub const fn format(&self) -> TextureFormat {
         self.format
     }
 
     /// Returns the declared channel encoding; pixel values are not converted.
+    ///
+    /// # Example
+    ///
+    /// See [`encoding` in the shared example](PixelSource#example).
     #[must_use]
     pub const fn encoding(&self) -> ColorEncoding {
         self.encoding
     }
 
     /// Returns the declared alpha representation; pixel values are not converted.
+    ///
+    /// # Example
+    ///
+    /// See [`alpha_mode` in the shared example](PixelSource#example).
     #[must_use]
     pub const fn alpha_mode(&self) -> AlphaMode {
         self.alpha_mode
     }
 
     /// Returns tightly packed, top-left-origin RGBA8 bytes.
+    ///
+    /// # Example
+    ///
+    /// See [`bytes` in the shared example](PixelSource#example).
     #[must_use]
     pub fn bytes(&self) -> &[u8] {
         &self.bytes
     }
 
     /// Returns the owned packed bytes and consumes this CPU-side image.
+    ///
+    /// # Example
+    ///
+    /// See [`into_bytes` in the shared example](PixelSource#example).
     #[must_use]
     pub fn into_bytes(self) -> Vec<u8> {
         self.bytes

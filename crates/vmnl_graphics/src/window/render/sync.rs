@@ -24,6 +24,10 @@ pub(super) enum FrameSyncResult<T> {
     SwapchainOutOfDate(Option<T>),
 }
 
+/// Installs frame completion state and marks an out-of-date swapchain for recreation.
+///
+/// An out-of-date result can still carry submitted completion work. Install the supplied completion
+/// state before returning the error.
 pub(super) fn finalize_frame_sync<T>(
     frame_sync: VMNLResult<FrameSyncResult<T>>,
     swapchain_recreation_requested: &mut bool,

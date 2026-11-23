@@ -12,6 +12,7 @@ impl Window {
     /// Returns the current window title as a string slice.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -30,9 +31,11 @@ impl Window {
     /// Sets the window title by updating both the GLFW window and internal configuration.
     ///
     /// # Arguments
+    ///
     /// - `title`: New UTF-8 window title.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -50,14 +53,17 @@ impl Window {
     /// Sets the window size by updating both the GLFW window and internal configuration.
     ///
     /// # Arguments
+    ///
     /// - `width`: New window width in screen pixels.
     /// - `height`: New window height in screen pixels.
     ///
     /// # Errors
+    ///
     /// Returns [`VMNLErrorKind::InvalidWindowSize`](crate::VMNLErrorKind::InvalidWindowSize)
     /// if a dimension is below `64` pixels or exceeds the range accepted by GLFW.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -75,6 +81,7 @@ impl Window {
     /// Returns the current window size as a tuple of width and height in pixels.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -93,6 +100,7 @@ impl Window {
     /// Returns the current framebuffer size as a tuple of width and height in pixels.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -111,6 +119,7 @@ impl Window {
     /// Returns the content scale of the window as a tuple of x and y scaling factors.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -131,15 +140,18 @@ impl Window {
     /// Passing `None` for a dimension removes the corresponding limit.
     ///
     /// # Arguments
+    ///
     /// - `min_width`: Optional minimum width in screen pixels.
     /// - `min_height`: Optional minimum height in screen pixels.
     /// - `max_width`: Optional maximum width in screen pixels.
     /// - `max_height`: Optional maximum height in screen pixels.
     ///
     /// # Errors
-    /// Returns an error if a minimum dimension exceeds its maximum dimension.
+    ///
+    /// Returns `InvalidWindowSize` when a minimum dimension exceeds its maximum dimension.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -166,13 +178,16 @@ impl Window {
     /// Passing `None` removes the aspect ratio constraint.
     ///
     /// # Arguments
+    ///
     /// - `aspect_ratio`: Optional `(numerator, denominator)` aspect ratio.
     ///
     /// # Errors
+    ///
     /// Returns [`VMNLErrorKind::InvalidState`](crate::VMNLErrorKind::InvalidState) if either
     /// term is zero or cannot be represented by GLFW.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -194,10 +209,12 @@ impl Window {
     /// limitation through the configured error callback and this request has no effect.
     ///
     /// # Arguments
+    ///
     /// - `x`: X position in virtual screen coordinates.
     /// - `y`: Y position in virtual screen coordinates.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -218,6 +235,7 @@ impl Window {
     /// position may report an error and return GLFW's sentinel `(0, 0)`.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -239,9 +257,11 @@ impl Window {
     /// leave the window unchanged.
     ///
     /// # Arguments
+    ///
     /// - `opacity`: Opacity value where `1.0` is fully opaque and `0.0` is fully transparent.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -261,6 +281,7 @@ impl Window {
     /// Unsupported platforms may report an error and return GLFW's sentinel `1.0`.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -282,6 +303,7 @@ impl Window {
     /// may be involved.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -303,6 +325,7 @@ impl Window {
     /// may be involved.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -321,6 +344,7 @@ impl Window {
     /// Returns a reference to the `Monitor` information associated with the window instance.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -341,9 +365,12 @@ impl Window {
     /// This color is used when clearing the framebuffer before rendering a new frame.
     ///
     /// # Arguments
-    /// - `color`: Color convertible to `Rgba`, for example `Rgba::BLACK`, `[r, g, b]`, or `[r, g, b, a]`.
+    ///
+    /// - `color`: Color convertible to [`Rgba`], for example `Rgba::BLACK`, `[r, g, b]`, or
+    ///   `[r, g, b, a]`.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {

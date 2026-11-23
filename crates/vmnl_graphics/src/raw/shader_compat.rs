@@ -53,6 +53,9 @@ pub(super) struct ShaderContract {
 }
 
 impl ShaderContract {
+    /// Combines reflected vertex and fragment resource requirements by descriptor location.
+    ///
+    /// The stage contracts must agree on the type for any shared descriptor binding.
     pub(super) fn merge(
         vertex: &ShaderStageContract,
         fragment: &ShaderStageContract,
@@ -103,6 +106,9 @@ impl ShaderContract {
     }
 }
 
+/// Extracts resource declarations and sampling requirements for a shader stage.
+///
+/// Use SPIR-V from the compiled stage and the matching execution model.
 pub(super) fn reflect_stage_contract(
     words: &[u32],
     execution_model: ExecutionModel,
@@ -778,6 +784,9 @@ fn validate_reflected_pairs(
     Ok(())
 }
 
+/// Checks whether the descriptor type is supported by VMNL raw bindings.
+///
+/// The descriptor coordinates identify the rejected declaration in the error.
 pub(super) fn validate_raw_descriptor_type(
     set: u32,
     binding: u32,

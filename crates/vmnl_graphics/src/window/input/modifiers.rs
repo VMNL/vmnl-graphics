@@ -8,6 +8,17 @@ use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign};
 /// Keyboard modifier flags captured when an input event is generated.
 ///
 /// Caps Lock and Num Lock are reported only when lock-key modifiers are enabled for the window.
+///
+/// # Example
+///
+/// ```rust
+/// use vmnl_graphics::Modifiers;
+///
+/// let flags = Modifiers::CONTROL | Modifiers::SHIFT;
+/// assert!(!flags.is_empty());
+/// assert!(flags.contains(Modifiers::SHIFT));
+/// assert_ne!(flags.bits(), Modifiers::NONE.bits());
+/// ```
 #[repr(transparent)]
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]
 pub struct Modifiers(u8);
@@ -29,18 +40,34 @@ impl Modifiers {
     pub const NUM_LOCK: Self = Self(1 << 5);
 
     /// Returns `true` when no modifier flag is set.
+    ///
+    /// # Example
+    ///
+    /// See [`is_empty` in the shared example](Self#example).
     #[must_use]
     pub const fn is_empty(self) -> bool {
         self.0 == 0
     }
 
     /// Returns `true` when every flag in `other` is set.
+    ///
+    /// # Arguments
+    ///
+    /// - `other` supplies the complete set of modifier flags to test.
+    ///
+    /// # Example
+    ///
+    /// See [`contains` in the shared example](Self#example).
     #[must_use]
     pub const fn contains(self, other: Self) -> bool {
         self.0 & other.0 == other.0
     }
 
     /// Returns the VMNL-defined modifier bits.
+    ///
+    /// # Example
+    ///
+    /// See [`bits` in the shared example](Self#example).
     #[must_use]
     pub const fn bits(self) -> u8 {
         self.0

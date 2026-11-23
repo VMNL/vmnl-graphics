@@ -12,6 +12,7 @@ impl Window {
     /// configured error callback and the request has no effect.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -29,6 +30,7 @@ impl Window {
     /// Returns `true` if the window is currently iconified (minimized).
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -47,6 +49,7 @@ impl Window {
     /// Restores the window to its normal size and position.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -64,6 +67,7 @@ impl Window {
     /// Maximizes the window to fill the screen.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -81,6 +85,7 @@ impl Window {
     /// Returns `true` if the window is currently maximized.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -99,6 +104,7 @@ impl Window {
     /// Shows the window if it is currently hidden.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -116,6 +122,7 @@ impl Window {
     /// Hides the window if it is currently visible.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -133,6 +140,7 @@ impl Window {
     /// Returns `true` if the window is currently visible.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -153,6 +161,7 @@ impl Window {
     /// Window-system policy may deny the request, so a normal return does not guarantee focus.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -170,6 +179,7 @@ impl Window {
     /// Returns `true` if the window is currently focused.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -188,6 +198,7 @@ impl Window {
     /// Updates and returns the current open state of the window.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -209,6 +220,7 @@ impl Window {
     /// Returns whether the window is fully initialized and ready for use.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -227,6 +239,7 @@ impl Window {
     /// Closes the window by signaling the GLFW context to request closure.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {

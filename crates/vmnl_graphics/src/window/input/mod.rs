@@ -48,6 +48,7 @@ impl Input {
     /// Returns a reference to the current `KeyboardState`.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::{Input, Key};
     ///
@@ -71,6 +72,7 @@ impl Input {
     /// Returns a reference to the current `MouseState`.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::{Input, MouseButton};
     ///
@@ -95,6 +97,14 @@ impl Input {
     ///
     /// Slots are fixed and always addressable. If the window has not enabled tracking, the
     /// returned state is [`JoystickStatus::NotTracked`].
+    ///
+    /// # Arguments
+    ///
+    /// - `id` identifies a slot from a joystick event or `JoystickId::from_index`. See [`JoystickId`].
+    ///
+    /// # Example
+    ///
+    /// See [`joystick` in the shared example](crate::Window#example-joystick-tracking).
     #[inline]
     #[must_use]
     pub const fn joystick(&self, id: JoystickId) -> &JoystickState {
@@ -173,6 +183,7 @@ impl Input {
     /// Creates a detached `Input` with fresh keyboard, mouse, and joystick states.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::{Input, JoystickId, JoystickStatus};
     ///

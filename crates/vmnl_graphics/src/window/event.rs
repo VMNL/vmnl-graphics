@@ -15,6 +15,24 @@ use super::{
 /// so VMNL samples the clock when dispatching that callback. Calling
 /// [`Window::set_time`](super::Window::set_time) changes the clock, so timestamps are not
 /// guaranteed to remain monotonic across such a call.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use vmnl_graphics::{Context, EventKind, Window};
+///
+/// # fn main() -> vmnl_graphics::VMNLResult<()> {
+/// let context = Context::new()?;
+/// let mut window = Window::new(&context)?;
+/// let mut queued: Vec<EventKind> = Vec::new();
+/// for event in window.poll_events() {
+///     println!("At {:.3} s received {:?}", event.timestamp_seconds(), event.kind());
+///     queued.push(event.into_kind());
+/// }
+/// println!("Queued {} owned event payloads", queued.len());
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Debug, Clone, PartialEq)]
 pub struct Event {
     timestamp_seconds: f64,
@@ -30,18 +48,30 @@ impl Event {
     }
 
     /// Returns the GLFW event timestamp in seconds.
+    ///
+    /// # Example
+    ///
+    /// See [`timestamp_seconds` in the shared example](Self#example).
     #[must_use]
     pub const fn timestamp_seconds(&self) -> f64 {
         self.timestamp_seconds
     }
 
     /// Returns the translated event payload.
+    ///
+    /// # Example
+    ///
+    /// See [`kind` in the shared example](Self#example).
     #[must_use]
     pub const fn kind(&self) -> &EventKind {
         &self.kind
     }
 
     /// Consumes the event and returns its translated payload.
+    ///
+    /// # Example
+    ///
+    /// See [`into_kind` in the shared example](Self#example).
     #[must_use]
     pub fn into_kind(self) -> EventKind {
         self.kind
@@ -282,6 +312,10 @@ impl EventQueue {
             .collect()
     }
 
+    /// Translates pending native window events and updates the window input snapshot.
+    ///
+    /// The dispatcher starts a new transition batch for this poll. Delivery settings control the
+    /// events returned to the caller.
     pub(crate) fn poll_events(&mut self, input: &mut Input) -> Vec<Event> {
         Self::process_batch(&self.delivery, input, glfw::flush_messages(&self.events))
     }

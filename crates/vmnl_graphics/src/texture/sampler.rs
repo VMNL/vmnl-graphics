@@ -73,6 +73,40 @@ pub enum SamplerCoordinateMode {
 /// addressing, zero minimum LOD and bias, unbounded maximum LOD, anisotropy `1.0`,
 /// and normalized coordinates. [`nearest`](Self::nearest) changes all filters to
 /// nearest. Values are requests; device limits are checked when the GPU sampler is built.
+///
+/// # Example
+///
+/// ```rust
+/// use vmnl_graphics::texture::{AddressMode, Filter, SamplerBorderColor,
+///     SamplerConfig, SamplerCoordinateMode, SamplerLodLimit};
+///
+/// assert_eq!(SamplerConfig::nearest().min_filter(), Filter::Nearest);
+/// let config = SamplerConfig::linear()
+///     .with_min_filter(Filter::Linear)
+///     .with_mag_filter(Filter::Linear)
+///     .with_mipmap_filter(Filter::Nearest)
+///     .with_address_u(AddressMode::ClampToBorder)
+///     .with_address_v(AddressMode::ClampToEdge)
+///     .with_border_color(SamplerBorderColor::FloatOpaqueBlack)
+///     .with_min_lod(0.0)
+///     .with_max_lod(SamplerLodLimit::Value(1.0))
+///     .with_lod_bias(0.0)
+///     .with_anisotropy(1.0)
+///     .with_coordinate_mode(SamplerCoordinateMode::Normalized);
+/// config.validate()?;
+/// assert_eq!(config.min_filter(), Filter::Linear);
+/// assert_eq!(config.mag_filter(), Filter::Linear);
+/// assert_eq!(config.mipmap_filter(), Filter::Nearest);
+/// assert_eq!(config.address_u(), AddressMode::ClampToBorder);
+/// assert_eq!(config.address_v(), AddressMode::ClampToEdge);
+/// assert_eq!(config.border_color(), SamplerBorderColor::FloatOpaqueBlack);
+/// assert_eq!(config.min_lod(), 0.0);
+/// assert_eq!(config.max_lod(), SamplerLodLimit::Value(1.0));
+/// assert_eq!(config.lod_bias(), 0.0);
+/// assert_eq!(config.anisotropy(), 1.0);
+/// assert_eq!(config.coordinate_mode(), SamplerCoordinateMode::Normalized);
+/// # Ok::<(), vmnl_graphics::VMNLError>(())
+/// ```
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct SamplerConfig {
     min_filter: Filter,
@@ -90,6 +124,10 @@ pub struct SamplerConfig {
 
 impl SamplerConfig {
     /// Returns the default linear configuration as an editable value.
+    ///
+    /// # Example
+    ///
+    /// See [`linear` in the shared example](Self#example).
     #[must_use]
     pub const fn linear() -> Self {
         Self {
@@ -108,6 +146,10 @@ impl SamplerConfig {
     }
 
     /// Returns an editable nearest-filter configuration.
+    ///
+    /// # Example
+    ///
+    /// See [`nearest` in the shared example](Self#example).
     #[must_use]
     pub const fn nearest() -> Self {
         Self {
@@ -119,6 +161,14 @@ impl SamplerConfig {
     }
 
     /// Sets minification filtering.
+    ///
+    /// # Arguments
+    ///
+    /// - `filter` selects the filter used when sampling a minified texture. See [`Filter`].
+    ///
+    /// # Example
+    ///
+    /// See [`with_min_filter` in the shared example](Self#example).
     #[must_use]
     pub const fn with_min_filter(mut self, filter: Filter) -> Self {
         self.min_filter = filter;
@@ -126,6 +176,14 @@ impl SamplerConfig {
     }
 
     /// Sets magnification filtering.
+    ///
+    /// # Arguments
+    ///
+    /// - `filter` selects the filter used when sampling a magnified texture. See [`Filter`].
+    ///
+    /// # Example
+    ///
+    /// See [`with_mag_filter` in the shared example](Self#example).
     #[must_use]
     pub const fn with_mag_filter(mut self, filter: Filter) -> Self {
         self.mag_filter = filter;
@@ -133,6 +191,14 @@ impl SamplerConfig {
     }
 
     /// Sets mipmap filtering.
+    ///
+    /// # Arguments
+    ///
+    /// - `filter` selects how adjacent mip levels are sampled. See [`Filter`].
+    ///
+    /// # Example
+    ///
+    /// See [`with_mipmap_filter` in the shared example](Self#example).
     #[must_use]
     pub const fn with_mipmap_filter(mut self, filter: Filter) -> Self {
         self.mipmap_filter = filter;
@@ -140,6 +206,14 @@ impl SamplerConfig {
     }
 
     /// Sets U-axis addressing.
+    ///
+    /// # Arguments
+    ///
+    /// - `mode` selects how out-of-range horizontal coordinates are addressed. See [`AddressMode`].
+    ///
+    /// # Example
+    ///
+    /// See [`with_address_u` in the shared example](Self#example).
     #[must_use]
     pub const fn with_address_u(mut self, mode: AddressMode) -> Self {
         self.address_u = mode;
@@ -147,6 +221,14 @@ impl SamplerConfig {
     }
 
     /// Sets V-axis addressing.
+    ///
+    /// # Arguments
+    ///
+    /// - `mode` selects how out-of-range vertical coordinates are addressed. See [`AddressMode`].
+    ///
+    /// # Example
+    ///
+    /// See [`with_address_v` in the shared example](Self#example).
     #[must_use]
     pub const fn with_address_v(mut self, mode: AddressMode) -> Self {
         self.address_v = mode;
@@ -154,6 +236,15 @@ impl SamplerConfig {
     }
 
     /// Sets the typed border color used by `ClampToBorder` addressing.
+    ///
+    /// # Arguments
+    ///
+    /// - `color` selects the typed border color for coordinates addressed via `ClampToBorder`. See
+    ///   [`SamplerBorderColor`].
+    ///
+    /// # Example
+    ///
+    /// See [`with_border_color` in the shared example](Self#example).
     #[must_use]
     pub const fn with_border_color(mut self, color: SamplerBorderColor) -> Self {
         self.border_color = color;
@@ -161,6 +252,14 @@ impl SamplerConfig {
     }
 
     /// Sets the minimum level of detail.
+    ///
+    /// # Arguments
+    ///
+    /// - `value` supplies the requested lower bound in mip levels.
+    ///
+    /// # Example
+    ///
+    /// See [`with_min_lod` in the shared example](Self#example).
     #[must_use]
     pub const fn with_min_lod(mut self, value: f32) -> Self {
         self.min_lod = value;
@@ -168,6 +267,15 @@ impl SamplerConfig {
     }
 
     /// Sets the finite or unbounded maximum level of detail.
+    ///
+    /// # Arguments
+    ///
+    /// - `limit` supplies either an explicit upper bound in mip levels or the unbounded setting. See
+    ///   [`SamplerLodLimit`].
+    ///
+    /// # Example
+    ///
+    /// See [`with_max_lod` in the shared example](Self#example).
     #[must_use]
     pub const fn with_max_lod(mut self, limit: SamplerLodLimit) -> Self {
         self.max_lod = limit;
@@ -175,6 +283,14 @@ impl SamplerConfig {
     }
 
     /// Sets the level-of-detail bias.
+    ///
+    /// # Arguments
+    ///
+    /// - `value` supplies the signed offset added to the computed level of detail.
+    ///
+    /// # Example
+    ///
+    /// See [`with_lod_bias` in the shared example](Self#example).
     #[must_use]
     pub const fn with_lod_bias(mut self, value: f32) -> Self {
         self.lod_bias = value;
@@ -182,6 +298,14 @@ impl SamplerConfig {
     }
 
     /// Sets anisotropy; `1.0` disables anisotropic filtering.
+    ///
+    /// # Arguments
+    ///
+    /// - `value` supplies the requested anisotropic filtering ratio, with `1.0` disabling it.
+    ///
+    /// # Example
+    ///
+    /// See [`with_anisotropy` in the shared example](Self#example).
     #[must_use]
     pub const fn with_anisotropy(mut self, value: f32) -> Self {
         self.anisotropy = value;
@@ -189,6 +313,18 @@ impl SamplerConfig {
     }
 
     /// Sets normalized or texel coordinate mode.
+    ///
+    /// # Arguments
+    ///
+    /// - `mode` selects a [`SamplerCoordinateMode`]. [`SamplerCoordinateMode::Normalized`] is
+    ///   the default. [`SamplerCoordinateMode::Texel`] requires equal minification/magnification
+    ///   filters, [`Filter::Nearest`] mip filtering, zero min/max LOD and LOD bias, anisotropy
+    ///   `1.0`, and clamp-to-edge or clamp-to-border addressing on both axes.
+    ///   [`Self::validate`] checks these combinations.
+    ///
+    /// # Example
+    ///
+    /// See [`with_coordinate_mode` in the shared example](Self#example).
     #[must_use]
     pub const fn with_coordinate_mode(mut self, mode: SamplerCoordinateMode) -> Self {
         self.coordinate_mode = mode;
@@ -196,66 +332,110 @@ impl SamplerConfig {
     }
 
     /// Returns minification filtering.
+    ///
+    /// # Example
+    ///
+    /// See [`min_filter` in the shared example](Self#example).
     #[must_use]
     pub const fn min_filter(self) -> Filter {
         self.min_filter
     }
 
     /// Returns magnification filtering.
+    ///
+    /// # Example
+    ///
+    /// See [`mag_filter` in the shared example](Self#example).
     #[must_use]
     pub const fn mag_filter(self) -> Filter {
         self.mag_filter
     }
 
     /// Returns mipmap filtering.
+    ///
+    /// # Example
+    ///
+    /// See [`mipmap_filter` in the shared example](Self#example).
     #[must_use]
     pub const fn mipmap_filter(self) -> Filter {
         self.mipmap_filter
     }
 
     /// Returns U-axis addressing.
+    ///
+    /// # Example
+    ///
+    /// See [`address_u` in the shared example](Self#example).
     #[must_use]
     pub const fn address_u(self) -> AddressMode {
         self.address_u
     }
 
     /// Returns V-axis addressing.
+    ///
+    /// # Example
+    ///
+    /// See [`address_v` in the shared example](Self#example).
     #[must_use]
     pub const fn address_v(self) -> AddressMode {
         self.address_v
     }
 
     /// Returns the typed border color request.
+    ///
+    /// # Example
+    ///
+    /// See [`border_color` in the shared example](Self#example).
     #[must_use]
     pub const fn border_color(self) -> SamplerBorderColor {
         self.border_color
     }
 
     /// Returns the minimum level of detail.
+    ///
+    /// # Example
+    ///
+    /// See [`min_lod` in the shared example](Self#example).
     #[must_use]
     pub const fn min_lod(self) -> f32 {
         self.min_lod
     }
 
     /// Returns the finite or unbounded maximum level of detail.
+    ///
+    /// # Example
+    ///
+    /// See [`max_lod` in the shared example](Self#example).
     #[must_use]
     pub const fn max_lod(self) -> SamplerLodLimit {
         self.max_lod
     }
 
     /// Returns the level-of-detail bias.
+    ///
+    /// # Example
+    ///
+    /// See [`lod_bias` in the shared example](Self#example).
     #[must_use]
     pub const fn lod_bias(self) -> f32 {
         self.lod_bias
     }
 
     /// Returns the requested anisotropy.
+    ///
+    /// # Example
+    ///
+    /// See [`anisotropy` in the shared example](Self#example).
     #[must_use]
     pub const fn anisotropy(self) -> f32 {
         self.anisotropy
     }
 
     /// Returns normalized or texel coordinate mode.
+    ///
+    /// # Example
+    ///
+    /// See [`coordinate_mode` in the shared example](Self#example).
     #[must_use]
     pub const fn coordinate_mode(self) -> SamplerCoordinateMode {
         self.coordinate_mode
@@ -269,6 +449,10 @@ impl SamplerConfig {
     /// # Errors
     ///
     /// Returns `InvalidState` when a numeric value or texel-coordinate combination is invalid.
+    ///
+    /// # Example
+    ///
+    /// See [`validate` in the shared example](Self#example).
     pub fn validate(self) -> VMNLResult<()> {
         if !self.min_lod.is_finite() || !self.lod_bias.is_finite() {
             return Err(invalid_state("sampler LOD values must be finite"));

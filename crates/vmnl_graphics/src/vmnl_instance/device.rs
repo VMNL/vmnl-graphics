@@ -14,16 +14,15 @@ use vulkano::device::{
 };
 
 impl VMNLInstance {
-    /// Create a Vulkan logical device and a graphics queue for it.
+    /// Creates a Vulkan logical device and a graphics queue for it.
+    ///
+    /// Returns a tuple `(Arc<Device>, Arc<Queue>)` containing the created logical device and its graphics queue.
     ///
     /// # Arguments
     /// - `physical_device`: The physical device to create a logical device for.
     /// - `queue_family_index`: Index of the queue family for which to create a queue.
     /// - `device_extensions`: Device extensions to enable for the logical device.
     /// - `device_config`: Required features already checked during physical-device selection.
-    ///
-    /// # Returns
-    /// A tuple `(Arc<Device>, Arc<Queue>)` containing the created logical device and its graphics queue.
     ///
     /// # Source
     /// <https://vulkano.rs/02-initialization/02-device-creation.html#device-creation>

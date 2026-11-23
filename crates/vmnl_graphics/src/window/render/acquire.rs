@@ -34,13 +34,12 @@ impl VMNLWindow {
 
     /// Acquires the next available image from the swapchain for rendering.
     ///
+    /// Returns a tuple `(image_index, suboptimal, acquire_future)` containing the image index,
+    /// a boolean indicating if the swapchain is suboptimal, and the acquisition future.
+    ///
     /// # Arguments
     /// - `swapchain`: Reference to the Vulkan swapchain.
     /// - `timeout`: Optional duration to wait for an image.
-    ///
-    /// # Returns
-    /// A tuple `(image_index, suboptimal, acquire_future)` containing the image index,
-    /// a boolean indicating if the swapchain is suboptimal, and the acquisition future.
     pub(super) fn acquire_next_image_from_swapchain(
         swapchain: &Arc<Swapchain>,
         timeout: Option<std::time::Duration>,

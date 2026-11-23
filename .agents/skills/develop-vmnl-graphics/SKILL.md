@@ -19,6 +19,7 @@ description: Develop, fix, review, document, and validate VMNL graphics work acr
 | Impact | Read |
 | --- | --- |
 | Architecture, builders, public API | [`docs/architecture.md`](../../../docs/architecture.md), [`docs/API.md`](../../../docs/API.md) |
+| Function and method Rustdoc or comments | [`docs/function_documentation.md`](../../../docs/function_documentation.md) |
 | Build, dependencies, shaderc | [`docs/build.md`](../../../docs/build.md), [`docs/troubleshooting.md`](../../../docs/troubleshooting.md) |
 | Tests | [`docs/testing.md`](../../../docs/testing.md) |
 | Examples | [`docs/examples.md`](../../../docs/examples.md), [`examples/README.md`](../../../examples/README.md) |
@@ -52,5 +53,5 @@ path private and follow the [native Vulkan interoperability rules](references/gr
 - Keep explicit low-level pipeline and geometry control in `raw`.
 - Keep every observable high-level default inspectable and replaceable without requiring the raw API.
 - Do not expose backend types as stable public contracts without an explicit raw-API decision.
-- For a public graphics change, decide public crate exposure and document applicable units, coordinates, defaults, valid ranges, ownership, lifecycle, costs, synchronization, errors, panic/safety conditions, and platform/GPU requirements.
+- For a public graphics change, decide public crate exposure and document applicable units, coordinates, defaults, valid ranges, ownership, lifecycle, costs, synchronization, errors, safety requirements, and platform/GPU requirements.
 - Verify claims such as allocation-free, zero-copy, asynchronous, non-blocking, deterministic, or constant-time before documenting them.

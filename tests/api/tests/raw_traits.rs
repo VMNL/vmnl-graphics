@@ -30,6 +30,7 @@ fn raw_resources_are_send_sync_for_external_clients() {
 
 #[test]
 fn raw_sampled_texture_binding_is_public_from_vmnl() -> VMNLResult<()> {
+    // Check the external signature without creating a Vulkan device or texture.
     let _sampled_texture: fn(
         raw::ResourcesBuilder,
         u32,

@@ -27,6 +27,19 @@ pub struct RenderItem2D {
 
 /// Contract between high-level 2D drawables and the render backend.
 pub trait Drawable2D {
-    /// Convert the drawable into a backend-oriented 2D draw item.
+    /// Returns the 2D draw item that VMNL can queue in the current frame.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use vmnl_graphics::{Context, d2::{Drawable2D, Shape}};
+    ///
+    /// # fn main() -> vmnl_graphics::VMNLResult<()> {
+    /// let context = Context::new()?;
+    /// let shape = Shape::rect(40.0, 20.0).build(&context)?;
+    /// let _draw_item = shape.render_item_2d();
+    /// # Ok(())
+    /// # }
+    /// ```
     fn render_item_2d(&self) -> RenderItem2D;
 }

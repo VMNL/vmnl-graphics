@@ -116,7 +116,7 @@ impl Drawable2D for Shape {
 impl GraphicsResourceFactory for Shape {}
 
 impl Shape {
-    /// Create a circle builder with a required radius.
+    /// Creates a circle builder with a required radius.
     ///
     /// The circle center defaults to `(0, 0)` and its color defaults to white.
     /// The returned builder is currently usable through type inference and has no public
@@ -148,9 +148,11 @@ impl Shape {
     /// geometry is not rejected. GPU allocation/upload errors are propagated.
     ///
     /// # Arguments
+    ///
     /// - `radius`: Finite, strictly positive reference radius in pixel-like 2D coordinates.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::d2::Shape;
@@ -158,6 +160,36 @@ impl Shape {
     /// # let context = Context::new()?;
     /// let circle = Shape::circle(50.0).position(100.0, 120.0).build(&context)?;
     /// # drop(circle);
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// <a id="example-circle-sector"></a>
+    ///
+    /// Configure an outlined sector with independent inward and outward offsets.
+    ///
+    /// ```rust,no_run
+    /// use vmnl_graphics::{Context, common::{BufferMemoryPreference, Rgba}};
+    /// use vmnl_graphics::d2::{LineCap, Shape};
+    ///
+    /// # fn main() -> vmnl_graphics::VMNLResult<()> {
+    /// let context = Context::new()?;
+    /// let sector = Shape::circle(24.0)
+    ///     .position(60.0, 60.0)
+    ///     .ellipse(16.0)
+    ///     .filled(false)
+    ///     .width(4.0)
+    ///     .inner(2.0)
+    ///     .outer(3.0)
+    ///     .sector(0.0, std::f32::consts::FRAC_PI_2)
+    ///     .cap(LineCap::Butt)
+    ///     .segments(32)
+    ///     .color(Rgba::WHITE)
+    ///     .buffer_memory_preference(BufferMemoryPreference::Host);
+    /// assert!(!sector.is_filled());
+    /// assert_eq!(sector.inner_width(), 2.0);
+    /// assert_eq!(sector.outer_width(), 3.0);
+    /// let _shape = sector.build(&context)?;
     /// # Ok(())
     /// # }
     /// ```
@@ -174,17 +206,19 @@ impl Shape {
         }
     }
 
-    /// Create a rectangle builder with a required size.
+    /// Creates a rectangle builder with a required size.
     ///
     /// `position` defaults to `(0, 0)` and `color` defaults to white.
     /// Corners are sharp by default; use [`RectBuilder::corner_radius`] or
     /// [`RectBuilder::corner_radii`] to round them.
     ///
     /// # Arguments
+    ///
     /// - `w`: Rectangle width in pixels.
     /// - `h`: Rectangle height in pixels.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::common::Rgba;
@@ -203,7 +237,7 @@ impl Shape {
         RectBuilder::new(Vector2f { x: w, y: h })
     }
 
-    /// Create an indexed shape builder from required vertex and index data.
+    /// Creates an indexed shape builder from required vertex and index data.
     ///
     /// `build` requires triangle-list indices, in-bounds references, representable counts,
     /// and finite positions for every supplied vertex. Structural/count/index errors take
@@ -212,10 +246,12 @@ impl Shape {
     /// triangles remain accepted so callers retain explicit triangle-list control.
     ///
     /// # Arguments
+    ///
     /// - `vertices`: Vertex list containing 2D positions and colors.
     /// - `indices`: Triangle index list referencing `vertices`.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::common::Rgba;
@@ -243,16 +279,18 @@ impl Shape {
         IndexedShapeBuilder::new(vertices.into(), indices.into())
     }
 
-    /// Create a triangle builder from exactly three required positions.
+    /// Creates a triangle builder from exactly three required positions.
     ///
     /// `color` defaults to white. Use `vertex_colors` for per-vertex colors.
     ///
     /// # Arguments
+    ///
     /// - `a`: First triangle position.
     /// - `b`: Second triangle position.
     /// - `c`: Third triangle position.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::common::Rgba;
@@ -273,12 +311,14 @@ impl Shape {
     pub fn triangle(a: Vector2f, b: Vector2f, c: Vector2f) -> TriangleBuilder {
         TriangleBuilder::new(a, b, c)
     }
-    /// Create a triangle builder from exactly three required vertices.
+    /// Creates a triangle builder from exactly three required vertices.
     ///
     /// # Arguments
+    ///
     /// - `vertices`: Three vertices containing triangle positions and colors.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::common::Rgba;
@@ -307,15 +347,17 @@ impl Shape {
         TriangleBuilder::from_vertices(vertices)
     }
 
-    /// Create a line builder from required endpoints.
+    /// Creates a line builder from required endpoints.
     ///
     /// `width` defaults to `1.0`, `cap` defaults to `Butt`, and `color` defaults to white.
     ///
     /// # Arguments
+    ///
     /// - `from`: Start point of the line.
     /// - `to`: End point of the line.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::Context;
     /// # use vmnl_graphics::common::Rgba;
@@ -335,14 +377,20 @@ impl Shape {
         LineBuilder::new(from, to)
     }
 
-    /// Create a filled polygon builder from ordered boundary points.
+    /// Creates a filled polygon builder from ordered boundary points.
     ///
     /// Colors default to opaque white. The boundary is closed implicitly;
     /// do not repeat the first point. Positions use pixel-like 2D coordinates.
     /// Supports simple convex or concave polygons with at least three points.
     /// Construction stores CPU data without validating geometry or allocating GPU buffers.
     ///
+    /// # Arguments
+    ///
+    /// - `points` contains the boundary positions in traversal order. Pass an array or vector of 2D
+    ///   points.
+    ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::common::Rgba;
     /// use vmnl_graphics::d2::{Shape, Vector2f};
@@ -362,12 +410,30 @@ impl Shape {
         PolygonBuilder::new(points.into())
     }
 
-    /// Create a filled polygon builder from ordered boundary vertices.
+    /// Creates a filled polygon builder from ordered boundary vertices.
     ///
     /// Preserves supplied colors. The boundary is closed implicitly;
     /// do not repeat the first vertex. Positions use pixel-like 2D coordinates.
     /// Supports simple convex or concave polygons with at least three vertices.
     /// Construction stores CPU data without validating geometry or allocating GPU buffers.
+    ///
+    /// # Arguments
+    ///
+    /// - `vertices` contains the boundary positions and colors in traversal order. Pass an array or
+    ///   vector of colored 2D vertices.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use vmnl_graphics::{common::Rgba, d2::{Shape, Vector2f, Vertex2D}};
+    ///
+    /// let vertices = [
+    ///     Vertex2D { position: Vector2f { x: 0.0, y: 0.0 }, color: Rgba::RED },
+    ///     Vertex2D { position: Vector2f { x: 10.0, y: 0.0 }, color: Rgba::GREEN },
+    ///     Vertex2D { position: Vector2f { x: 0.0, y: 10.0 }, color: Rgba::BLUE },
+    /// ];
+    /// let _builder = Shape::polygon_from_vertices(vertices);
+    /// ```
     #[must_use]
     pub fn polygon_from_vertices<V>(vertices: V) -> PolygonBuilder
     where
@@ -376,7 +442,7 @@ impl Shape {
         PolygonBuilder::from_vertices(vertices.into())
     }
 
-    /// Create a polyline builder from an ordered collection of 2D points.
+    /// Creates a polyline builder from an ordered collection of 2D points.
     ///
     /// The path is open by default. Width defaults to `1.0`, cap to `Butt`,
     /// join to `Bevel`, miter limit to `4.0`, color to opaque white, and buffer
@@ -385,7 +451,13 @@ impl Shape {
     /// coordinates. Invalid values and color-count mismatches fail before GPU
     /// buffer allocation. Building generates and uploads one indexed shape.
     ///
+    /// # Arguments
+    ///
+    /// - `points` contains the ordered centerline positions. Pass an array or vector in the order the
+    ///   stroke follows the path.
+    ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::common::Rgba;
     /// # use vmnl_graphics::d2::{LineCap, LineJoin, Shape, Vector2f};

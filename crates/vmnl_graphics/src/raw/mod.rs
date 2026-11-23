@@ -202,6 +202,41 @@ pub enum PolygonMode {
 }
 
 /// Builder/specification for a raw graphics pipeline.
+///
+/// # Example
+///
+/// ```rust
+/// use vmnl_graphics::common::{ColorBlendConfig, ColorBlendOverrides};
+/// use vmnl_graphics::raw::{BlendMode, CullMode, DepthState, FrontFace,
+///     PipelineSpec, PolygonMode, PrimitiveTopology, ScissorPolicy, ShaderSource, ViewportPolicy};
+///
+/// let spec = PipelineSpec::<[f32; 2]>::default()
+///     .vertex_shader(ShaderSource::Path("triangle.vert".into()))
+///     .fragment_shader(ShaderSource::Path("triangle.frag".into()))
+///     .topology(PrimitiveTopology::TriangleList)
+///     .depth(DepthState::Disabled)
+///     .cull_mode(CullMode::None)
+///     .front_face(FrontFace::CounterClockwise)
+///     .polygon_mode(PolygonMode::Fill)
+///     .line_width(1.0)
+///     .viewport(ViewportPolicy::FullFramebuffer)
+///     .scissor(ScissorPolicy::FullFramebuffer);
+/// assert_eq!(spec.topology_value(), PrimitiveTopology::TriangleList);
+/// assert_eq!(spec.depth_value(), DepthState::Disabled);
+/// assert_eq!(spec.cull_mode_value(), CullMode::None);
+/// assert_eq!(spec.front_face_value(), FrontFace::CounterClockwise);
+/// assert_eq!(spec.polygon_mode_value(), PolygonMode::Fill);
+/// assert_eq!(spec.line_width_value(), 1.0);
+/// assert_eq!(spec.viewport_value(), ViewportPolicy::FullFramebuffer);
+/// assert_eq!(spec.scissor_value(), ScissorPolicy::FullFramebuffer);
+///
+/// let spec = spec.blend_mode(BlendMode::Opaque);
+/// assert_eq!(spec.blend_mode_value(), BlendMode::Opaque);
+/// let spec = spec.color_blend(ColorBlendConfig::straight_alpha());
+/// assert!(spec.color_blend_config_value().blend_enabled());
+/// let spec = spec.color_blend_overrides(ColorBlendOverrides::default().with_blend_enabled(false));
+/// assert_eq!(spec.color_blend_overrides_value().blend_enabled(), Some(false));
+/// ```
 #[derive(Clone, Debug)]
 pub struct PipelineSpec<TVertex> {
     vertex_shader: Option<ShaderSource>,
@@ -244,6 +279,15 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// Any enabled test requires a window depth attachment. Validation occurs at
     /// [`Self::build`] before shader I/O; no attachment or feature is added implicitly.
+    ///
+    /// # Arguments
+    ///
+    /// - `state` selects depth comparison and writes. Enable a compatible depth attachment on the
+    ///   target window. See [`DepthState`].
+    ///
+    /// # Example
+    ///
+    /// See [`depth` in the shared example](Self#example).
     #[must_use]
     pub fn depth(mut self, state: DepthState) -> Self {
         self.depth = state;
@@ -251,12 +295,25 @@ impl<TVertex> PipelineSpec<TVertex> {
     }
 
     /// Returns the configured depth policy without allocation or GPU access.
+    ///
+    /// # Example
+    ///
+    /// See [`depth_value` in the shared example](Self#example).
     #[must_use]
     pub const fn depth_value(&self) -> DepthState {
         self.depth
     }
 
     /// Sets the vertex shader.
+    ///
+    /// # Arguments
+    ///
+    /// - `source` supplies inline GLSL source or a GLSL file path for the vertex stage. See
+    ///   [`ShaderSource`].
+    ///
+    /// # Example
+    ///
+    /// See [`vertex_shader` in the shared example](Self#example).
     #[must_use]
     pub fn vertex_shader(mut self, source: ShaderSource) -> Self {
         self.vertex_shader = Some(source);
@@ -264,6 +321,15 @@ impl<TVertex> PipelineSpec<TVertex> {
     }
 
     /// Sets the fragment shader.
+    ///
+    /// # Arguments
+    ///
+    /// - `source` supplies inline GLSL source or a GLSL file path for the fragment stage. See
+    ///   [`ShaderSource`].
+    ///
+    /// # Example
+    ///
+    /// See [`fragment_shader` in the shared example](Self#example).
     #[must_use]
     pub fn fragment_shader(mut self, source: ShaderSource) -> Self {
         self.fragment_shader = Some(source);
@@ -271,6 +337,15 @@ impl<TVertex> PipelineSpec<TVertex> {
     }
 
     /// Sets the primitive topology.
+    ///
+    /// # Arguments
+    ///
+    /// - `topology` chooses how vertices or indices assemble into primitives. See
+    ///   [`PrimitiveTopology`].
+    ///
+    /// # Example
+    ///
+    /// See [`topology` in the shared example](Self#example).
     #[must_use]
     pub fn topology(mut self, topology: PrimitiveTopology) -> Self {
         self.topology = topology;
@@ -281,6 +356,15 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// This preserves the original `BlendMode` request and equation. Call
     /// [`Self::color_blend`] afterward to select an explicit configuration.
+    ///
+    /// # Arguments
+    ///
+    /// - `blend_mode` selects a legacy blending preset that replaces the existing explicit request.
+    ///   See [`BlendMode`].
+    ///
+    /// # Example
+    ///
+    /// See [`blend_mode` in the shared example](Self#example).
     #[must_use]
     pub fn blend_mode(mut self, blend_mode: BlendMode) -> Self {
         self.blend_mode = Some(blend_mode);
@@ -293,6 +377,15 @@ impl<TVertex> PipelineSpec<TVertex> {
     /// This overrides the legacy mode for pipeline creation without changing the
     /// value returned by [`Self::blend_mode_value`]. A later [`Self::blend_mode`]
     /// call clears this override.
+    ///
+    /// # Arguments
+    ///
+    /// - `config` supplies the full color and alpha blend state, for example from a
+    ///   `ColorBlendConfig` preset.
+    ///
+    /// # Example
+    ///
+    /// See [`color_blend` in the shared example](Self#example).
     #[must_use]
     pub fn color_blend(mut self, config: ColorBlendConfig) -> Self {
         self.color_blend = Some(ColorBlendOverrides::from_config(config));
@@ -303,6 +396,15 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// Unset fields use the window's context defaults at build. The legacy
     /// inspector still reports the last legacy selection, or `Opaque`.
+    ///
+    /// # Arguments
+    ///
+    /// - `overrides` supplies individual overrides to resolve against the context's raw blend
+    ///   defaults.
+    ///
+    /// # Example
+    ///
+    /// See [`color_blend_overrides` in the shared example](Self#example).
     #[must_use]
     pub fn color_blend_overrides(mut self, overrides: ColorBlendOverrides) -> Self {
         self.color_blend = Some(overrides);
@@ -310,6 +412,14 @@ impl<TVertex> PipelineSpec<TVertex> {
     }
 
     /// Sets which triangle faces are discarded. Defaults to [`CullMode::None`].
+    ///
+    /// # Arguments
+    ///
+    /// - `cull_mode` selects which faces the rasterizer discards. See [`CullMode`].
+    ///
+    /// # Example
+    ///
+    /// See [`cull_mode` in the shared example](Self#example).
     #[must_use]
     pub fn cull_mode(mut self, cull_mode: CullMode) -> Self {
         self.cull_mode = cull_mode;
@@ -318,6 +428,15 @@ impl<TVertex> PipelineSpec<TVertex> {
 
     /// Sets the front-facing winding in framebuffer coordinates.
     /// Defaults to [`FrontFace::CounterClockwise`].
+    ///
+    /// # Arguments
+    ///
+    /// - `front_face` selects the winding treated as front-facing in framebuffer coordinates. See
+    ///   [`FrontFace`].
+    ///
+    /// # Example
+    ///
+    /// See [`front_face` in the shared example](Self#example).
     #[must_use]
     pub fn front_face(mut self, front_face: FrontFace) -> Self {
         self.front_face = front_face;
@@ -326,8 +445,18 @@ impl<TVertex> PipelineSpec<TVertex> {
 
     /// Sets triangle rasterization, fixed at pipeline creation. Defaults to [`PolygonMode::Fill`].
     ///
-    /// Non-solid modes require an enabled [`DeviceFeature::FillModeNonSolid`].
-    /// This CPU-only setter does not validate or enable device features; [`Self::build`] does.
+    /// [`Self::build`] validates the mode against the device features already enabled on the
+    /// window's context.
+    ///
+    /// # Arguments
+    ///
+    /// - `mode` selects a [`PolygonMode`]. [`PolygonMode::Line`] and [`PolygonMode::Point`]
+    ///   require [`DeviceFeature::FillModeNonSolid`] on the device. See [`PolygonMode::Point`]
+    ///   for its additional portability constraint.
+    ///
+    /// # Example
+    ///
+    /// See [`polygon_mode` in the shared example](Self#example).
     #[must_use]
     pub fn polygon_mode(mut self, mode: PolygonMode) -> Self {
         self.polygon_mode = mode;
@@ -341,6 +470,15 @@ impl<TVertex> PipelineSpec<TVertex> {
     /// and enabled [`DeviceFeature::WideLines`] for any value other than `1.0`.
     /// VMNL rejects out-of-range requests rather than clamping them. The driver may
     /// round an in-range width; no exact pixel thickness is promised.
+    ///
+    /// # Arguments
+    ///
+    /// - `width` supplies the finite positive width in framebuffer units. Check the device's
+    ///   supported line-width limits.
+    ///
+    /// # Example
+    ///
+    /// See [`line_width` in the shared example](Self#example).
     #[must_use]
     pub fn line_width(mut self, width: f32) -> Self {
         self.line_width = width;
@@ -352,6 +490,15 @@ impl<TVertex> PipelineSpec<TVertex> {
     /// Fixed rectangles use framebuffer pixels and persist across resize without scaling.
     /// Build validates them before shader I/O; recording resolves and revalidates the
     /// policy against the actual acquired image extent. No optional feature is activated.
+    ///
+    /// # Arguments
+    ///
+    /// - `policy` selects a framebuffer-sized viewport or an explicit viewport. See
+    ///   [`ViewportPolicy`].
+    ///
+    /// # Example
+    ///
+    /// See [`viewport` in the shared example](Self#example).
     #[must_use]
     pub fn viewport(mut self, policy: ViewportPolicy) -> Self {
         self.viewport = policy;
@@ -360,6 +507,15 @@ impl<TVertex> PipelineSpec<TVertex> {
 
     /// Sets the clipping policy, independently of the viewport transform.
     /// Defaults to [`ScissorPolicy::FullFramebuffer`].
+    ///
+    /// # Arguments
+    ///
+    /// - `policy` selects a framebuffer-sized scissor or an explicit clipping rectangle. See
+    ///   [`ScissorPolicy`].
+    ///
+    /// # Example
+    ///
+    /// See [`scissor` in the shared example](Self#example).
     #[must_use]
     pub fn scissor(mut self, policy: ScissorPolicy) -> Self {
         self.scissor = policy;
@@ -367,36 +523,60 @@ impl<TVertex> PipelineSpec<TVertex> {
     }
 
     /// Returns the configured viewport policy; use [`ViewportPolicy::resolve`] to inspect it.
+    ///
+    /// # Example
+    ///
+    /// See [`viewport_value` in the shared example](Self#example).
     #[must_use]
     pub const fn viewport_value(&self) -> ViewportPolicy {
         self.viewport
     }
 
     /// Returns the configured scissor policy; use [`ScissorPolicy::resolve`] to inspect it.
+    ///
+    /// # Example
+    ///
+    /// See [`scissor_value` in the shared example](Self#example).
     #[must_use]
     pub const fn scissor_value(&self) -> ScissorPolicy {
         self.scissor
     }
 
     /// Returns the configured triangle rasterization mode without allocating.
+    ///
+    /// # Example
+    ///
+    /// See [`polygon_mode_value` in the shared example](Self#example).
     #[must_use]
     pub const fn polygon_mode_value(&self) -> PolygonMode {
         self.polygon_mode
     }
 
     /// Returns the requested line width, before device validation or driver rounding.
+    ///
+    /// # Example
+    ///
+    /// See [`line_width_value` in the shared example](Self#example).
     #[must_use]
     pub const fn line_width_value(&self) -> f32 {
         self.line_width
     }
 
     /// Returns the configured primitive topology.
+    ///
+    /// # Example
+    ///
+    /// See [`topology_value` in the shared example](Self#example).
     #[must_use]
     pub const fn topology_value(&self) -> PrimitiveTopology {
         self.topology
     }
 
     /// Returns the configured blend mode.
+    ///
+    /// # Example
+    ///
+    /// See [`blend_mode_value` in the shared example](Self#example).
     #[must_use]
     pub const fn blend_mode_value(&self) -> BlendMode {
         match self.blend_mode {
@@ -407,6 +587,10 @@ impl<TVertex> PipelineSpec<TVertex> {
 
     /// Resolves the specification against VMNL's opaque default, without a window.
     /// Use the built pipeline's getter for the actual state inherited from a context.
+    ///
+    /// # Example
+    ///
+    /// See [`color_blend_config_value` in the shared example](Self#example).
     #[must_use]
     pub const fn color_blend_config_value(&self) -> ColorBlendConfig {
         self.color_blend_overrides_value()
@@ -414,6 +598,10 @@ impl<TVertex> PipelineSpec<TVertex> {
     }
 
     /// Returns active local blend requests. A legacy mode or complete preset fixes every field.
+    ///
+    /// # Example
+    ///
+    /// See [`color_blend_overrides_value` in the shared example](Self#example).
     #[must_use]
     pub const fn color_blend_overrides_value(&self) -> ColorBlendOverrides {
         match self.color_blend {
@@ -431,12 +619,20 @@ impl<TVertex> PipelineSpec<TVertex> {
     }
 
     /// Returns the configured triangle culling mode.
+    ///
+    /// # Example
+    ///
+    /// See [`cull_mode_value` in the shared example](Self#example).
     #[must_use]
     pub const fn cull_mode_value(&self) -> CullMode {
         self.cull_mode
     }
 
     /// Returns the configured front-facing winding.
+    ///
+    /// # Example
+    ///
+    /// See [`front_face_value` in the shared example](Self#example).
     #[must_use]
     pub const fn front_face_value(&self) -> FrontFace {
         self.front_face
@@ -444,9 +640,17 @@ impl<TVertex> PipelineSpec<TVertex> {
 
     /// Builds the raw pipeline against a window render pass.
     ///
+    /// # Arguments
+    ///
+    /// - `window` supplies the device and render-pass identity against which this pipeline can draw.
+    ///
     /// # Errors
-    /// Returns an error if shaders are missing, fail to compile, declare
-    /// unsupported resources or push constants, or if Vulkan pipeline creation fails.
+    ///
+    /// Returns `InvalidState` for missing shader stages or unsupported shader declarations.
+    /// Propagates shader I/O, compilation, and module creation errors. Returns
+    /// `VulkanValidationFailed` for an incompatible vertex layout, and the corresponding
+    /// `VulkanPipelineLayoutCreationFailed`, `VulkanRenderPassCreationFailed`, or
+    /// `VulkanPipelineCreationFailed` if Vulkan pipeline setup fails.
     /// Before shader compilation, rejects invalid widths with `InvalidLineWidth`,
     /// disabled optional features with `DeviceFeatureNotEnabled`, and unsupported
     /// portability-subset point polygons or invalid viewport/scissor parameters
@@ -454,6 +658,52 @@ impl<TVertex> PipelineSpec<TVertex> {
     /// and no GPU is reselected by this operation.
     /// An enabled depth test without a window depth attachment returns `InvalidState`
     /// before shader I/O, including `Always` tests with writes disabled.
+    ///
+    /// # Example
+    ///
+    /// <a id="example-pipeline-build"></a>
+    ///
+    /// ```rust,no_run
+    /// use vmnl_graphics::{Context, Window};
+    /// use vmnl_graphics::raw::{self, Pipeline, PolygonMode, ShaderSource};
+    ///
+    /// #[repr(C)]
+    /// #[derive(Clone, Copy, raw::Vertex, raw::Pod, raw::Zeroable)]
+    /// struct Vertex {
+    ///     #[format(R32G32_SFLOAT)]
+    ///     position: [f32; 2],
+    /// }
+    ///
+    /// # fn main() -> vmnl_graphics::VMNLResult<()> {
+    /// let context = Context::new()?;
+    /// let window = Window::new(&context)?;
+    /// let pipeline = Pipeline::<Vertex>::builder()
+    ///     .vertex_shader(ShaderSource::Src(
+    ///         "#version 450\nlayout(location=0) in vec2 position;\n\
+    ///          void main() { gl_Position = vec4(position, 0.0, 1.0); }".into(),
+    ///     ))
+    ///     .fragment_shader(ShaderSource::Src(
+    ///         "#version 450\nlayout(location=0) out vec4 color;\n\
+    ///          void main() { color = vec4(1.0); }".into(),
+    ///     ))
+    ///     .build(&window)?;
+    /// pipeline.validate_target(&window)?;
+    /// assert_eq!(pipeline.render_target_info(), window.render_target_info());
+    ///
+    /// let (width, height) = window.get_framebuffer_size();
+    /// if width > 0 && height > 0 {
+    ///     let extent = [width, height];
+    ///     let viewport = pipeline.viewport_value().resolve(extent)?;
+    ///     let scissor = pipeline.scissor_value().resolve(extent)?;
+    ///     assert_eq!(viewport.extent, [width as f32, height as f32]);
+    ///     assert_eq!(scissor.extent, extent);
+    /// }
+    /// assert_eq!(pipeline.polygon_mode_value(), PolygonMode::Fill);
+    /// assert_eq!(pipeline.line_width_value(), 1.0);
+    /// assert!(!pipeline.color_blend_config_value().blend_enabled());
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn build(self, window: &Window) -> VMNLResult<Pipeline<TVertex>>
     where
         TVertex: BufferContents + Vertex + 'static,
@@ -583,6 +833,10 @@ impl<TVertex> Pipeline<TVertex> {
     /// This is a copied description, without extent, clear value or target identity.
     /// It allocates nothing and performs no GPU access. Equal descriptions do not
     /// make a pipeline compatible with another window; use [`Self::validate_target`].
+    ///
+    /// # Example
+    ///
+    /// See [`render_target_info` in the shared example](PipelineSpec#example-pipeline-build).
     #[must_use]
     pub const fn render_target_info(&self) -> RenderTargetInfo {
         self.render_target_info
@@ -596,10 +850,20 @@ impl<TVertex> Pipeline<TVertex> {
     /// check. This does not validate geometry, resources, viewport/scissor bounds or
     /// framebuffer readiness; submission still validates those separately.
     ///
+    /// # Arguments
+    ///
+    /// - `window` supplies the intended raw draw target, usually the window used to build the
+    ///   pipeline.
+    ///
     /// # Errors
+    ///
     /// Returns `InvalidState` for any other device or render-pass object, including
     /// another window on the same context with identical attachment properties.
     /// Build a separate pipeline for that window.
+    ///
+    /// # Example
+    ///
+    /// See [`validate_target` in the shared example](PipelineSpec#example-pipeline-build).
     pub fn validate_target(&self, window: &Window) -> VMNLResult<()> {
         if !pipeline_targets_window(
             &self.device,
@@ -615,6 +879,21 @@ impl<TVertex> Pipeline<TVertex> {
     }
 
     /// Returns the immutable depth comparison/write policy used at creation.
+    ///
+    /// # Example
+    ///
+    /// Check that a pipeline used for a depth-writing pass has writes enabled.
+    ///
+    /// ```rust
+    /// use vmnl_graphics::raw::{DepthState, Pipeline};
+    ///
+    /// fn require_depth_writes<V>(pipeline: &Pipeline<V>) -> Result<(), &'static str> {
+    ///     match pipeline.depth_value() {
+    ///         DepthState::Test { write_enable: true, .. } => Ok(()),
+    ///         _ => Err("This pass requires depth writes"),
+    ///     }
+    /// }
+    /// ```
     #[must_use]
     pub const fn depth_value(&self) -> DepthState {
         self.depth
@@ -625,18 +904,30 @@ impl<TVertex> Pipeline<TVertex> {
     /// This is the configuration passed to Vulkan when the pipeline was built,
     /// including any explicit override or legacy preset resolution. It performs
     /// no allocation or GPU access.
+    ///
+    /// # Example
+    ///
+    /// See [`color_blend_config_value` in the shared example](PipelineSpec#example-pipeline-build).
     #[must_use]
     pub const fn color_blend_config_value(&self) -> ColorBlendConfig {
         self.color_blend
     }
 
     /// Starts a raw pipeline builder.
+    ///
+    /// # Example
+    ///
+    /// See [`builder` in the shared example](PipelineSpec#example-pipeline-build).
     #[must_use]
     pub fn builder() -> PipelineSpec<TVertex> {
         PipelineSpec::default()
     }
 
     /// Returns the triangle rasterization mode used to create this pipeline.
+    ///
+    /// # Example
+    ///
+    /// See [`polygon_mode_value` in the shared example](PipelineSpec#example-pipeline-build).
     #[must_use]
     pub const fn polygon_mode_value(&self) -> PolygonMode {
         self.polygon_mode
@@ -645,27 +936,45 @@ impl<TVertex> Pipeline<TVertex> {
     /// Returns the validated line width passed to Vulkan, before driver rounding.
     ///
     /// This is a configuration value, not a measurement of displayed pixel coverage.
+    ///
+    /// # Example
+    ///
+    /// See [`line_width_value` in the shared example](PipelineSpec#example-pipeline-build).
     #[must_use]
     pub const fn line_width_value(&self) -> f32 {
         self.line_width
     }
 
     /// Returns the immutable viewport policy; resolution remains extent-dependent.
+    ///
+    /// # Example
+    ///
+    /// See [`viewport_value` in the shared example](PipelineSpec#example-pipeline-build).
     #[must_use]
     pub const fn viewport_value(&self) -> ViewportPolicy {
         self.viewport
     }
 
     /// Returns the immutable scissor policy; resolution remains extent-dependent.
+    ///
+    /// # Example
+    ///
+    /// See [`scissor_value` in the shared example](PipelineSpec#example-pipeline-build).
     #[must_use]
     pub const fn scissor_value(&self) -> ScissorPolicy {
         self.scissor
     }
 
+    /// Captures the pipeline and geometry for a pending raw draw without descriptors.
+    ///
+    /// Submission checks that both resources are compatible with the target window before recording.
     pub(crate) fn render_item(&self, geometry: &Geometry<TVertex>) -> RenderItemRaw {
         self.render_item_with_resources(geometry, None)
     }
 
+    /// Captures the resources, pipeline, and geometry for a pending raw draw.
+    ///
+    /// Submission checks device and pipeline layout compatibility before recording.
     pub(crate) fn render_item_with(
         &self,
         geometry: &Geometry<TVertex>,
@@ -699,6 +1008,9 @@ impl<TVertex> Pipeline<TVertex> {
     }
 }
 
+/// Checks exact device and render-pass identity for a pending raw draw.
+///
+/// The identities must match even when attachment properties compare equal.
 pub(crate) fn pipeline_targets_window(
     pipeline_device: &Arc<Device>,
     pipeline_render_pass: &Arc<RenderPass>,
@@ -710,6 +1022,29 @@ pub(crate) fn pipeline_targets_window(
 }
 
 /// Raw typed geometry.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use vmnl_graphics::{Context, common::BufferMemoryPreference};
+/// use vmnl_graphics::raw::{self, Geometry};
+///
+/// #[repr(C)]
+/// #[derive(Clone, Copy, raw::Pod, raw::Zeroable)]
+/// struct Vertex {
+///     position: [f32; 2],
+/// }
+///
+/// # fn main() -> vmnl_graphics::VMNLResult<()> {
+/// let context = Context::new()?;
+/// let triangle = [[-0.5, -0.5], [0.5, -0.5], [0.0, 0.5]];
+/// let _geometry = Geometry::builder(triangle.map(|position| Vertex { position }))
+///     .indices([0, 1, 2])
+///     .buffer_memory_preference(BufferMemoryPreference::Host)
+///     .build(&context)?;
+/// # Ok(())
+/// # }
+/// ```
 pub struct Geometry<TVertex> {
     vertex_buffer: VertexBuffer<TVertex>,
     index_buffer: Option<IndexBuffer>,
@@ -720,6 +1055,15 @@ pub struct Geometry<TVertex> {
 
 impl<TVertex> Geometry<TVertex> {
     /// Starts a raw geometry builder.
+    ///
+    /// # Arguments
+    ///
+    /// - `vertices` supplies typed vertices as an array or vector. Use the layout expected by the raw
+    ///   pipeline.
+    ///
+    /// # Example
+    ///
+    /// See [`builder` in the shared example](Self#example).
     #[must_use]
     pub fn builder<V>(vertices: V) -> GeometryBuilder<TVertex>
     where
@@ -751,7 +1095,17 @@ pub struct GeometryBuilder<TVertex> {
 }
 
 impl<TVertex> GeometryBuilder<TVertex> {
-    /// Sets optional indices.
+    /// Sets the index list used for indexed draws. Omit this call to draw vertices in array order.
+    ///
+    /// # Arguments
+    ///
+    /// - `indices` supplies zero-based references into the vertex array in the order required by
+    ///   the pipeline topology. Pass a nonempty array or vector. [`Self::build`] checks index
+    ///   bounds and draw counts.
+    ///
+    /// # Example
+    ///
+    /// See [`indices` in the shared example](Geometry#example).
     #[must_use]
     pub fn indices<I>(mut self, indices: I) -> Self
     where
@@ -762,17 +1116,41 @@ impl<TVertex> GeometryBuilder<TVertex> {
     }
 
     /// Sets the buffer memory preference.
+    ///
+    /// # Arguments
+    ///
+    /// - `preference` selects preferred host or device placement for the geometry buffers. See
+    ///   [`BufferMemoryPreference`].
+    ///
+    /// # Example
+    ///
+    /// See [`buffer_memory_preference` in the shared example](Geometry#example).
     #[must_use]
     pub fn buffer_memory_preference(mut self, preference: BufferMemoryPreference) -> Self {
         self.memory_preference = preference;
         self
     }
 
-    /// Builds GPU geometry.
+    /// Builds vertex and optional index buffers on the supplied context's device.
+    ///
+    /// Consumes the builder and validates the list before creating either buffer. Use vertex
+    /// data implementing [`BufferContents`], for example through VMNL's `Pod` derive.
+    ///
+    /// # Arguments
+    ///
+    /// - `context` supplies the device and allocator. Use the context associated with the target
+    ///   pipeline.
     ///
     /// # Errors
-    /// Returns an error if geometry validation fails or GPU buffer allocation
-    /// fails.
+    ///
+    /// Returns `InvalidState` for an empty vertex list, a supplied empty index list,
+    /// an out-of-bounds index, or counts that cannot be represented as `u32`.
+    /// Returns `VulkanVertexBufferCreationFailed` or `VulkanIndexBufferCreationFailed`
+    /// if creating the corresponding buffer from the supplied data fails.
+    ///
+    /// # Example
+    ///
+    /// See [`build` in the shared example](Geometry#example).
     pub fn build(self, context: &Context) -> VMNLResult<Geometry<TVertex>>
     where
         TVertex: BufferContents,
@@ -815,6 +1193,24 @@ impl<TVertex> GeometryBuilder<TVertex> {
 impl<TVertex> GraphicsResourceFactory for GeometryBuilder<TVertex> {}
 
 /// Typed raw uniform buffer.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use vmnl_graphics::{Context, common::BufferMemoryPreference};
+/// use vmnl_graphics::raw::Uniform;
+///
+/// # fn main() -> vmnl_graphics::VMNLResult<()> {
+/// let context = Context::new()?;
+/// // This RGBA vector matches a GLSL vec4 in the bound uniform block.
+/// let mut color = Uniform::builder([1.0_f32, 0.0, 0.0, 1.0])
+///     .buffer_memory_preference(BufferMemoryPreference::Host)
+///     .build(&context)?;
+/// // Update before submitting work that reads the buffer.
+/// color.write([0.0, 1.0, 0.0, 1.0])?;
+/// # Ok(())
+/// # }
+/// ```
 pub struct Uniform<TData> {
     buffer: Subbuffer<TData>,
     device: Arc<Device>,
@@ -822,6 +1218,16 @@ pub struct Uniform<TData> {
 
 impl<TData> Uniform<TData> {
     /// Starts a raw uniform buffer builder.
+    ///
+    /// # Arguments
+    ///
+    /// - `data` supplies the initial shader-visible value. Pass a type that implements
+    ///   [`BufferContents`] at build time and matches the shader's uniform block layout.
+    ///   For example, `[f32; 4]` can represent a block containing a single `vec4`.
+    ///
+    /// # Example
+    ///
+    /// See [`builder` in the shared example](Self#example).
     #[must_use]
     pub fn builder(data: TData) -> UniformBuilder<TData> {
         UniformBuilder {
@@ -836,10 +1242,20 @@ impl<TData> Uniform<TData> {
     /// reference. It does not recreate descriptor sets, submit GPU work, or wait
     /// for in-flight GPU access.
     ///
+    /// # Arguments
+    ///
+    /// - `data` supplies the replacement value with the same Rust and shader layout as the original
+    ///   value.
+    ///
     /// # Errors
+    ///
     /// Returns `InvalidState` if the buffer is currently locked or still used by
     /// the GPU. Returns a Vulkan validation error for other backend write
     /// failures.
+    ///
+    /// # Example
+    ///
+    /// See [`write` in the shared example](Self#example).
     pub fn write(&mut self, data: TData) -> VMNLResult<()>
     where
         TData: BufferContents,
@@ -868,6 +1284,15 @@ pub struct UniformBuilder<TData> {
 
 impl<TData> UniformBuilder<TData> {
     /// Sets the buffer memory preference.
+    ///
+    /// # Arguments
+    ///
+    /// - `preference` selects preferred host or device placement for the uniform buffer. See
+    ///   [`BufferMemoryPreference`].
+    ///
+    /// # Example
+    ///
+    /// See [`buffer_memory_preference` in the shared example](Uniform#example).
     #[must_use]
     pub fn buffer_memory_preference(mut self, preference: BufferMemoryPreference) -> Self {
         self.memory_preference = preference;
@@ -876,8 +1301,19 @@ impl<TData> UniformBuilder<TData> {
 
     /// Builds a GPU uniform buffer.
     ///
+    /// # Arguments
+    ///
+    /// - `context` supplies the device and allocator. Use the same context as the pipeline that will
+    ///   bind this uniform.
+    ///
     /// # Errors
-    /// Returns an error if GPU buffer allocation fails.
+    ///
+    /// Returns `VulkanFrameUboBufferCreationFailed` if creating the uniform buffer
+    /// from the supplied data fails.
+    ///
+    /// # Example
+    ///
+    /// See [`build` in the shared example](Uniform#example).
     pub fn build(self, context: &Context) -> VMNLResult<Uniform<TData>>
     where
         TData: BufferContents,
@@ -908,6 +1344,25 @@ impl<TData> GraphicsResourceFactory for UniformBuilder<TData> {}
 /// without exposing the image index to client code. Each write allocates or
 /// reuses a fresh subbuffer for that frame slot, so it does not overwrite a
 /// buffer that may still be read by queued GPU work.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use vmnl_graphics::{Context, Window, common::BufferMemoryPreference};
+/// use vmnl_graphics::raw::FrameUniform;
+///
+/// # fn main() -> vmnl_graphics::VMNLResult<()> {
+/// let context = Context::new()?;
+/// let mut window = Window::new(&context)?;
+/// // The uniform block declares a vec4 at set 0, binding 0.
+/// let mut color = FrameUniform::builder([1.0_f32, 0.0, 0.0, 1.0])
+///     .buffer_memory_preference(BufferMemoryPreference::Host)
+///     .build(&window)?;
+/// let _frame = window.render()
+///     .write_frame_uniform(&mut color, [0.0, 1.0, 0.0, 1.0]);
+/// # Ok(())
+/// # }
+/// ```
 pub struct FrameUniform<TData> {
     allocator: Arc<Mutex<FrameUniformAllocator>>,
     device: Arc<Device>,
@@ -918,6 +1373,16 @@ pub struct FrameUniform<TData> {
 
 impl<TData> FrameUniform<TData> {
     /// Starts a raw frame-uniform builder.
+    ///
+    /// # Arguments
+    ///
+    /// - `data` supplies the initial value copied into each swapchain image's slot. Pass a
+    ///   cloneable type implementing [`BufferContents`] with the layout declared in the shader's
+    ///   uniform block. See [`Uniform`] for an example value layout.
+    ///
+    /// # Example
+    ///
+    /// See [`builder` in the shared example](Self#example).
     #[must_use]
     pub fn builder(data: TData) -> FrameUniformBuilder<TData> {
         FrameUniformBuilder {
@@ -972,6 +1437,15 @@ pub struct FrameUniformBuilder<TData> {
 
 impl<TData> FrameUniformBuilder<TData> {
     /// Sets the buffer memory preference.
+    ///
+    /// # Arguments
+    ///
+    /// - `preference` selects preferred host or device placement for the frame uniform slots. See
+    ///   [`BufferMemoryPreference`].
+    ///
+    /// # Example
+    ///
+    /// See [`buffer_memory_preference` in the shared example](FrameUniform#example).
     #[must_use]
     pub fn buffer_memory_preference(mut self, preference: BufferMemoryPreference) -> Self {
         self.memory_preference = preference;
@@ -980,9 +1454,20 @@ impl<TData> FrameUniformBuilder<TData> {
 
     /// Builds initial GPU uniform slots for the current swapchain images.
     ///
+    /// # Arguments
+    ///
+    /// - `window` supplies the device and swapchain image count for the slots used by this window.
+    ///
     /// # Errors
-    /// Returns an error if the window has no swapchain images, if any GPU
-    /// buffer allocation fails, or if an initial slot write fails.
+    ///
+    /// Returns `InvalidState` if the window has no swapchain images, the allocator lock is
+    /// poisoned, or a slot write conflicts with another access. Returns
+    /// `VulkanFrameUboBufferCreationFailed` if allocating a slot fails, or
+    /// `VulkanValidationFailed` for other host write errors.
+    ///
+    /// # Example
+    ///
+    /// See [`build` in the shared example](FrameUniform#example).
     pub fn build(self, window: &Window) -> VMNLResult<FrameUniform<TData>>
     where
         TData: BufferContents + Clone,
@@ -1033,6 +1518,55 @@ impl<TData> GraphicsResourceFactory for FrameUniformBuilder<TData> {}
 /// This handle implements `Send + Sync` and may be moved or shared between Rust threads. This
 /// does not make [`Context`] or [`Window`] thread-safe; operations that use them remain subject to
 /// their thread-affinity requirements.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use vmnl_graphics::{Context, VMNLResult};
+/// use vmnl_graphics::raw::{FrameUniform, Pipeline, Resources, Uniform};
+/// use vmnl_graphics::texture::{Sampler, Texture2D, TextureView2D};
+///
+/// // Each pipeline is built with the descriptor layout used by its helper below.
+/// // The resources and pipelines come from the same context.
+/// fn bind_uniforms<V>(
+///     context: &Context,
+///     pipeline: &Pipeline<V>,
+///     frame_color: &FrameUniform<[f32; 4]>,
+///     tint: &Uniform<[f32; 4]>,
+/// ) -> VMNLResult<Resources> {
+///     Resources::builder(pipeline)
+///         .frame_uniform(0, 0, frame_color)
+///         .uniform(0, 1, tint)
+///         .build(context)
+/// }
+///
+/// fn bind_combined<V>(
+///     context: &Context,
+///     pipeline: &Pipeline<V>,
+///     texture: &Texture2D,
+///     view: &TextureView2D,
+///     sampler: &Sampler,
+/// ) -> VMNLResult<Resources> {
+///     Resources::builder(pipeline)
+///         .sampled_texture(0, 0, texture, sampler)
+///         .sampled_texture_view(0, 1, view, sampler)
+///         .build(context)
+/// }
+///
+/// fn bind_separate<V>(
+///     context: &Context,
+///     pipeline: &Pipeline<V>,
+///     texture: &Texture2D,
+///     view: &TextureView2D,
+///     sampler: &Sampler,
+/// ) -> VMNLResult<Resources> {
+///     Resources::builder(pipeline)
+///         .texture(0, 0, texture)
+///         .texture_view(0, 1, view)
+///         .sampler(0, 2, sampler)
+///         .build(context)
+/// }
+/// ```
 pub struct Resources {
     device: Arc<Device>,
     pipeline_layout: Arc<PipelineLayout>,
@@ -1041,6 +1575,14 @@ pub struct Resources {
 
 impl Resources {
     /// Starts a raw resource builder for a specific pipeline layout.
+    ///
+    /// # Arguments
+    ///
+    /// - `pipeline` supplies the descriptor layout and device for these bindings.
+    ///
+    /// # Example
+    ///
+    /// See [`builder` in the shared example](Self#example).
     #[must_use]
     pub fn builder<TVertex>(pipeline: &Pipeline<TVertex>) -> ResourcesBuilder {
         let pipeline_layout = pipeline.inner.layout().clone();
@@ -1063,6 +1605,11 @@ impl Resources {
 
 /// Builder for raw descriptor resources.
 ///
+/// Take each `set` and `binding` pair from the pipeline's shader declarations. Use one binding
+/// per pair and choose the method that matches the shader's descriptor kind.
+/// [`Self::build`] validates bindings before creating descriptor sets. Frame-uniform slots must
+/// agree on the swapchain image count, which is checked again at frame submission.
+///
 /// This handle implements `Send + Sync` and may be moved or shared between Rust threads. This
 /// does not make [`Context`] or [`Window`] thread-safe; building or using resources still requires
 /// the owning context and window on their permitted threads.
@@ -1079,6 +1626,17 @@ pub struct ResourcesBuilder {
 
 impl ResourcesBuilder {
     /// Binds frame-uniform slots to a shader descriptor binding.
+    ///
+    /// # Arguments
+    ///
+    /// - `set` identifies the descriptor set declared by the shader.
+    /// - `binding` identifies the frame-uniform descriptor within that set.
+    /// - `uniform` supplies slots from [`FrameUniformBuilder::build`] for the window that will
+    ///   submit the draw. The uniform's data layout must match the declared block.
+    ///
+    /// # Example
+    ///
+    /// See [`frame_uniform` in the shared example](Resources#example).
     #[must_use]
     pub fn frame_uniform<TData>(
         mut self,
@@ -1113,6 +1671,17 @@ impl ResourcesBuilder {
     }
 
     /// Binds a uniform buffer to a shader descriptor binding.
+    ///
+    /// # Arguments
+    ///
+    /// - `set` identifies the descriptor set declared by the shader.
+    /// - `binding` identifies the uniform descriptor within that set.
+    /// - `uniform` supplies a buffer from [`UniformBuilder::build`] using the pipeline's context
+    ///   and a value layout matching the declared block.
+    ///
+    /// # Example
+    ///
+    /// See [`uniform` in the shared example](Resources#example).
     #[must_use]
     pub fn uniform<TData>(mut self, set: u32, binding: u32, uniform: &Uniform<TData>) -> Self {
         let old = self.bindings.entry(set).or_default().insert(
@@ -1134,10 +1703,19 @@ impl ResourcesBuilder {
     /// belong to the same `Context` as the pipeline. A pending initial upload is joined
     /// into each frame that consumes these resources; this adds no CPU wait for that upload.
     ///
-    /// # Errors
-    /// [`Self::build`] returns `InvalidState` with set/binding detail for a context,
-    /// descriptor-type, sampled-usage, or sampler-compatibility mismatch, or when a
-    /// required descriptor is missing or duplicated.
+    /// # Arguments
+    ///
+    /// - `set` identifies the descriptor set declared by the shader.
+    /// - `binding` identifies the combined image-sampler descriptor within that set.
+    /// - `texture` supplies the default texture view from the pipeline's context.
+    /// - `sampler` supplies a sampler from the pipeline's context. Use
+    ///   [`TextureView2D::validate_sampler`] with the default view to check the pairing.
+    ///
+    /// [`Self::build`] checks this binding against the shader and the other resources.
+    ///
+    /// # Example
+    ///
+    /// See [`sampled_texture` in the shared example](Resources#example).
     #[must_use]
     pub fn sampled_texture(
         mut self,
@@ -1162,10 +1740,19 @@ impl ResourcesBuilder {
     /// view. An explicit view keeps the same image storage and upload dependency. The view, sampler,
     /// and pipeline must belong to the same `Context`.
     ///
-    /// # Errors
-    /// [`Self::build`] returns `InvalidState` with set/binding detail for a context,
-    /// descriptor-type, sampled-usage, shader/view, or sampler-compatibility mismatch, or when a
-    /// required descriptor is missing or duplicated.
+    /// # Arguments
+    ///
+    /// - `set` identifies the descriptor set declared by the shader.
+    /// - `binding` identifies the combined image-sampler descriptor within that set.
+    /// - `view` supplies a texture view from the pipeline's context.
+    /// - `sampler` supplies a sampler from the pipeline's context. Use
+    ///   [`TextureView2D::validate_sampler`] on `view` to check the pairing.
+    ///
+    /// [`Self::build`] checks this binding against the shader and the other resources.
+    ///
+    /// # Example
+    ///
+    /// See [`sampled_texture_view` in the shared example](Resources#example).
     #[must_use]
     pub fn sampled_texture_view(
         mut self,
@@ -1191,10 +1778,17 @@ impl ResourcesBuilder {
     /// to the same `Context`. A pending initial upload is joined into each consuming
     /// frame without adding a host wait.
     ///
-    /// # Errors
-    /// [`Self::build`] returns `InvalidState` with set/binding detail for a context,
-    /// descriptor-type, image-view/shader compatibility, or sampled-usage mismatch, or
-    /// when a required descriptor is missing or duplicated.
+    /// # Arguments
+    ///
+    /// - `set` identifies the descriptor set declared by the shader.
+    /// - `binding` identifies the sampled-image descriptor within that set.
+    /// - `texture` supplies the default texture view from the pipeline's context.
+    ///
+    /// [`Self::build`] checks descriptor coverage and image compatibility with the shader.
+    ///
+    /// # Example
+    ///
+    /// See [`texture` in the shared example](Resources#example).
     #[must_use]
     pub fn texture(mut self, set: u32, binding: u32, texture: &Texture2D) -> Self {
         let old = self.bindings.entry(set).or_default().insert(
@@ -1213,10 +1807,17 @@ impl ResourcesBuilder {
     /// image must include sampled usage, and the view and pipeline must belong to the same
     /// `Context`. A pending initial upload is joined into each consuming frame without a host wait.
     ///
-    /// # Errors
-    /// [`Self::build`] returns `InvalidState` with set/binding detail for a context,
-    /// descriptor-type, image-view/shader compatibility, or sampled-usage mismatch, or when a
-    /// required descriptor is missing or duplicated.
+    /// # Arguments
+    ///
+    /// - `set` identifies the descriptor set declared by the shader.
+    /// - `binding` identifies the sampled-image descriptor within that set.
+    /// - `view` supplies a sampled texture view from the pipeline's context.
+    ///
+    /// [`Self::build`] checks descriptor coverage and view compatibility with the shader.
+    ///
+    /// # Example
+    ///
+    /// See [`texture_view` in the shared example](Resources#example).
     #[must_use]
     pub fn texture_view(mut self, set: u32, binding: u32, view: &TextureView2D) -> Self {
         let old = self.bindings.entry(set).or_default().insert(
@@ -1235,10 +1836,16 @@ impl ResourcesBuilder {
     /// instructions. The sampler and pipeline must belong to the same `Context`.
     /// Shader/sampler coordinate-mode compatibility is checked by [`Self::build`].
     ///
-    /// # Errors
-    /// [`Self::build`] returns `InvalidState` with set/binding detail for a context,
-    /// descriptor-type, shader/sampler compatibility, or unrepresentable depth-compare
-    /// mismatch, or when a required descriptor is missing or duplicated.
+    /// # Arguments
+    ///
+    /// - `set` identifies the descriptor set declared by the shader.
+    /// - `binding` identifies the sampler descriptor within that set.
+    /// - `sampler` supplies a sampler from [`crate::texture::SamplerBuilder::build`] using
+    ///   the pipeline's context and a configuration compatible with the shader's sampling.
+    ///
+    /// # Example
+    ///
+    /// See [`sampler` in the shared example](Resources#example).
     #[must_use]
     pub fn sampler(mut self, set: u32, binding: u32, sampler: &Sampler) -> Self {
         let old = self
@@ -1254,12 +1861,22 @@ impl ResourcesBuilder {
 
     /// Builds descriptor resources compatible with the pipeline used by this builder.
     ///
+    /// # Arguments
+    ///
+    /// - `context` supplies the device and allocator. Pass the context used by the associated
+    ///   pipeline.
+    ///
     /// # Errors
-    /// Returns an error if bindings are missing, extra, unsupported, or duplicated,
-    /// if a supplied buffer belongs to a different context, or if static
-    /// descriptor set allocation fails. Bindings are validated here for both
-    /// `Uniform` and `FrameUniform`; descriptor sets for `FrameUniform` bindings
-    /// are allocated later during frame recording.
+    ///
+    /// Returns `InvalidState` for missing, extra, unsupported, or duplicate bindings, a context
+    /// mismatch, incompatible sampled resources, or disagreeing frame-uniform image counts.
+    /// Returns `VulkanDescriptorSetCreationFailed` if a static descriptor set cannot be created.
+    /// Bindings for both [`Uniform`] and [`FrameUniform`] are validated here. Descriptor sets
+    /// for frame-uniform bindings are allocated during frame recording.
+    ///
+    /// # Example
+    ///
+    /// See [`build` in the shared example](Resources#example).
     pub fn build(self, context: &Context) -> VMNLResult<Resources> {
         let Self {
             pipeline_device,
@@ -1430,6 +2047,9 @@ impl<'a> PendingFrameUniformWrite<'a> {
         }
     }
 
+    /// Checks whether the swapchain still matches the frame-uniform slot count.
+    ///
+    /// Call before acquiring an image so a slot-count mismatch can be reported before submission.
     pub(crate) fn validate_image_count(&self, current_image_count: usize) -> VMNLResult<()> {
         validate_frame_uniform_image_count(self.image_count, current_image_count)
     }
@@ -1458,10 +2078,16 @@ pub(crate) struct RenderItemRaw {
 }
 
 impl RenderItemRaw {
+    /// Collects initial texture uploads that the draw can depend on.
     pub(crate) fn upload_dependencies(&self) -> Vec<TextureUploadDependency> {
         self.descriptor_sets.upload_dependencies()
     }
 
+    /// Checks frame-uniform slot counts and descriptor-set coverage before image acquisition.
+    ///
+    /// # Errors
+    ///
+    /// Returns `InvalidState` for incompatible image counts or incomplete descriptor resources.
     pub(crate) fn validate_descriptor_sets_for_frame(
         &self,
         current_image_count: usize,
@@ -1485,6 +2111,10 @@ impl RenderItemRaw {
         Ok(())
     }
 
+    /// Resolves the descriptor sets for the acquired image.
+    ///
+    /// Static sets are reused. Frame-uniform bindings select the slot for the supplied image index
+    /// after its pending writes are applied.
     pub(crate) fn descriptor_sets_for_image(
         &self,
         image_index: usize,

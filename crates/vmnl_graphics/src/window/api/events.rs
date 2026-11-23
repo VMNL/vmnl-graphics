@@ -16,6 +16,7 @@ impl Window {
     /// transitions.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -39,6 +40,7 @@ impl Window {
     /// afterwards to drain the pending events.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -59,9 +61,11 @@ impl Window {
     /// afterwards to drain the pending events.
     ///
     /// # Arguments
+    ///
     /// - `timeout`: Maximum wait time in seconds.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -79,6 +83,7 @@ impl Window {
     /// Posts an empty event to the event queue, unblocking any threads waiting on events.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -97,6 +102,7 @@ impl Window {
     /// which can be used for timing and animation purposes.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -114,9 +120,11 @@ impl Window {
     /// Sets the current time in the GLFW context.
     ///
     /// # Arguments
+    ///
     /// - `time`: New GLFW timer value in seconds.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -134,6 +142,7 @@ impl Window {
     /// Retrieves the current value of the GLFW timer.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -152,6 +161,7 @@ impl Window {
     /// Retrieves the frequency of the GLFW timer.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -167,7 +177,11 @@ impl Window {
         self.inner.get_timer_frequency()
     }
 
-    /// Sets a custom error callback function for GLFW errors.
+    /// Replaces the error callback for the shared GLFW runtime.
+    ///
+    /// This registration applies to every window on that runtime. The callback runs
+    /// synchronously on the GLFW thread that reports the error. During the callback, avoid
+    /// re-entering operations that can emit a GLFW error or change the registration.
     ///
     /// Platform limitations map to [`VMNLErrorKind::GlfwUnsupportedPlatform`] and the affected
     /// operation has no effect. Unknown GLFW codes map to [`VMNLErrorKind::GlfwUnknownError`] and
@@ -175,9 +189,12 @@ impl Window {
     /// boundary and may abort the process.
     ///
     /// # Arguments
-    /// - `callback`: Function called with the mapped VMNL error kind and message.
+    ///
+    /// - `callback` receives the mapped [`VMNLErrorKind`] and an owned error message. Captured
+    ///   state must satisfy `'static`, for example by moving owned values into the closure.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -194,9 +211,10 @@ impl Window {
         self.inner.set_error_callback(callback);
     }
 
-    /// Unsets the custom error callback, reverting to the default GLFW error handling behavior.
+    /// Removes the shared GLFW error callback and restores the default error logging.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -214,6 +232,7 @@ impl Window {
     /// Returns the per-window input snapshot from the most recently processed batch.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Key, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -235,6 +254,21 @@ impl Window {
     ///
     /// This does not process or discard pending native events. The next call to
     /// [`poll_events`](Self::poll_events) starts a new batch and applies every pending transition.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use vmnl_graphics::{Context, Window};
+    ///
+    /// # fn main() -> vmnl_graphics::VMNLResult<()> {
+    /// let context = Context::new()?;
+    /// let mut window = Window::new(&context)?;
+    /// let _events = window.poll_events();
+    /// // Clear edge transitions after consuming this batch's input.
+    /// window.clear_input_transitions();
+    /// # Ok(())
+    /// # }
+    /// ```
     #[inline]
     pub const fn clear_input_transitions(&mut self) {
         self.inner.clear_input_transitions();

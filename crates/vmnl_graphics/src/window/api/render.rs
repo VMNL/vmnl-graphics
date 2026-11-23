@@ -51,16 +51,18 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
         }
     }
 
-    /// Set the draw submission strategy used by this frame.
+    /// Sets the draw submission strategy used by this frame.
     ///
     /// The mode applies to the objects inside each pass. It does not change the
     /// order of the passes added with [`FrameRenderer::draw2d`],
     /// [`FrameRenderer::draw_raw_2d`], or [`FrameRenderer::draw_raw_2d_with`].
     ///
     /// # Arguments
-    /// - `mode`: Submission strategy used for objects inside each pass.
+    ///
+    /// - `mode`: Submission strategy used for objects inside each pass. See [`RenderMode`].
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, RenderMode, Window};
     /// # use vmnl_graphics::d2::Shape;
@@ -81,15 +83,17 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
         self
     }
 
-    /// Add a 2D render pass to the pending frame.
+    /// Adds a 2D render pass to the pending frame.
     ///
     /// Each item must implement [`Drawable2D`]. The pass is rendered in the
     /// same logical order as it was added when [`FrameRenderer::submit`] runs.
     ///
     /// # Arguments
+    ///
     /// - `drawables`: Fixed-size array of 2D drawable references to render in this pass.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # use vmnl_graphics::d2::Shape;
@@ -118,13 +122,49 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
         self
     }
 
-    /// Add a raw render pass to the pending frame.
+    /// Adds a raw render pass to the pending frame.
     ///
     /// Each draw resolves and applies the pipeline's viewport/scissor policies in
     /// framebuffer pixels against the acquired image after any recreation. Fixed
     /// rectangles keep their values across resize; full policies follow the image.
     /// Subsequent raw draws apply their own states, and 2D passes restore their
     /// full viewport and unclipped pipeline state.
+    ///
+    /// # Arguments
+    ///
+    /// - `pipeline` supplies the raw pipeline from [`crate::raw::PipelineSpec::build`] for this
+    ///   frame's window. Use [`crate::raw::Pipeline::validate_target`] to check the target.
+    /// - `geometries` supplies meshes built on the window's context, in draw order, with the
+    ///   vertex layout expected by `pipeline`.
+    ///
+    /// # Example
+    ///
+    /// <a id="example-draw-raw-2d"></a>
+    ///
+    /// ```rust,no_run
+    /// use vmnl_graphics::{Window, VMNLResult};
+    /// use vmnl_graphics::raw::{BufferContents, FrameUniform, Geometry, Pipeline, Resources};
+    ///
+    /// // Build the pipeline for this window and the geometry on the same context.
+    /// fn draw<V>(window: &mut Window, pipeline: &Pipeline<V>, geometry: &Geometry<V>) -> VMNLResult<()> {
+    ///     window.render().draw_raw_2d(pipeline, [geometry]).submit()
+    /// }
+    ///
+    /// // Match the resource bindings and uniform layout to the pipeline's shaders.
+    /// fn draw_with_color<V, D: BufferContents>(
+    ///     window: &mut Window,
+    ///     pipeline: &Pipeline<V>,
+    ///     geometry: &Geometry<V>,
+    ///     resources: &Resources,
+    ///     uniform: &mut FrameUniform<D>,
+    ///     value: D,
+    /// ) -> VMNLResult<()> {
+    ///     window.render()
+    ///         .write_frame_uniform(uniform, value)
+    ///         .draw_raw_2d_with(pipeline, resources, [geometry])
+    ///         .submit()
+    /// }
+    /// ```
     #[must_use]
     pub fn draw_raw_2d<TVertex, const N: usize>(
         mut self,
@@ -140,9 +180,22 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
         self
     }
 
-    /// Add a raw render pass with descriptor resources to the pending frame.
+    /// Adds a raw render pass with descriptor resources to the pending frame.
     ///
     /// Viewport/scissor resolution and isolation follow [`Self::draw_raw_2d`].
+    ///
+    /// # Arguments
+    ///
+    /// - `pipeline` supplies the raw pipeline built for this frame's window. Use
+    ///   [`crate::raw::Pipeline::validate_target`] to check the target.
+    /// - `resources` supplies descriptor bindings built from [`crate::raw::Resources::builder`]
+    ///   using this pipeline and its context.
+    /// - `geometries` supplies meshes built on the window's context, in draw order, with the vertex
+    ///   layout expected by `pipeline`.
+    ///
+    /// # Example
+    ///
+    /// See [`draw_raw_2d_with` in the shared example](Self#example-draw-raw-2d).
     #[must_use]
     pub fn draw_raw_2d_with<TVertex, const N: usize>(
         mut self,
@@ -159,7 +212,7 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
         self
     }
 
-    /// Queue a write to a frame-uniform for this frame submission.
+    /// Queues a frame-uniform write for the pending submission.
     ///
     /// The write is applied during [`FrameRenderer::submit`], after VMNL
     /// acquires the swapchain image and before it records the command buffer.
@@ -169,15 +222,17 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     /// Frame-uniform writes are not ordered between draw passes; all queued
     /// writes are applied before any pass is recorded.
     ///
+    /// [`FrameRenderer::submit`] checks the swapchain image count before acquisition and
+    /// reports any allocation, binding, or write failure encountered during submission.
+    ///
     /// # Arguments
+    ///
     /// - `uniform`: Frame-uniform to update for the acquired swapchain image.
     /// - `data`: New shader-visible value for this frame.
     ///
-    /// # Errors
-    /// Errors are reported by [`FrameRenderer::submit`] if the current
-    /// swapchain image count no longer matches the uniform, or if the backend
-    /// buffer allocation, descriptor set allocation, or buffer write fails.
-    /// The image count is checked before acquiring a swapchain image.
+    /// # Example
+    ///
+    /// See [`write_frame_uniform` in the shared example](Self#example-draw-raw-2d).
     #[must_use]
     pub fn write_frame_uniform<TData>(
         mut self,
@@ -192,7 +247,7 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
         self
     }
 
-    /// Submit the frame to the GPU.
+    /// Submits the frame to the GPU.
     ///
     /// The recorded passes are consumed by this call. A frame with no draw pass
     /// is valid and still clears/presents the swapchain image.
@@ -202,33 +257,12 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     /// zero-sized framebuffer, for example while minimized, returns
     /// `VMNLErrorKind::VulkanOutOfDate` until it has a renderable extent again.
     ///
-    /// # Returns
     /// Returns `Ok(())` when command recording, queue submission, presentation,
     /// and optional event polling complete without error. This does not guarantee
     /// that the displayed frame was visible to the user.
     ///
-    /// # Examples
-    /// ```rust,no_run
-    /// # use vmnl_graphics::{Context, RenderMode, Window};
-    /// # use vmnl_graphics::common::Rgba;
-    /// # use vmnl_graphics::d2::Shape;
-    /// # fn main() -> vmnl_graphics::VMNLResult<()> {
-    /// # let context = Context::new()?;
-    /// # let mut window = Window::builder().build(&context)?;
-    /// let rectangle = Shape::rect(200.0, 100.0)
-    ///     .position(100.0, 150.0)
-    ///     .color(Rgba::new(255, 0, 0, 255))
-    ///     .build(&context)?;
-    ///
-    /// window.render()
-    ///     .mode(RenderMode::PerObject)
-    ///     .draw2d([&rectangle])
-    ///     .submit()?;
-    /// # Ok(())
-    /// # }
-    /// ```
-    ///
     /// # Errors
+    ///
     /// Raw pipeline, geometry, and resource compatibility, raw viewport/scissor
     /// validity, and frame-uniform image counts are checked before acquisition.
     /// If acquisition requires swapchain recreation, these checks run again for
@@ -250,6 +284,28 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     /// Earlier `0.1.0` builds logged a presentation-stage out-of-date result and
     /// returned `Ok(())`. Callers that relied on that behavior must now handle
     /// `VulkanOutOfDate` as a transient submission error.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use vmnl_graphics::{Context, RenderMode, Window};
+    /// # use vmnl_graphics::common::Rgba;
+    /// # use vmnl_graphics::d2::Shape;
+    /// # fn main() -> vmnl_graphics::VMNLResult<()> {
+    /// # let context = Context::new()?;
+    /// # let mut window = Window::builder().build(&context)?;
+    /// let rectangle = Shape::rect(200.0, 100.0)
+    ///     .position(100.0, 150.0)
+    ///     .color(Rgba::new(255, 0, 0, 255))
+    ///     .build(&context)?;
+    ///
+    /// window.render()
+    ///     .mode(RenderMode::PerObject)
+    ///     .draw2d([&rectangle])
+    ///     .submit()?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn submit(self) -> VMNLResult<()> {
         self.window
             .inner
@@ -258,12 +314,13 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
 }
 
 impl Window {
-    /// Begin a new pending frame render operation.
+    /// Begins a new pending frame render operation.
     ///
     /// Use the returned [`FrameRenderer`] to append 2D or raw passes,
     /// then call [`FrameRenderer::submit`] to render and present the frame.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {

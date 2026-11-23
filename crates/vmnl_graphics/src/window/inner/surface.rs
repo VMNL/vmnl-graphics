@@ -9,14 +9,13 @@ use std::sync::Arc;
 use vulkano::{instance::Instance, swapchain::Surface};
 
 impl VMNLWindow {
-    /// Create a Vulkan surface for the given GLFW window.
+    /// Creates a Vulkan surface for the given GLFW window.
+    ///
+    /// Returns a reference-counted Vulkan `Surface` associated with the GLFW window.
     ///
     /// # Arguments
     /// - `instance`: Vulkan instance used to create the surface.
     /// - `window`: GLFW window handle for which the surface will be created.
-    ///
-    /// # Returns
-    /// A reference-counted Vulkan `Surface` associated with the GLFW window.
     ///
     /// # Sources
     /// <https://docs.rs/vulkano/latest/vulkano/swapchain/struct.Surface.html>

@@ -49,6 +49,10 @@ fn prepare_texture_uploads(
 }
 
 impl VMNLWindow {
+    /// Submits the pending 2D and raw passes for this window.
+    ///
+    /// Frame-uniform writes apply to the acquired image before recording. The caller handles
+    /// presentation errors without assuming that queued work was canceled.
     pub(crate) fn render_commands(
         &mut self,
         mode: RenderMode,

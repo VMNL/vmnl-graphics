@@ -20,6 +20,9 @@ macro_rules! rgba_color_constants {
 ///
 /// `Default` is transparent black (`0, 0, 0, 0`). Named color constants are
 /// opaque except for [`Rgba::TRANSPARENT`].
+///
+/// Converting `[r, g, b]` supplies opaque alpha (`255`). Converting `[r, g, b, a]`
+/// uses the supplied alpha. Both arrays store their components in that order.
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Default, Pod, Zeroable, PartialEq)]
 pub struct Rgba {
@@ -189,19 +192,18 @@ impl Rgba {
     /// Fully transparent black.
     pub const TRANSPARENT: Self = Self::rgba(0, 0, 0, 0);
 
-    /// Create an opaque `Rgba` color from red, green, and blue components.
+    /// Creates an opaque `Rgba` color from red, green, and blue components.
     ///
     /// Alpha is set to `255`.
     ///
     /// # Arguments
+    ///
     /// - `r`: Red component of the color, in the range `[0, 255]`.
     /// - `g`: Green component of the color, in the range `[0, 255]`.
     /// - `b`: Blue component of the color, in the range `[0, 255]`.
     ///
-    /// # Returns
-    /// A new opaque `Rgba` instance.
-    ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::common::Rgba;
     ///
@@ -213,18 +215,17 @@ impl Rgba {
         Self { r, g, b, a: 255 }
     }
 
-    /// Create an `Rgba` color from red, green, blue, and alpha components.
+    /// Creates an `Rgba` color from red, green, blue, and alpha components.
     ///
     /// # Arguments
+    ///
     /// - `r`: Red component of the color, in the range `[0, 255]`.
     /// - `g`: Green component of the color, in the range `[0, 255]`.
     /// - `b`: Blue component of the color, in the range `[0, 255]`.
     /// - `a`: Alpha component of the color, in the range `[0, 255]`, where `0` is fully transparent and `255` is fully opaque.
     ///
-    /// # Returns
-    /// A new `Rgba` instance.
-    ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::common::Rgba;
     ///
@@ -236,20 +237,19 @@ impl Rgba {
         Self { r, g, b, a }
     }
 
-    /// Create a new `Rgba` color from individual components.
+    /// Creates a new `Rgba` color from individual components.
     ///
     /// Alias for [`Rgba::rgba`]. Prefer [`Rgba::rgb`] for opaque colors.
     ///
     /// # Arguments
+    ///
     /// - `r`: Red component of the color, in the range `[0, 255]`.
     /// - `g`: Green component of the color, in the range `[0, 255]`.
     /// - `b`: Blue component of the color, in the range `[0, 255]`.
     /// - `a`: Alpha component of the color, in the range `[0, 255]`, where `0` is fully transparent and `255` is fully opaque.
     ///
-    /// # Returns
-    /// A new `Rgba` instance.
-    ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::common::Rgba;
     ///
@@ -262,8 +262,7 @@ impl Rgba {
 
     /// Normalize the RGBA color components to the range `[0.0, 1.0]` for use in shader uniforms.
     ///
-    /// # Returns
-    /// An array of four `f32` values representing the normalized RGBA color,
+    /// Returns an array of four `f32` values representing the normalized RGBA color,
     /// where each component is in the range `[0.0, 1.0]`.
     pub(crate) fn normalized(self) -> [f32; 4] {
         [

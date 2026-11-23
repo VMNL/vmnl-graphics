@@ -37,6 +37,19 @@ impl DepthFormat {
 ///
 /// An attachment alone does not enable depth testing/writes: high-level 2D always
 /// disables them; raw pipelines opt in through [`crate::raw::PipelineSpec::depth`].
+///
+/// # Example
+///
+/// ```rust
+/// use vmnl_graphics::{DepthFormat, RenderTargetConfig};
+///
+/// let config = RenderTargetConfig::default().depth(DepthFormat::D32Sfloat).clear_depth(0.0);
+/// config.validate()?;
+/// assert_eq!(config.depth_value(), Some(DepthFormat::D32Sfloat));
+/// assert_eq!(config.clear_depth_value(), 0.0);
+/// assert_eq!(config.without_depth().depth_value(), None);
+/// # Ok::<(), vmnl_graphics::VMNLError>(())
+/// ```
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct RenderTargetConfig {
     depth: Option<DepthFormat>,
@@ -54,6 +67,15 @@ impl Default for RenderTargetConfig {
 
 impl RenderTargetConfig {
     /// Requests exactly this depth format. CPU-only; validation occurs at window build.
+    ///
+    /// # Arguments
+    ///
+    /// - `format` selects the exact depth format requested for each swapchain image. See
+    ///   [`DepthFormat`].
+    ///
+    /// # Example
+    ///
+    /// See [`depth` in the shared example](Self#example).
     #[must_use]
     pub const fn depth(mut self, format: DepthFormat) -> Self {
         self.depth = Some(format);
@@ -61,6 +83,10 @@ impl RenderTargetConfig {
     }
 
     /// Disables the depth attachment without changing the configured clear value.
+    ///
+    /// # Example
+    ///
+    /// See [`without_depth` in the shared example](Self#example).
     #[must_use]
     pub const fn without_depth(mut self) -> Self {
         self.depth = None;
@@ -71,6 +97,14 @@ impl RenderTargetConfig {
     ///
     /// The value must be finite, even when depth is disabled. This CPU-only setter
     /// defers validation to [`Self::validate`] or window construction.
+    ///
+    /// # Arguments
+    ///
+    /// - `value` supplies the normalized clear depth from `0.0` to `1.0`.
+    ///
+    /// # Example
+    ///
+    /// See [`clear_depth` in the shared example](Self#example).
     #[must_use]
     pub const fn clear_depth(mut self, value: f32) -> Self {
         self.clear_depth = value;
@@ -78,12 +112,20 @@ impl RenderTargetConfig {
     }
 
     /// Returns the requested immutable depth format, or `None` for color only.
+    ///
+    /// # Example
+    ///
+    /// See [`depth_value` in the shared example](Self#example).
     #[must_use]
     pub const fn depth_value(self) -> Option<DepthFormat> {
         self.depth
     }
 
     /// Returns the configured clear value without GPU access or allocation.
+    ///
+    /// # Example
+    ///
+    /// See [`clear_depth_value` in the shared example](Self#example).
     #[must_use]
     pub const fn clear_depth_value(self) -> f32 {
         self.clear_depth
@@ -92,9 +134,14 @@ impl RenderTargetConfig {
     /// Validates numeric configuration without initializing GLFW or Vulkan.
     ///
     /// # Errors
+    ///
     /// Returns `InvalidState` for a non-finite clear depth or a value outside `[0, 1]`,
     /// including when the attachment is disabled. Format/extent support is checked
     /// against the context's selected device during window construction/recreation.
+    ///
+    /// # Example
+    ///
+    /// See [`validate` in the shared example](Self#example).
     pub fn validate(self) -> VMNLResult<()> {
         if !self.clear_depth.is_finite() || !(0.0..=1.0).contains(&self.clear_depth) {
             return Err(VMNLError::new(VMNLErrorKind::InvalidState(

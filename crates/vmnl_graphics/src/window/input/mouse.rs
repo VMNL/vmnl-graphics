@@ -64,11 +64,10 @@ pub struct MouseState {
 impl MouseState {
     /// Converts a GLFW mouse button into the corresponding `MouseButton` variant.
     ///
+    /// Returns the corresponding `MouseButton`.
+    ///
     /// # Arguments
     /// - `button`: The GLFW mouse button to convert.
-    ///
-    /// # Returns
-    /// The corresponding `MouseButton`.
     pub(crate) const fn from_glfw(button: GlfwMouseButton) -> MouseButton {
         match button {
             GlfwMouseButton::Left => MouseButton::Left,
@@ -84,11 +83,10 @@ impl MouseState {
 
     /// Converts a `MouseButton` variant to the corresponding GLFW mouse button.
     ///
+    /// Returns the corresponding GLFW mouse button.
+    ///
     /// # Arguments
     /// - `button`: The `MouseButton` to convert.
-    ///
-    /// # Returns
-    /// The corresponding GLFW mouse button.
     #[cfg(test)]
     pub(crate) const fn to_glfw(button: MouseButton) -> GlfwMouseButton {
         match button {
@@ -133,9 +131,11 @@ impl MouseState {
     /// Returns `true` if the specified mouse button is currently pressed.
     ///
     /// # Arguments
-    /// - `button`: The `MouseButton` to check.
+    ///
+    /// - `button`: The [`MouseButton`] to check.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::{Input, MouseButton};
     ///
@@ -152,9 +152,11 @@ impl MouseState {
     /// Returns `true` if the specified mouse button was pressed in the current event batch.
     ///
     /// # Arguments
-    /// - `button`: The `MouseButton` to check.
+    ///
+    /// - `button`: The [`MouseButton`] to check.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::{Input, MouseButton};
     ///
@@ -171,9 +173,11 @@ impl MouseState {
     /// Returns `true` if the specified mouse button was released in the current event batch.
     ///
     /// # Arguments
-    /// - `button`: The `MouseButton` to check.
+    ///
+    /// - `button`: The [`MouseButton`] to check.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::{Input, MouseButton};
     ///
@@ -190,9 +194,11 @@ impl MouseState {
     /// Returns `true` if any of the specified mouse buttons are currently pressed.
     ///
     /// # Arguments
-    /// - `buttons`: A slice of `MouseButton` variants to check.
+    ///
+    /// - `buttons`: A slice of [`MouseButton`] variants to check.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::{Input, MouseButton};
     ///
@@ -214,9 +220,11 @@ impl MouseState {
     /// Returns `true` if any of the specified mouse buttons were pressed in the current event batch.
     ///
     /// # Arguments
-    /// - `buttons`: A slice of `MouseButton` variants to check.
+    ///
+    /// - `buttons`: A slice of [`MouseButton`] variants to check.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::{Input, MouseButton};
     ///
@@ -238,9 +246,11 @@ impl MouseState {
     /// Returns `true` if any of the specified mouse buttons were released in the current event batch.
     ///
     /// # Arguments
-    /// - `buttons`: A slice of `MouseButton` variants to check.
+    ///
+    /// - `buttons`: A slice of [`MouseButton`] variants to check.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::{Input, MouseButton};
     ///
@@ -262,9 +272,11 @@ impl MouseState {
     /// Returns `true` if any of the specified mouse buttons were used in the current event batch.
     ///
     /// # Arguments
-    /// - `buttons`: A slice of `MouseButton` variants to check.
+    ///
+    /// - `buttons`: A slice of [`MouseButton`] variants to check.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::{Input, MouseButton};
     ///
@@ -286,6 +298,7 @@ impl MouseState {
     /// Returns `true` if any mouse button is currently pressed.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::Input;
     ///
@@ -307,6 +320,7 @@ impl MouseState {
     /// Returns `true` if any mouse button was pressed in the current event batch.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::Input;
     ///
@@ -328,6 +342,7 @@ impl MouseState {
     /// Returns `true` if any mouse button was released in the current event batch.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::Input;
     ///
@@ -349,6 +364,7 @@ impl MouseState {
     /// Returns `true` if any mouse button was used in the current event batch.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::Input;
     ///
@@ -370,6 +386,7 @@ impl MouseState {
     /// Creates a new `MouseState` with all buttons initialized to not pressed.
     ///
     /// # Example
+    ///
     /// ```rust
     /// use vmnl_graphics::MouseState;
     ///

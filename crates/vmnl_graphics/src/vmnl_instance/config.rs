@@ -78,6 +78,20 @@ impl DeviceFeature {
 /// The default requests no optional features. Requirements accumulate without
 /// duplicates, in first-request order. No GPU or GLFW initialization occurs
 /// while configuring this value; its requirement list may allocate CPU memory.
+///
+/// # Example
+///
+/// ```rust
+/// use vmnl_graphics::{DeviceConfig, DeviceFeature};
+///
+/// let device = DeviceConfig::default()
+///     .require_feature(DeviceFeature::WideLines)
+///     .require_features([DeviceFeature::WideLines, DeviceFeature::FillModeNonSolid]);
+/// assert_eq!(
+///     device.required_features(),
+///     &[DeviceFeature::WideLines, DeviceFeature::FillModeNonSolid],
+/// );
+/// ```
 #[derive(Clone, Debug, Default)]
 pub struct DeviceConfig {
     required_features: Vec<DeviceFeature>,
@@ -85,6 +99,15 @@ pub struct DeviceConfig {
 
 impl DeviceConfig {
     /// Adds a required feature. Repeated requests have no effect.
+    ///
+    /// # Arguments
+    ///
+    /// - `feature` identifies a device feature that the selected GPU must support and enable. See
+    ///   [`DeviceFeature`].
+    ///
+    /// # Example
+    ///
+    /// See [`require_feature` in the shared example](Self#example).
     #[must_use]
     pub fn require_feature(mut self, feature: DeviceFeature) -> Self {
         if !self.required_features.contains(&feature) {
@@ -95,6 +118,15 @@ impl DeviceConfig {
     }
 
     /// Adds required features without replacing existing requirements.
+    ///
+    /// # Arguments
+    ///
+    /// - `features` supplies device features that must all be supported by the selected GPU. See
+    ///   [`DeviceFeature`].
+    ///
+    /// # Example
+    ///
+    /// See [`require_features` in the shared example](Self#example).
     #[must_use]
     pub fn require_features(mut self, features: impl IntoIterator<Item = DeviceFeature>) -> Self {
         for feature in features {
@@ -105,11 +137,17 @@ impl DeviceConfig {
     }
 
     /// Returns the required features, in first-request order without duplicates.
+    ///
+    /// # Example
+    ///
+    /// See [`required_features` in the shared example](Self#example).
     #[must_use]
     pub fn required_features(&self) -> &[DeviceFeature] {
         &self.required_features
     }
 
+    /// Translates the recorded VMNL device requests into the features passed to logical device
+    /// creation.
     pub(super) fn enabled_features(&self) -> DeviceFeatures {
         DeviceFeatures {
             fill_mode_non_solid: self
@@ -139,6 +177,24 @@ impl DeviceConfig {
 /// Construction and configuration are CPU-only. The default preserves
 /// [`Context::new`]'s automatic selection policy and requests no optional device
 /// features. No Vulkan objects or GLFW lifetime are acquired until [`Self::build`].
+///
+/// # Example
+///
+/// ```rust
+/// use vmnl_graphics::{Context, DeviceConfig, DeviceFeature};
+/// use vmnl_graphics::common::ColorBlendOverrides;
+/// use vmnl_graphics::texture::TextureDefaults;
+///
+/// let device = DeviceConfig::default().require_feature(DeviceFeature::WideLines);
+/// let defaults = TextureDefaults::default().with_mutable_format_views(Some(false));
+/// let builder = Context::builder()
+///     .device(device)
+///     .texture_defaults(defaults)
+///     .raw_color_blend(ColorBlendOverrides::default().with_blend_enabled(false));
+/// assert_eq!(builder.device_config().required_features(), &[DeviceFeature::WideLines]);
+/// assert_eq!(builder.texture_defaults_config(), defaults);
+/// assert_eq!(builder.raw_color_blend_defaults().blend_enabled(), Some(false));
+/// ```
 #[derive(Clone, Debug, Default)]
 pub struct ContextBuilder {
     device: DeviceConfig,
@@ -148,6 +204,15 @@ pub struct ContextBuilder {
 
 impl ContextBuilder {
     /// Replaces the device configuration, including all feature requirements.
+    ///
+    /// # Arguments
+    ///
+    /// - `config` supplies the required device features, typically from `DeviceConfig::default`. See
+    ///   [`DeviceConfig`].
+    ///
+    /// # Example
+    ///
+    /// See [`device` in the shared example](Self#example).
     #[must_use]
     pub fn device(mut self, config: DeviceConfig) -> Self {
         self.device = config;
@@ -155,12 +220,25 @@ impl ContextBuilder {
     }
 
     /// Returns the current CPU-side device configuration.
+    ///
+    /// # Example
+    ///
+    /// See [`device_config` in the shared example](Self#example).
     #[must_use]
     pub const fn device_config(&self) -> &DeviceConfig {
         &self.device
     }
 
     /// Sets exact context defaults for texture creation and explicit views.
+    ///
+    /// # Arguments
+    ///
+    /// - `defaults` supplies the initial defaults for texture creation and explicit views. See
+    ///   [`TextureDefaults`].
+    ///
+    /// # Example
+    ///
+    /// See [`texture_defaults` in the shared example](Self#example).
     #[must_use]
     pub const fn texture_defaults(mut self, defaults: TextureDefaults) -> Self {
         self.textures = defaults;
@@ -168,12 +246,24 @@ impl ContextBuilder {
     }
 
     /// Returns the texture defaults requested for this context.
+    ///
+    /// # Example
+    ///
+    /// See [`texture_defaults_config` in the shared example](Self#example).
     #[must_use]
     pub const fn texture_defaults_config(&self) -> TextureDefaults {
         self.textures
     }
 
     /// Sets per-field defaults for new raw pipelines. Unset fields use VMNL's opaque preset.
+    ///
+    /// # Arguments
+    ///
+    /// - `defaults` supplies raw blend fields that initialize the context's pipeline defaults.
+    ///
+    /// # Example
+    ///
+    /// See [`raw_color_blend` in the shared example](Self#example).
     #[must_use]
     pub const fn raw_color_blend(mut self, defaults: ColorBlendOverrides) -> Self {
         self.raw_color_blend = defaults;
@@ -181,6 +271,10 @@ impl ContextBuilder {
     }
 
     /// Returns the blend fields explicitly configured as context defaults.
+    ///
+    /// # Example
+    ///
+    /// See [`raw_color_blend_defaults` in the shared example](Self#example).
     #[must_use]
     pub const fn raw_color_blend_defaults(&self) -> ColorBlendOverrides {
         self.raw_color_blend
@@ -196,6 +290,7 @@ impl ContextBuilder {
     /// objects are released on failure; clones of the result share one device.
     ///
     /// # Errors
+    ///
     /// Returns `DeviceRequirementsNotMet` if no compatible GPU satisfies a
     /// nonempty feature request. An empty request preserves the existing
     /// `VulkanUnsupportedFeature` category when no compatible GPU exists.
@@ -204,6 +299,7 @@ impl ContextBuilder {
     /// failure can occur after instance creation but before device creation.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// use vmnl_graphics::{Context, DeviceConfig, DeviceFeature};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {

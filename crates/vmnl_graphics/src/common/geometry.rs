@@ -19,7 +19,7 @@ pub(crate) struct GpuGeometry<T> {
     pub(crate) index_count: u32,
 }
 
-/// Validate a triangle index list against the number of available vertices.
+/// Validates a triangle index list against the number of available vertices.
 fn validate_triangle_indices(vertex_count: usize, indices: &[u32], label: &str) -> VMNLResult<()> {
     if vertex_count < 3 {
         return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
@@ -43,7 +43,7 @@ fn validate_triangle_indices(vertex_count: usize, indices: &[u32], label: &str) 
     Ok(())
 }
 
-/// Validate indexed triangle geometry and return Vulkan-compatible draw counts.
+/// Validates indexed triangle geometry and return Vulkan-compatible draw counts.
 pub(crate) fn validate_indexed_triangle_geometry(
     vertex_count: usize,
     indices: &[u32],

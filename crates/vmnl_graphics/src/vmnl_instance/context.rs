@@ -50,6 +50,50 @@ fn wayland_scancode_name(
 ///
 /// Clones share the same internal Vulkan state through `Rc`; they do not create
 /// another device. Consequently `Context` is intentionally single-threaded.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use vmnl_graphics::{Context, DeviceFeature, Key};
+/// use vmnl_graphics::common::ColorBlendConfig;
+///
+/// # fn main() -> vmnl_graphics::VMNLResult<()> {
+/// let context = Context::builder().build()?;
+/// println!("Selected GPU {}", context.device_name());
+/// let wide_lines = DeviceFeature::WideLines;
+/// if context.is_device_feature_supported(wide_lines) {
+///     let limits = context.line_width_limits();
+///     if context.is_device_feature_enabled(wide_lines) {
+///         println!("Wide lines enabled in {}..={} framebuffer units", limits.min, limits.max);
+///     } else {
+///         println!("Request WideLines to use the device's {}..={} range", limits.min, limits.max);
+///     }
+/// }
+/// if context.is_raw_mouse_motion_supported() {
+///     println!("Raw mouse motion is available as an input option");
+/// }
+///
+/// let blend = context.raw_color_blend_defaults().resolve(ColorBlendConfig::opaque());
+/// assert_eq!(context.raw_color_blend_config(), blend);
+/// if let Some(enabled) = context.texture_defaults().mutable_format_views() {
+///     println!("Context default for mutable-format views is {enabled}");
+/// }
+///
+/// let label = context.get_key_name(Key::A).or_else(|| {
+///     let scancode = context.get_key_scancode(Key::A)?;
+///     context.get_scancode_name(scancode)
+/// });
+/// if let Some(label) = label {
+///     println!("Action shortcut {label}");
+/// }
+///
+/// let released = context.collect_texture_retirements()?;
+/// if released > 0 {
+///     println!("Retired {released} texture allocations");
+/// }
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Clone)]
 pub struct Context {
     /// Inner `VMNLInstance` containing the Vulkan context and resources.
@@ -59,24 +103,40 @@ pub struct Context {
 
 impl Context {
     /// Prepares the default CPU-side configuration without initializing GLFW or Vulkan.
+    ///
+    /// # Example
+    ///
+    /// See [`builder` in the shared example](Self#example).
     #[must_use]
     pub fn builder() -> ContextBuilder {
         ContextBuilder::default()
     }
 
     /// Returns the immutable context policies for texture creation and explicit views.
+    ///
+    /// # Example
+    ///
+    /// See [`texture_defaults` in the shared example](Self#example).
     #[must_use]
     pub fn texture_defaults(&self) -> TextureDefaults {
         self.inner.texture_defaults
     }
 
     /// Returns the blend fields explicitly configured on this context.
+    ///
+    /// # Example
+    ///
+    /// See [`raw_color_blend_defaults` in the shared example](Self#example).
     #[must_use]
     pub fn raw_color_blend_defaults(&self) -> ColorBlendOverrides {
         self.inner.raw_color_blend_defaults
     }
 
     /// Returns the context's complete blend defaults for new raw pipelines.
+    ///
+    /// # Example
+    ///
+    /// See [`raw_color_blend_config` in the shared example](Self#example).
     #[must_use]
     pub fn raw_color_blend_config(&self) -> ColorBlendConfig {
         self.raw_color_blend_defaults()
@@ -86,6 +146,10 @@ impl Context {
     /// Returns the selected physical device's reported name without allocating.
     ///
     /// The name is diagnostic metadata, not a unique or persistent device identifier.
+    ///
+    /// # Example
+    ///
+    /// See [`device_name` in the shared example](Self#example).
     #[must_use]
     pub fn device_name(&self) -> &str {
         &self.inner.physical_device.properties().device_name
@@ -96,6 +160,10 @@ impl Context {
     /// The values are immutable and shared by context clones. Hardware support does
     /// not imply that [`DeviceFeature::WideLines`] is enabled. Widths other than
     /// `1.0` require activation; supported widths may be rounded by the driver.
+    ///
+    /// # Example
+    ///
+    /// See [`line_width_limits` in the shared example](Self#example).
     #[must_use]
     pub fn line_width_limits(&self) -> LineWidthLimits {
         LineWidthLimits::from_physical_device(&self.inner.physical_device)
@@ -104,6 +172,15 @@ impl Context {
     /// Returns whether the selected physical device supports this feature.
     ///
     /// Support does not imply activation on the logical device.
+    ///
+    /// # Arguments
+    ///
+    /// - `feature` identifies the capability to query on the selected physical device. See
+    ///   [`DeviceFeature`].
+    ///
+    /// # Example
+    ///
+    /// See [`is_device_feature_supported` in the shared example](Self#example).
     #[must_use]
     pub fn is_device_feature_supported(&self, feature: DeviceFeature) -> bool {
         feature.is_set_in(self.inner.physical_device.supported_features())
@@ -112,6 +189,15 @@ impl Context {
     /// Returns whether this feature is enabled on the context's logical device.
     ///
     /// Activation is immutable for the device lifetime and shared by context clones.
+    ///
+    /// # Arguments
+    ///
+    /// - `feature` identifies the capability to check on the active logical device. See
+    ///   [`DeviceFeature`].
+    ///
+    /// # Example
+    ///
+    /// See [`is_device_feature_enabled` in the shared example](Self#example).
     #[must_use]
     pub fn is_device_feature_enabled(&self, feature: DeviceFeature) -> bool {
         feature.is_set_in(self.inner.device.enabled_features())
@@ -128,7 +214,12 @@ impl Context {
     /// Returns the number of resources collected.
     ///
     /// # Errors
-    /// Returns a persistent initial-upload error observed while collecting.
+    ///
+    /// Returns `TextureUploadFailed` if an initial-upload failure is observed while collecting.
+    ///
+    /// # Example
+    ///
+    /// See [`collect_texture_retirements` in the shared example](Self#example).
     pub fn collect_texture_retirements(&self) -> VMNLResult<usize> {
         self.inner.texture_retirements.collect()
     }
@@ -142,6 +233,14 @@ impl Context {
     /// observes one.
     ///
     /// This call allocates an owned [`String`] when GLFW provides a name.
+    ///
+    /// # Arguments
+    ///
+    /// - `key` supplies a named key, for example from a keyboard event. See [`Key`].
+    ///
+    /// # Example
+    ///
+    /// See [`get_key_name` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub fn get_key_name(&self, key: Key) -> Option<String> {
@@ -163,6 +262,15 @@ impl Context {
     /// keys return `None` without triggering a spurious GLFW backend error.
     ///
     /// This call allocates an owned [`String`] when GLFW provides a name.
+    ///
+    /// # Arguments
+    ///
+    /// - `scancode` supplies a platform scancode, for example from a keyboard event or
+    ///   `Context::get_key_scancode`. See [`Scancode`].
+    ///
+    /// # Example
+    ///
+    /// See [`get_scancode_name` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub fn get_scancode_name(&self, scancode: Scancode) -> Option<String> {
@@ -188,6 +296,14 @@ impl Context {
     /// returned value is platform-specific and must not be persisted as a portable identifier.
     /// If several physical scancodes map to this key, this query selects one; events from other
     /// physical variants may carry a different scancode for the same named key.
+    ///
+    /// # Arguments
+    ///
+    /// - `key` supplies the VMNL key whose native scancode is requested. See [`Key`].
+    ///
+    /// # Example
+    ///
+    /// See [`get_key_scancode` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub fn get_key_scancode(&self, key: Key) -> Option<Scancode> {
@@ -200,18 +316,22 @@ impl Context {
     /// This value is stable for the lifetime of GLFW after initialization. Raw motion is
     /// configured per window and only affects motion while its cursor mode is disabled. Bundled
     /// GLFW 3.4 reports it unavailable on Cocoa; X11 requires `XInput` 2.
+    ///
+    /// # Example
+    ///
+    /// See [`is_raw_mouse_motion_supported` in the shared example](Self#example).
     #[inline]
     #[must_use]
     pub fn is_raw_mouse_motion_supported(&self) -> bool {
         self.inner.glfw.glfw().supports_raw_motion()
     }
 
-    /// Initialize a new `Context` required for using the graphical part of the library.
+    /// Initializes a new `Context` required for using the graphical part of the library.
     ///
-    /// # Returns
-    /// A `VMNLResult<Self>` containing the initialized `Context` on success.
+    /// Returns a `VMNLResult<Self>` containing the initialized `Context` on success.
     ///
     /// # Errors
+    ///
     /// Returns an error if GLFW cannot initialize, another thread owns the active GLFW runtime,
     /// or a Vulkan initialization step fails, such as instance creation, physical-device
     /// selection, or logical-device creation.
@@ -223,6 +343,7 @@ impl Context {
     /// Without one, this call initializes GLFW with default initialization settings.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// use vmnl_graphics::{Context, RenderMode, Window};
     /// use vmnl_graphics::common::Rgba;

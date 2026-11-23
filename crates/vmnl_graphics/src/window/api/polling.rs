@@ -14,13 +14,50 @@ impl Window {
     /// [`poll_events`](Self::poll_events) call without inventing button transitions. Disabling
     /// immediately clears this window's joystick snapshots and transition flags.
     ///
+    /// # Arguments
+    ///
+    /// - `enabled` controls whether the window samples and retains joystick state.
+    ///
     /// # Errors
-    /// Returns a GLFW operation error if the initial joystick query fails.
+    ///
+    /// Returns `GlfwInputOperationFailed` if the initial joystick query fails. In that case,
+    /// tracking stays disabled.
+    ///
+    /// # Example
+    ///
+    /// <a id="example-joystick-tracking"></a>
+    ///
+    /// ```rust,no_run
+    /// use vmnl_graphics::{Context, JoystickId, StickAngleConvention, StickConfig, Window};
+    ///
+    /// # fn main() -> vmnl_graphics::VMNLResult<()> {
+    /// let context = Context::new()?;
+    /// let mut window = Window::new(&context)?;
+    /// let movement = StickConfig::new(0.2, StickAngleConvention::Screen2D)?;
+    /// let aim = StickConfig::new(0.1, StickAngleConvention::Math2D)?;
+    /// window.set_joystick_tracking(true)?;
+    /// window.set_joystick_event_delivery(true);
+    /// window.set_stick_configs(movement, aim);
+    /// window.set_left_stick_config(movement);
+    /// window.set_right_stick_config(aim);
+    /// assert!(window.is_joystick_tracking_enabled());
+    /// assert!(window.is_joystick_event_delivery_enabled());
+    /// let _ = window.poll_events();
+    /// if let Some(stick) = window.input().joystick(JoystickId::Joystick1).left_stick() {
+    ///     println!("Movement input ({}, {})", stick.x(), stick.y());
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn set_joystick_tracking(&mut self, enabled: bool) -> VMNLResult<()> {
         self.inner.set_joystick_tracking(enabled)
     }
 
     /// Returns whether this window samples joystick state during its event polls.
+    ///
+    /// # Example
+    ///
+    /// See [`is_joystick_tracking_enabled` in the shared example](Self#example-joystick-tracking).
     #[inline]
     #[must_use]
     pub const fn is_joystick_tracking_enabled(&self) -> bool {
@@ -31,16 +68,41 @@ impl Window {
     ///
     /// These configurations affect only processed stick accessors. Raw mapped axes in
     /// `GamepadState` remain unchanged.
+    ///
+    /// # Arguments
+    ///
+    /// - `left` supplies the dead zone and angle convention for left sticks.
+    /// - `right` supplies the dead zone and angle convention for right sticks. See [`StickConfig`].
+    ///
+    /// # Example
+    ///
+    /// See [`set_stick_configs` in the shared example](Self#example-joystick-tracking).
     pub fn set_stick_configs(&mut self, left: StickConfig, right: StickConfig) {
         self.inner.handle.input.set_stick_configs(left, right);
     }
 
     /// Replaces the processed left-stick configuration for every slot in this window.
+    ///
+    /// # Arguments
+    ///
+    /// - `config` supplies the dead zone and angle convention for left sticks. See [`StickConfig`].
+    ///
+    /// # Example
+    ///
+    /// See [`set_left_stick_config` in the shared example](Self#example-joystick-tracking).
     pub fn set_left_stick_config(&mut self, config: StickConfig) {
         self.inner.handle.input.set_left_stick_config(config);
     }
 
     /// Replaces the processed right-stick configuration for every slot in this window.
+    ///
+    /// # Arguments
+    ///
+    /// - `config` supplies the dead zone and angle convention for right sticks. See [`StickConfig`].
+    ///
+    /// # Example
+    ///
+    /// See [`set_right_stick_config` in the shared example](Self#example-joystick-tracking).
     pub fn set_right_stick_config(&mut self, config: StickConfig) {
         self.inner.handle.input.set_right_stick_config(config);
     }
@@ -49,12 +111,25 @@ impl Window {
     ///
     /// This setting is independent of joystick state tracking. Disabling delivery discards queued
     /// joystick connection events for this window.
+    ///
+    /// # Arguments
+    ///
+    /// - `enabled` controls whether joystick connection changes are returned to this window.
+    ///
+    /// # Example
+    ///
+    /// See [`set_joystick_event_delivery` in the shared example](Self#example-joystick-tracking).
     #[inline]
     pub fn set_joystick_event_delivery(&mut self, enabled: bool) {
         self.inner.set_joystick_event_delivery(enabled);
     }
 
     /// Returns whether this window receives joystick connection events.
+    ///
+    /// # Example
+    ///
+    /// See [`is_joystick_event_delivery_enabled` in the shared
+    /// example](Self#example-joystick-tracking).
     #[inline]
     #[must_use]
     pub const fn is_joystick_event_delivery_enabled(&self) -> bool {
@@ -64,15 +139,20 @@ impl Window {
     /// Enables or disables polling for character input events.
     ///
     /// # Arguments
+    ///
     /// - `enabled`: `true` to receive character events, `false` to stop receiving them.
     ///
     /// # Example
+    ///
+    /// <a id="example-set-char-polling"></a>
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
     /// # let context = Context::new()?;
     /// # let mut window = Window::builder().build(&context)?;
     /// window.set_char_polling(true);
+    /// assert!(window.is_char_polling_enabled());
     /// # Ok(())
     /// # }
     /// ```
@@ -82,6 +162,10 @@ impl Window {
     }
 
     /// Returns whether text input events are delivered by [`poll_events`](Self::poll_events).
+    ///
+    /// # Example
+    ///
+    /// See [`is_char_polling_enabled` in the shared example](Self#example-set-char-polling).
     #[inline]
     #[must_use]
     pub const fn is_char_polling_enabled(&self) -> bool {
@@ -93,15 +177,20 @@ impl Window {
     /// Internal mouse-button state tracking remains active when delivery is disabled.
     ///
     /// # Arguments
+    ///
     /// - `enabled`: `true` to receive mouse button events, `false` to stop receiving them.
     ///
     /// # Example
+    ///
+    /// <a id="example-set-mouse-button-polling"></a>
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
     /// # let context = Context::new()?;
     /// # let mut window = Window::builder().build(&context)?;
     /// window.set_mouse_button_polling(true);
+    /// assert!(window.is_mouse_button_polling_enabled());
     /// # Ok(())
     /// # }
     /// ```
@@ -113,6 +202,11 @@ impl Window {
     /// Returns whether mouse-button events are delivered by [`poll_events`](Self::poll_events).
     ///
     /// Internal button-state tracking remains active when delivery is disabled.
+    ///
+    /// # Example
+    ///
+    /// See [`is_mouse_button_polling_enabled` in the shared
+    /// example](Self#example-set-mouse-button-polling).
     #[inline]
     #[must_use]
     pub const fn is_mouse_button_polling_enabled(&self) -> bool {
@@ -122,15 +216,20 @@ impl Window {
     /// Enables or disables delivery of cursor-position events from [`poll_events`](Self::poll_events).
     ///
     /// # Arguments
+    ///
     /// - `enabled`: `true` to receive cursor position events, `false` to stop receiving them.
     ///
     /// # Example
+    ///
+    /// <a id="example-set-cursor-pos-polling"></a>
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
     /// # let context = Context::new()?;
     /// # let mut window = Window::builder().build(&context)?;
     /// window.set_cursor_pos_polling(true);
+    /// assert!(window.is_cursor_pos_polling_enabled());
     /// # Ok(())
     /// # }
     /// ```
@@ -140,6 +239,11 @@ impl Window {
     }
 
     /// Returns whether cursor-position events are delivered by [`poll_events`](Self::poll_events).
+    ///
+    /// # Example
+    ///
+    /// See [`is_cursor_pos_polling_enabled` in the shared
+    /// example](Self#example-set-cursor-pos-polling).
     #[inline]
     #[must_use]
     pub const fn is_cursor_pos_polling_enabled(&self) -> bool {
@@ -149,15 +253,20 @@ impl Window {
     /// Enables or disables delivery of cursor enter/leave events from [`poll_events`](Self::poll_events).
     ///
     /// # Arguments
+    ///
     /// - `enabled`: `true` to receive cursor enter/leave events, `false` to stop receiving them.
     ///
     /// # Example
+    ///
+    /// <a id="example-set-cursor-enter-polling"></a>
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
     /// # let context = Context::new()?;
     /// # let mut window = Window::builder().build(&context)?;
     /// window.set_cursor_enter_polling(true);
+    /// assert!(window.is_cursor_enter_polling_enabled());
     /// # Ok(())
     /// # }
     /// ```
@@ -168,6 +277,11 @@ impl Window {
 
     /// Returns whether cursor enter/leave events are delivered by
     /// [`poll_events`](Self::poll_events).
+    ///
+    /// # Example
+    ///
+    /// See [`is_cursor_enter_polling_enabled` in the shared
+    /// example](Self#example-set-cursor-enter-polling).
     #[inline]
     #[must_use]
     pub const fn is_cursor_enter_polling_enabled(&self) -> bool {
@@ -177,15 +291,20 @@ impl Window {
     /// Enables or disables delivery of scroll events from [`poll_events`](Self::poll_events).
     ///
     /// # Arguments
+    ///
     /// - `enabled`: `true` to receive scroll events, `false` to stop receiving them.
     ///
     /// # Example
+    ///
+    /// <a id="example-set-scroll-polling"></a>
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
     /// # let context = Context::new()?;
     /// # let mut window = Window::builder().build(&context)?;
     /// window.set_scroll_polling(true);
+    /// assert!(window.is_scroll_polling_enabled());
     /// # Ok(())
     /// # }
     /// ```
@@ -195,6 +314,10 @@ impl Window {
     }
 
     /// Returns whether scroll events are delivered by [`poll_events`](Self::poll_events).
+    ///
+    /// # Example
+    ///
+    /// See [`is_scroll_polling_enabled` in the shared example](Self#example-set-scroll-polling).
     #[inline]
     #[must_use]
     pub const fn is_scroll_polling_enabled(&self) -> bool {
@@ -204,9 +327,11 @@ impl Window {
     /// Enables or disables polling for window resize events.
     ///
     /// # Arguments
+    ///
     /// - `enabled`: `true` to receive window resize events, `false` to stop receiving them.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -224,9 +349,11 @@ impl Window {
     /// Enables or disables polling for framebuffer resize events.
     ///
     /// # Arguments
+    ///
     /// - `enabled`: `true` to receive framebuffer resize events, `false` to stop receiving them.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -244,9 +371,11 @@ impl Window {
     /// Enables or disables polling for focus change events.
     ///
     /// # Arguments
+    ///
     /// - `enabled`: `true` to receive focus events, `false` to stop receiving them.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -264,9 +393,11 @@ impl Window {
     /// Enables or disables polling for close request events.
     ///
     /// # Arguments
+    ///
     /// - `enabled`: `true` to receive close request events, `false` to stop receiving them.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -286,15 +417,20 @@ impl Window {
     /// Internal key-state tracking remains active when delivery is disabled.
     ///
     /// # Arguments
+    ///
     /// - `enabled`: `true` to receive key events, `false` to stop receiving them.
     ///
     /// # Example
+    ///
+    /// <a id="example-set-key-polling"></a>
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
     /// # let context = Context::new()?;
     /// # let mut window = Window::builder().build(&context)?;
     /// window.set_key_polling(true);
+    /// assert!(window.is_key_polling_enabled());
     /// # Ok(())
     /// # }
     /// ```
@@ -306,6 +442,10 @@ impl Window {
     /// Returns whether key events are delivered by [`poll_events`](Self::poll_events).
     ///
     /// Internal key-state tracking remains active when delivery is disabled.
+    ///
+    /// # Example
+    ///
+    /// See [`is_key_polling_enabled` in the shared example](Self#example-set-key-polling).
     #[inline]
     #[must_use]
     pub const fn is_key_polling_enabled(&self) -> bool {
@@ -318,15 +458,20 @@ impl Window {
     /// new code.
     ///
     /// # Arguments
+    ///
     /// - `enabled`: `true` to receive modified text input events, `false` to stop receiving them.
     ///
     /// # Example
+    ///
+    /// <a id="example-set-char-mods-polling"></a>
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
     /// # let context = Context::new()?;
     /// # let mut window = Window::builder().build(&context)?;
     /// window.set_char_mods_polling(true);
+    /// assert!(window.is_char_mods_polling_enabled());
     /// # Ok(())
     /// # }
     /// ```
@@ -340,6 +485,11 @@ impl Window {
     ///
     /// GLFW deprecated this event source. Prefer [`set_char_polling`](Self::set_char_polling)
     /// together with [`set_key_polling`](Self::set_key_polling) for new code.
+    ///
+    /// # Example
+    ///
+    /// See [`is_char_mods_polling_enabled` in the shared
+    /// example](Self#example-set-char-mods-polling).
     #[inline]
     #[must_use]
     pub const fn is_char_mods_polling_enabled(&self) -> bool {
@@ -349,9 +499,11 @@ impl Window {
     /// Enables or disables polling for refresh events.
     ///
     /// # Arguments
+    ///
     /// - `enabled`: `true` to receive refresh events, `false` to stop receiving them.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -369,9 +521,11 @@ impl Window {
     /// Enables or disables polling for iconify events.
     ///
     /// # Arguments
+    ///
     /// - `enabled`: `true` to receive iconify events, `false` to stop receiving them.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -389,9 +543,11 @@ impl Window {
     /// Enables or disables polling for maximize events.
     ///
     /// # Arguments
+    ///
     /// - `enabled`: `true` to receive maximize events, `false` to stop receiving them.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -409,9 +565,11 @@ impl Window {
     /// Enables or disables polling for drag-and-drop events.
     ///
     /// # Arguments
+    ///
     /// - `enabled`: `true` to receive drag-and-drop events, `false` to stop receiving them.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -429,9 +587,11 @@ impl Window {
     /// Enables or disables polling for content scale changes.
     ///
     /// # Arguments
+    ///
     /// - `enabled`: `true` to receive content scale events, `false` to stop receiving them.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -449,6 +609,7 @@ impl Window {
     /// Enables delivery of keyboard-related events as a convenience helper.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -468,6 +629,7 @@ impl Window {
     /// Internal key-state tracking remains active.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -485,6 +647,7 @@ impl Window {
     /// Enables delivery of mouse-related events as a convenience helper.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -504,6 +667,7 @@ impl Window {
     /// Internal mouse-button state tracking remains active.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -521,6 +685,7 @@ impl Window {
     /// Enables window-state-related event polling as a convenience helper.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -538,6 +703,7 @@ impl Window {
     /// Disables window-state-related event polling as a convenience helper.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -555,6 +721,7 @@ impl Window {
     /// Enables the default polling configuration used by VMNL examples.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -574,6 +741,7 @@ impl Window {
     /// Internal keyboard and mouse-button state tracking remains active.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
@@ -591,6 +759,7 @@ impl Window {
     /// Enables all polling flags exposed by GLFW for this window.
     ///
     /// # Example
+    ///
     /// ```rust,no_run
     /// # use vmnl_graphics::{Context, Window};
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
