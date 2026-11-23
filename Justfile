@@ -284,7 +284,7 @@ _test-total report:
         validate)
             report_name='VALIDATION'
             report_unit='steps'
-            recipes=(build-workspace check-fmt check-clippy test-unit test-api test-smoke test-platform doctest docs _docs-api-check)
+            recipes=(build-workspace check-fmt test-comment check-clippy test-unit test-api test-smoke test-platform doctest docs _docs-api-check)
             ;;
         *)
             printf 'unknown VMNL aggregate report: %s\n' '{{ report }}' >&2
@@ -347,6 +347,10 @@ _test-total report:
             check-fmt)
                 stage_name='FORMAT'
                 stage_detail='formatting checked'
+                ;;
+            test-comment)
+                stage_name='COMMENTS'
+                stage_detail='Rustdoc comment structure checked'
                 ;;
             test-api)
                 stage_name='API'
@@ -425,6 +429,10 @@ check: check-fmt check-clippy
 check-fmt:
     cargo fmt --all --check
 
+# Check Rustdoc comment structure without building the workspace.
+test-comment:
+    python3 tools/check_comments.py
+
 # Run Clippy with warnings denied.
 check-clippy:
     cargo clippy --workspace --all-targets --all-features -- -D warnings
@@ -474,6 +482,7 @@ _docs-api-check:
     CARGO_MANIFEST_DIR="$PWD/examples/raw/triangle" mdbook test docs/api -L "$api_lib_dir"
     mdbook build docs/api
     python3 tools/api_docs.py check
+    python3 tools/check_comments.py --rustdoc-dir target/doc/vmnl_graphics
     python3 tools/glfw_portability.py check
     mapfile -t markdown_files < <(rg --files docs -g '*.md')
     lychee --offline --include-fragments=full "${markdown_files[@]}" CONTRIBUTING.md CHANGELOG.md README.md

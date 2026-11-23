@@ -51,6 +51,8 @@ jobs:
             libshaderc-dev pkg-config cmake git python3 ninja-build build-essential \
             libvulkan-dev vulkan-tools wayland-protocols \
             libwayland-dev libxkbcommon-dev xorg-dev
+      - name: Check Rustdoc comments
+        run: python3 tools/check_comments.py
       - name: Run Clippy
         run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
 

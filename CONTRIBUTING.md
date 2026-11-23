@@ -9,6 +9,7 @@ Run every applicable automatic check in this order:
 ```bash
 just build-workspace
 just check-fmt
+just test-comment
 just check-clippy
 just doctest
 just docs

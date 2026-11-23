@@ -52,6 +52,7 @@ just joystick-physical-test <backend> <profile> <mode> guided native physical-co
 just test-gpu-compile      compile GPU tests without running them
 just test-gpu              GPU/display tests
 just doctest               Rustdoc examples
+just test-comment          Rustdoc comment structure with Python 3
 just check                 formatting and strict Clippy checks
 just lint                  mutating format/fix pass
 just docs                  Rustdoc build with warnings denied
@@ -86,9 +87,10 @@ See the [physical protocol](testing.md#physical-joystick-operator-protocol).
 
 ## Test Summaries
 
-Each `just test-*` recipe streams Cargo output then prints a final suite summary. Interactive
-terminals use color; `NO_COLOR=1 just test-api` disables it. The summary distinguishes executed
-tests from `just test-gpu-compile`, which reports compiled executables only.
+Cargo test recipes stream Cargo output then print a final suite summary. Interactive terminals
+use color, which `NO_COLOR=1 just test-api` disables. The summary distinguishes executed tests
+from `just test-gpu-compile`, which reports compiled executables only. `just test-comment`
+reports comment errors with the source file and line.
 
 `just test` and `just validate` finish with a detailed recap of each executed suite or step,
 followed by their aggregate. `just validate` remains a local non-GPU validation, not CI parity.

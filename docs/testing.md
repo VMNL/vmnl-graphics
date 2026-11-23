@@ -506,7 +506,7 @@ just doctest
 
 `just test` runs unit, API, smoke, and portable platform tests (error conversion and the GLFW Null
 backend). It excludes native platform probes, GPU/display tests, and doctests. `just validate` adds
-the workspace build, formatting, Clippy, doctests, and documentation checks.
+the workspace build, formatting, Rustdoc comment checks, Clippy, doctests, and documentation checks.
 
 ### Native input contract
 
@@ -885,13 +885,13 @@ Headless oracle tests and compilation are not native evidence. VMNL batch-transi
 
 ## Continuous Integration
 
-The CI workflow invokes Cargo directly. The Justfile is a local development helper and is never
-invoked in CI.
+Quality and the per-OS validation jobs invoke Cargo and Python directly. The Documentation job
+uses the shared `_docs-api-check` recipe after building Rustdoc.
 
 Its strict job order is:
 
 ```text
-Quality (format -> Clippy)
+Quality (format -> Rustdoc comments -> Clippy)
   -> Validation per OS (build -> unit -> API -> smoke -> platform)
   -> Documentation
 ```

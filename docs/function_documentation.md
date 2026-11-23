@@ -74,8 +74,18 @@ a pass that requires depth writes. Use a focused example with an existing resour
 when the decision is easier to explain on its own.
 
 A shared example can replace a local snippet when it shows the exact call and any meaningful use
-of the result. Link directly to that example block. For a simple accessor, the summary can
-suffice when the type's example already demonstrates the call.
+of the result. Link directly to that example block with `#example` or `#example-…`. For a simple
+accessor, the summary can suffice when the type's example already demonstrates the call.
+
+### Automated checks
+
+Run `just test-comment` to check `///` and `//!` comments in library sources. The check rejects
+`# Panics` and verifies that any `# Arguments`, `# Errors`, `# Safety`, and `# Example` sections are
+nonempty, unique, and in that order. An `# Example` section needs a nonempty fenced Rust snippet
+or a direct example link.
+
+`just docs-api-check` verifies example link targets in the rendered Rustdoc. Use review to verify
+that the example shows the call and demonstrates what to do with a meaningful return value.
 
 ### Choosing and constructing arguments
 
