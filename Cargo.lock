@@ -111,6 +111,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "460fbee9c2c2f33933d720630a6a0bac33ba7053db5344fac858d4b8952d77d5"
 
 [[package]]
+name = "d2_alpha_order"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
 name = "d2_arc"
 version = "0.1.0"
 dependencies = [
@@ -154,6 +161,13 @@ dependencies = [
 
 [[package]]
 name = "d2_polyline"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "d2_polyline_joins"
 version = "0.1.0"
 dependencies = [
  "vmnl_graphics",
@@ -710,6 +724,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "raw_texture_address"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
 name = "raw_texture_bindings"
 version = "0.1.0"
 dependencies = [
@@ -1088,6 +1109,13 @@ name = "winapi-x86_64-pc-windows-gnu"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
+
+[[package]]
+name = "window_clock"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
 
 [[package]]
 name = "window_config"

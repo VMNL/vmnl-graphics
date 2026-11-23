@@ -6,6 +6,7 @@
 
 import argparse
 from datetime import date
+import json
 from pathlib import Path
 import re
 import subprocess
@@ -36,6 +37,72 @@ def catalogue_lines(catalogue):
     while end < len(lines) and lines[end].startswith("|"):
         end += 1
     return lines, start, end
+
+
+def missing_binary_features(package, binary):
+    features = package["features"]
+    required = set(binary.get("required-features", ())) & features.keys()
+    if not required:
+        return []
+    enabled = set()
+    pending = ["default"] if "default" in features else []
+    while pending:
+        feature = pending.pop()
+        if feature not in enabled:
+            enabled.add(feature)
+            pending.extend(features.get(feature, ()))
+    return sorted(required - enabled)
+
+
+def check_cargo(root, packages):
+    result = subprocess.run(
+        ["cargo", "metadata", "--no-deps", "--offline", "--format-version=1"],
+        cwd=root,
+        check=False,
+        capture_output=True,
+        encoding="utf-8",
+    )
+    if result.returncode:
+        return [f"Cargo could not load the workspace:\n{result.stderr.rstrip()}"]
+
+    lockfile = root / "Cargo.lock"
+    locked = set()
+    if lockfile.is_file():
+        locked = {
+            (package["name"], package["version"])
+            for package in tomllib.loads(lockfile.read_text(encoding="utf-8"))["package"]
+            if "source" not in package
+        }
+
+    errors = []
+    unlocked = []
+    workspace = json.loads(result.stdout)
+    members = set(workspace["workspace_members"])
+    cargo_packages = {
+        package["name"]: package
+        for package in workspace["packages"]
+        if package["id"] in members
+    }
+    for name, path in packages.items():
+        package = cargo_packages.get(name)
+        if package is None:
+            errors.append(f"{name}: Cargo does not list this workspace package")
+            continue
+        binaries = [target for target in package["targets"] if target["kind"] == ["bin"]]
+        if package["default_run"] is not None:
+            binaries = [target for target in binaries if target["name"] == package["default_run"]]
+        expected_source = (root / path / "src/main.rs").resolve()
+        if len(binaries) != 1 or Path(binaries[0]["src_path"]).resolve() != expected_source:
+            errors.append(f"{name}: cargo run must select the linked src/main.rs binary")
+        else:
+            missing = missing_binary_features(package, binaries[0])
+            if missing:
+                errors.append(f"{name}: cargo run requires features enabled by default: {', '.join(missing)}")
+        if (name, package["version"]) not in locked:
+            unlocked.append(name)
+    if unlocked:
+        errors.append(f"Cargo.lock is missing {', '.join(sorted(unlocked))}; run cargo update --workspace")
+    return errors
 
 
 def check(root):
@@ -81,7 +148,7 @@ def check(root):
             errors.append(f"{name}: incorrect run command")
     for name in sorted(packages.keys() - seen):
         errors.append(f"{name}: missing catalogue entry")
-    return errors
+    return errors or check_cargo(root, packages)
 
 
 def author_name(root, author):
@@ -191,11 +258,24 @@ def create(root, domain, name, dry_run, author):
         ):
             if file.read_text(encoding="utf-8") != original:
                 raise ValueError(f"{file} changed during example creation")
+            changed.append((file, original, updated))
             replace_text(file, updated)
-            changed.append((file, original))
-    except (OSError, ValueError, KeyboardInterrupt):
-        for file, original in reversed(changed):
-            replace_text(file, original)
+    except (OSError, ValueError, KeyboardInterrupt) as error:
+        conflicts = []
+        for file, original, updated in reversed(changed):
+            try:
+                current = file.read_text(encoding="utf-8")
+                if current == updated:
+                    replace_text(file, original)
+                elif current != original:
+                    conflicts.append(f"{file.relative_to(root)} changed during rollback")
+            except (OSError, ValueError) as rollback_error:
+                conflicts.append(f"{file.relative_to(root)}: {rollback_error}")
+        if conflicts:
+            raise ValueError(
+                f"{error}; rollback incomplete ({'; '.join(conflicts)}). "
+                f"Kept {path} for recovery. Review the manifest and catalogue before retrying."
+            ) from error
         (directory / "src/main.rs").unlink(missing_ok=True)
         if (directory / "src").is_dir():
             (directory / "src").rmdir()

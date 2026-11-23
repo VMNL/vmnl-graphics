@@ -80,3 +80,6 @@ assert!(!measurement_clock.is_paused());
 Related: [measure elapsed time](../../workflows/measure_elapsed_time.md) workflow, and the
 `Duration` re-export in the [time module](README.md). GLFW's global time base
 (`Window::get_time`/`set_time`) is a separate source that never changes a `Clock`.
+
+Run [`window_clock`](../../../../examples/window/clock/src/main.rs) to pause, resume and restart
+one clock while a second clock keeps running.

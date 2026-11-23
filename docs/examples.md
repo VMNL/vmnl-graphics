@@ -39,16 +39,20 @@ actions and actual operator observations in `Validation` according to
 ## Scaffold and register an example
 
 ```bash
-just example-new d2 rounded_rectangle --dry-run
-just example-new d2 rounded_rectangle
+just example-new d2 outline_demo --dry-run
+just example-new d2 outline_demo
 cargo update --workspace
 just example-check
-just build d2_rounded_rectangle
+just build d2_outline_demo
 ```
 
 `example-new` creates a runnable starter in `examples/<domain>/<name>`, registers the
 workspace member, and adds a catalogue row. The supported domains are `d2`, `raw`,
 `window`, and `input`. Use `--author "Name"` to override the Git author for the SPDX header.
-Cargo updates the shared lockfile separately. Replace the starter scene and catalogue entry
+Cargo updates the shared lockfile separately. The check verifies that Cargo can select the
+linked binary and that the package and version are present in the lockfile.
+If a concurrent edit prevents a clean rollback, the generator preserves that edit and reports
+which files and scaffold need inspection before retrying.
+Replace the starter scene and catalogue entry
 with the intended scenario. When migrating an example, move its documented observations
 and update incoming links, example commands, and defaults in the same change.

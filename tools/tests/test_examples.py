@@ -5,6 +5,7 @@ import contextlib
 import importlib.util
 import io
 from pathlib import Path
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -23,7 +24,18 @@ class ExampleToolTests(unittest.TestCase):
         self.root = Path(workspace.name)
         self.manifest = self.root / "Cargo.toml"
         self.catalogue = self.root / "examples/README.md"
-        self.manifest.write_text("[workspace]\nmembers = [\n]\n", encoding="utf-8")
+        self.manifest.write_text(
+            '[workspace]\nmembers = [\n    "crates/vmnl_graphics",\n]\nresolver = "2"\n'
+            '[workspace.package]\nversion = "0.1.0"\nedition = "2021"\n',
+            encoding="utf-8",
+        )
+        library = self.root / "crates/vmnl_graphics"
+        (library / "src").mkdir(parents=True)
+        (library / "src/lib.rs").touch()
+        (library / "Cargo.toml").write_text(
+            '[package]\nname = "vmnl_graphics"\nversion.workspace = true\nedition.workspace = true\n',
+            encoding="utf-8",
+        )
         for domain in examples.DOMAINS:
             (self.root / "examples" / domain).mkdir(parents=True)
         self.catalogue.write_text(
@@ -41,9 +53,18 @@ class ExampleToolTests(unittest.TestCase):
             if path.is_file()
         }
 
+    def update_lockfile(self):
+        subprocess.run(
+            ["cargo", "generate-lockfile", "--offline"],
+            cwd=self.root,
+            check=True,
+            capture_output=True,
+        )
+
     def test_registers_both_templates(self):
         self.create("d2", "rectangle")
         self.create("raw", "triangle")
+        self.update_lockfile()
         self.assertEqual(examples.check(self.root), [])
         rectangle = (self.root / "examples/d2/rectangle/src/main.rs").read_text()
         triangle = (self.root / "examples/raw/triangle/src/main.rs").read_text()
@@ -66,6 +87,50 @@ class ExampleToolTests(unittest.TestCase):
         path = self.root / "examples/d2/rectangle/src/main.rs"
         path.unlink()
         self.assertIn("d2_rectangle: missing or incorrect source link", examples.check(self.root))
+
+    def test_detects_package_missing_from_lockfile(self):
+        self.update_lockfile()
+        self.create("d2", "rectangle")
+        before = (self.root / "Cargo.lock").read_bytes()
+        self.assertEqual(
+            examples.check(self.root),
+            ["Cargo.lock is missing d2_rectangle; run cargo update --workspace"],
+        )
+        self.assertEqual((self.root / "Cargo.lock").read_bytes(), before)
+
+    def test_requires_a_selectable_binary(self):
+        self.create("d2", "rectangle")
+        directory = self.root / "examples/d2/rectangle"
+        manifest = directory / "Cargo.toml"
+        original = manifest.read_text()
+        manifest.write_text(original.replace("publish = false", "publish = false\nautobins = false"))
+        (directory / "src/lib.rs").touch()
+        self.update_lockfile()
+        error = ["d2_rectangle: cargo run must select the linked src/main.rs binary"]
+        self.assertEqual(examples.check(self.root), error)
+
+        (directory / "src/bin").mkdir()
+        (directory / "src/bin/other.rs").touch()
+        manifest.write_text(original)
+        self.assertEqual(examples.check(self.root), error)
+        manifest.write_text(original.replace("publish = false", 'publish = false\ndefault-run = "d2_rectangle"'))
+        self.assertEqual(examples.check(self.root), [])
+
+    def test_requires_default_activation_for_binary_features(self):
+        self.create("d2", "rectangle")
+        manifest = self.root / "examples/d2/rectangle/Cargo.toml"
+        source = manifest.read_text() + (
+            '\n[features]\nhelper = []\nscene = ["helper"]\n'
+            '\n[[bin]]\nname = "d2_rectangle"\npath = "src/main.rs"\nrequired-features = ["helper"]\n'
+        )
+        manifest.write_text(source)
+        self.update_lockfile()
+        self.assertEqual(
+            examples.check(self.root),
+            ["d2_rectangle: cargo run requires features enabled by default: helper"],
+        )
+        manifest.write_text(source.replace("[features]", '[features]\ndefault = ["scene"]'))
+        self.assertEqual(examples.check(self.root), [])
 
     def test_rolls_back_a_failed_source_write(self):
         before = self.snapshot()
@@ -96,6 +161,22 @@ class ExampleToolTests(unittest.TestCase):
                 self.create("d2", "rectangle")
         self.assertEqual(self.snapshot(), before)
         self.assertFalse((self.root / "examples/d2/rectangle").exists())
+
+    def test_rollback_preserves_concurrent_manifest_edit(self):
+        replace_text = examples.replace_text
+
+        def edit_manifest_and_reject_catalogue(path, content):
+            if path == self.catalogue:
+                self.manifest.write_text(self.manifest.read_text() + "\n# concurrent edit\n")
+                raise OSError("catalogue write failed")
+            replace_text(path, content)
+
+        with patch.object(examples, "replace_text", edit_manifest_and_reject_catalogue):
+            with self.assertRaisesRegex(ValueError, "rollback incomplete.*Cargo.toml"):
+                self.create("d2", "rectangle")
+        self.assertIn("# concurrent edit", self.manifest.read_text())
+        self.assertIn('"examples/d2/rectangle"', self.manifest.read_text())
+        self.assertTrue((self.root / "examples/d2/rectangle/src/main.rs").is_file())
 
 
 if __name__ == "__main__":

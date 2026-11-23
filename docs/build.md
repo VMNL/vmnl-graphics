@@ -36,7 +36,7 @@ test sequence.
 ## Recipes
 
 ```text
-just example-new raw scissor  scaffold and register a runnable example
+just example-new d2 outline_demo  scaffold and register a runnable example
 just example-check            check the workspace and example catalogue
 just test                  unit + API + smoke tests
 just test-unit             unit tests

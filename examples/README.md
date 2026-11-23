@@ -11,6 +11,7 @@ just build <example>
 
 | Example | Command | Covers |
 | --- | --- | --- |
+| [`d2_alpha_order`](d2/alpha_order/src/main.rs) | `just run d2_alpha_order` | Start with blue drawn over red. Press Space to reverse the two translucent passes. Only the overlap changes color. |
 | [`d2_arc`](d2/arc/src/main.rs) | `just run d2_arc` | Two equal elliptical arcs. The left has flat ends and the right has round ends. |
 | [`d2_circle`](d2/circle/src/main.rs) | `just run d2_circle` | Both setter orders give identical cyan discs in the top row and identical yellow outlines in the lower row. |
 | [`d2_ellipse`](d2/ellipse/src/main.rs) | `just run d2_ellipse` | Compare the filled cyan ellipse on the left with the outlined yellow ellipse on the right. |
@@ -18,6 +19,7 @@ just build <example>
 | [`d2_line`](d2/line/src/main.rs) | `just run d2_line` | Three equal-width lines show flat, round and square caps from top to bottom. |
 | [`d2_polygon`](d2/polygon/src/main.rs) | `just run d2_polygon` | A convex pentagon and a concave polygon show vertex colors. The right polygon keeps its inward notch. |
 | [`d2_polyline`](d2/polyline/src/main.rs) | `just run d2_polyline` | Compare bevel, miter and round joins from left to right, with segment, point and uniform colors. |
+| [`d2_polyline_joins`](d2/polyline_joins/src/main.rs) | `just run d2_polyline_joins` | Compare bevel (left), miter (center) and round (right) using identical points relative to each panel, width, caps and color. |
 | [`d2_rectangle`](d2/rectangle/src/main.rs) | `just run d2_rectangle` | A solid cyan rectangle appears in the center of the window. |
 | [`d2_rectangle_transform`](d2/rectangle_transform/src/main.rs) | `just run d2_rectangle_transform` | See the center anchor on the left and an off-center origin on the right. White markers identify the pivots. |
 | [`d2_ring`](d2/ring/src/main.rs) | `just run d2_ring` | Two complete rings show a width on the left and an explicit inner offset on the right. |
@@ -41,6 +43,7 @@ just build <example>
 | [`raw_point_size`](raw/point_size/src/main.rs) | `just run raw_point_size` | With `LargePoints`, three clearly enlarged color points appear. |
 | [`raw_scissor`](raw/scissor/src/main.rs) | `just run raw_scissor` | Space toggles a fixed framebuffer clip rectangle. Only pixels inside the rectangle remain, with the same triangle transform. |
 | [`raw_shader_path`](raw/shader_path/src/main.rs) | `just run raw_shader_path` | The raw pipeline loads local vertex and fragment files and draws a colored triangle. |
+| [`raw_texture_address`](raw/texture_address/src/main.rs) | `just run raw_texture_address` | Press Space to cycle edge clamp, repeat, mirror and black border. Only the texture sample behavior outside U = 0..1 changes. |
 | [`raw_texture_bindings`](raw/texture_bindings/src/main.rs) | `just run raw_texture_bindings` | The combined sampler on the left and separate image/sampler on the right draw the same four texels. |
 | [`raw_texture_filter`](raw/texture_filter/src/main.rs) | `just run raw_texture_filter` | Nearest on the left produces hard texel boundaries. Linear on the right blends across the same boundaries. |
 | [`raw_texture_png`](raw/texture_png/src/main.rs) | `just run raw_texture_png` | The local PNG appears as red/green texels above blue/white texels. |
@@ -51,6 +54,7 @@ just build <example>
 | [`raw_viewport`](raw/viewport/src/main.rs) | `just run raw_viewport` | Space toggles between full and fixed viewport transforms. Resize and verify the fixed viewport keeps its pixel dimensions. |
 | [`raw_viewport_scissor`](raw/viewport_scissor/src/main.rs) | `just run raw_viewport_scissor` | V and S toggle fixed viewport/scissor. Resize across the four states and verify the later pass markers stay unaffected. D16/D32 enable the depth interaction. See the [full procedure](../docs/api/workflows/compose_2d_and_raw.md#inspect-viewport-and-scissor-policies). |
 | [`raw_wireframe`](raw/wireframe/src/main.rs) | `just run raw_wireframe` | With `FillModeNonSolid`, Space toggles the filled quad and its wireframe, including the shared diagonal. |
+| [`window_clock`](window/clock/src/main.rs) | `just run window_clock` | Start with two clocks running. Press Space to pause A while B continues. Press Space again to resume A or R to restart it. |
 | [`window_config`](window/config/src/main.rs) | `just run window_config` | Resize to check the requested 16:9 ratio where supported. Press Space to clear it and resize freely. |
 | [`window_custom_shaders`](window/custom_shaders/src/main.rs) | `just run window_custom_shaders` | See two shapes using the file-backed 2D shaders. Use `VMNL_INLINE_SHADERS=1` for the same output from inline source. |
 | [`window_event_polling`](window/event_polling/src/main.rs) | `just run window_event_polling` | Space toggles key event delivery. Press and release A to verify the snapshot still changes. File drop and scale events are also reported. |

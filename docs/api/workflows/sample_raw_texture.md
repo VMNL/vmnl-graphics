@@ -120,6 +120,7 @@ status without waiting for GPU completion. A known upload failure returns
 Use the focused sampling examples:
 
 - `just run raw_texture_bindings` compares identical draws using a combined or separate binding.
+- `just run raw_texture_address` cycles clamping, repetition, mirroring and border color outside the texture's U range.
 - `just run raw_texture_filter` compares nearest and linear sampling of the same texels.
 - `just run raw_texture_view` compares identity and red/blue-swizzled views with the same sampler.
 - `just run raw_texture_png` loads and displays a file-backed texture.
