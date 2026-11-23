@@ -259,7 +259,7 @@ impl CircleBuilder {
     /// - `sweep`: Finite, nonzero signed angle in degrees with absolute value at most `360`.
     ///   Positive sweeps move clockwise in the built-in X-right/Y-down coordinate system.
     ///
-    /// Requires an explicit [`Self::cap`] before building, including for filled sectors
+    /// Requires an explicit [`Self::cap`] before [`Self::build`], including for filled sectors
     /// and full `360`-degree sweeps. Angles are not normalized. `segments` controls the
     /// entire requested sweep, rather than a proportion of a full-circle segment count.
     ///
@@ -276,12 +276,12 @@ impl CircleBuilder {
     ///
     /// # Arguments
     ///
-    /// - `cap`: shape of the cap as `LineCap`.
+    /// - `cap` selects a [`LineCap`] for the sector endpoints.
     ///
-    /// Requires [`Self::sector`]; a cap without a sector is rejected at build time.
-    /// A sector without a cap is also rejected. Filled sectors require the selection
-    /// but ignore cap geometry. `Butt` keeps endpoints unchanged; `Square` extends
-    /// them tangentially by half the total width; `Round` adds two 32-segment semicircles.
+    /// [`Self::build`] requires [`Self::sector`] and a cap to be configured together.
+    /// Filled sectors still require the selection and use the filled boundary. For outlines,
+    /// [`LineCap::Butt`] keeps endpoints unchanged, [`LineCap::Square`] extends them
+    /// tangentially by half the total width, and [`LineCap::Round`] adds two 32-segment semicircles.
     /// Caps also apply to explicit full sweeps when unfilled; omit both sector and cap
     /// to create a closed ring without endpoint geometry.
     ///
@@ -315,7 +315,7 @@ impl CircleBuilder {
     ///
     /// # Arguments
     ///
-    /// - `color`: Color convertible to `Rgba`, for example `Rgba::CYAN`, `[r, g, b]`, or
+    /// - `color`: Color convertible to [`Rgba`], for example `Rgba::CYAN`, `[r, g, b]`, or
     ///   `[r, g, b, a]`.
     ///
     /// # Example
@@ -336,7 +336,8 @@ impl CircleBuilder {
     ///
     /// # Arguments
     ///
-    /// - `preference` selects preferred host or device placement for the vertex and index buffers.
+    /// - `preference` selects preferred host or device placement for the vertex and index buffers. See
+    ///   [`BufferMemoryPreference`].
     ///
     /// # Example
     ///

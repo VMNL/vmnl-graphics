@@ -44,7 +44,7 @@ impl TriangleBuilder {
     ///
     /// # Arguments
     ///
-    /// - `color`: Color convertible to `Rgba`, applied to all three vertices.
+    /// - `color`: Color convertible to [`Rgba`], applied to all three vertices.
     ///
     /// # Example
     ///
@@ -81,7 +81,7 @@ impl TriangleBuilder {
     ///
     /// - `color1` supplies the color for the first position passed to `Shape::triangle`.
     /// - `color2` supplies the color for the second position passed to `Shape::triangle`.
-    /// - `color3` supplies the color for the third position passed to `Shape::triangle`.
+    /// - `color3` supplies the color for the third position passed to `Shape::triangle`. See [`Rgba`].
     ///
     /// # Example
     ///
@@ -120,7 +120,7 @@ impl TriangleBuilder {
     ///
     /// # Arguments
     ///
-    /// - `preference`: Preferred GPU buffer memory placement.
+    /// - `preference`: Preferred GPU buffer memory placement. See [`BufferMemoryPreference`].
     ///
     /// # Example
     ///

@@ -76,7 +76,7 @@ impl PixelLayout {
     ///   stored row.
     /// - `row_stride` supplies the byte distance between consecutive stored rows, including any
     ///   padding.
-    /// - `origin` identifies which image row is stored first.
+    /// - `origin` identifies which image row is stored first. See [`PixelOrigin`].
     ///
     /// # Example
     ///
@@ -378,7 +378,7 @@ impl<'a> PixelSource<'a> {
     ///
     /// - `width` supplies the source image width in texels.
     /// - `height` supplies the source image height in texels.
-    /// - `format` describes the representation of the source texels.
+    /// - `format` describes the representation of the source texels. See [`TextureFormat`].
     /// - `bytes` supplies the borrowed source pixels, including any padding described by a custom
     ///   layout.
     ///
@@ -417,7 +417,9 @@ impl<'a> PixelSource<'a> {
     ///
     /// # Arguments
     ///
-    /// - `range` selects the half-open interval of the source slice available for pixel reads.
+    /// - `range` selects a half-open byte interval in the source slice. The offset in
+    ///   [`PixelLayout`] is measured from the start of this interval. Omit this call to use
+    ///   the source slice starting at byte zero. [`Self::validate`] checks the resulting coverage.
     ///
     /// # Example
     ///
@@ -432,7 +434,8 @@ impl<'a> PixelSource<'a> {
     ///
     /// # Arguments
     ///
-    /// - `layout` describes the first-row offset, stride, and origin of the source bytes.
+    /// - `layout` is a [`PixelLayout`] for the first-row offset, stride, and origin. Match it
+    ///   to the image dimensions and any interval set through [`Self::with_byte_range`].
     ///
     /// # Example
     ///
@@ -447,7 +450,8 @@ impl<'a> PixelSource<'a> {
     ///
     /// # Arguments
     ///
-    /// - `encoding` declares how the color values in the source bytes are encoded.
+    /// - `encoding` declares how the color values in the source bytes are encoded. See
+    ///   [`ColorEncoding`].
     ///
     /// # Example
     ///
@@ -462,7 +466,8 @@ impl<'a> PixelSource<'a> {
     ///
     /// # Arguments
     ///
-    /// - `alpha_mode` declares whether the source color channels are premultiplied by alpha.
+    /// - `alpha_mode` declares whether the source color channels are premultiplied by alpha. See
+    ///   [`AlphaMode`].
     ///
     /// # Example
     ///
@@ -477,7 +482,9 @@ impl<'a> PixelSource<'a> {
     ///
     /// # Arguments
     ///
-    /// - `usage` supplies the usage policy retained with the prepared pixel data.
+    /// - `usage` supplies the [`TextureUsageRequest`] retained with the prepared pixel data.
+    ///   [`Self::validate`] requires a nonempty set for [`TextureUsageRequest::Exact`].
+    ///   [`crate::texture::Texture2DBuilder::prepare`] checks the initial upload requirements.
     ///
     /// # Example
     ///

@@ -256,12 +256,15 @@ impl<'a> Texture2DBuilder<'a> {
 
     /// Replaces the image-usage request for this builder.
     ///
-    /// `Automatic` selects sampled plus transfer-destination usage. An exact request is preserved;
-    /// the initial upload fails if it omits transfer-destination usage.
+    /// Omit this call to inherit the usage request from the pixel source, when supplied.
     ///
     /// # Arguments
     ///
-    /// - `usage` supplies an exact image-usage request or selects the automatic upload defaults.
+    /// - `usage` selects a [`TextureUsageRequest`]. [`TextureUsageRequest::Automatic`] uses
+    ///   [`TextureUsage::INITIAL_UPLOAD`]. For [`TextureUsageRequest::Exact`], combine the
+    ///   required flags with [`TextureUsage::union`]. Include [`TextureUsage::TRANSFER_DESTINATION`]
+    ///   for the initial upload and [`TextureUsage::SAMPLED`] if a shader will sample the texture.
+    ///   [`Self::prepare`] checks the upload requirement.
     ///
     /// # Example
     ///
@@ -275,18 +278,12 @@ impl<'a> Texture2DBuilder<'a> {
     /// Requests mutable-compatible image views at image creation.
     ///
     /// When enabled, this RGBA8 image may be viewed as either RGBA8 UNORM or RGBA8 sRGB.
-    /// The request is exact: unsupported mutable-image or sampled-format combinations return an
-    /// error from [`prepare`](Self::prepare) instead of silently creating a fixed-format image.
-    /// An omitted request inherits the context setting, then defaults to `false`.
+    /// [`Self::prepare`] validates this exact request against the device and image usage.
     ///
     /// # Arguments
     ///
-    /// - `enabled` controls whether the image allows compatible alternative view formats.
-    ///
-    /// # Errors
-    ///
-    /// `prepare` returns `InvalidState` when the requested image configuration is unsupported, or
-    /// `VulkanValidationFailed` when the device capability query fails.
+    /// - `enabled` explicitly enables or disables compatible alternative view formats. Omitting
+    ///   this call inherits the context default, then falls back to `false` if unset.
     ///
     /// # Example
     ///
@@ -324,8 +321,8 @@ impl<'a> Texture2DBuilder<'a> {
     ///
     /// # Arguments
     ///
-    /// - `policy` selects whether the final owner waits for an outstanding upload or defers
-    ///   retirement to the context.
+    /// - `policy` selects whether the final owner waits for an outstanding upload or defers retirement
+    ///   to the context. See [`TextureRetirementPolicy`].
     ///
     /// # Example
     ///
@@ -345,7 +342,9 @@ impl<'a> Texture2DBuilder<'a> {
     ///
     /// Propagates source errors such as `TextureSourceReadFailed`, `TextureDecodeFailed`,
     /// and `TextureCpuAllocationFailed`. Returns `InvalidState` for incompatible declarations
-    /// or usage. Image and staging allocation can return `VulkanImageCreationFailed`,
+    /// or usage, including exact usage without transfer-destination or unsupported mutable-format
+    /// view configurations. A failed device capability query returns `VulkanValidationFailed`.
+    /// Image and staging allocation can return `VulkanImageCreationFailed`,
     /// `VulkanImageViewCreationFailed`, or `VulkanMemoryAllocationFailed`. Recording the copy
     /// can return `VulkanCommandBufferCreationFailed` or `VulkanValidationFailed`.
     ///
@@ -711,7 +710,8 @@ impl Texture2D {
     ///
     /// # Arguments
     ///
-    /// - `format` supplies the format that would be requested on the view builder.
+    /// - `format` supplies the format that would be requested on the view builder. See
+    ///   [`TextureFormat`].
     ///
     /// # Example
     ///
@@ -905,7 +905,7 @@ impl TextureComponentMapping {
     /// - `red` selects the source component or constant for sampled red.
     /// - `green` selects the source component or constant for sampled green.
     /// - `blue` selects the source component or constant for sampled blue.
-    /// - `alpha` selects the source component or constant for sampled alpha.
+    /// - `alpha` selects the source component or constant for sampled alpha. See [`TextureComponent`].
     ///
     /// # Example
     ///
@@ -1025,8 +1025,9 @@ impl TextureViewInterpretation {
     ///
     /// # Arguments
     ///
-    /// - `encoding` declares the color encoding represented by the sampled RGB values.
-    /// - `alpha_mode` declares how sampled alpha relates to the color components.
+    /// - `encoding` declares the color encoding represented by the sampled RGB values. See
+    ///   [`ColorEncoding`].
+    /// - `alpha_mode` declares how sampled alpha relates to the color components. See [`AlphaMode`].
     ///
     /// # Example
     ///
@@ -1075,7 +1076,8 @@ impl TextureView2DBuilder {
     ///
     /// # Arguments
     ///
-    /// - `format` supplies the exact sample format to apply to the existing image.
+    /// - `format` supplies the exact sample format to apply to the existing image. See
+    ///   [`TextureFormat`].
     ///
     /// # Example
     ///
@@ -1092,7 +1094,7 @@ impl TextureView2DBuilder {
     /// # Arguments
     ///
     /// - `mapping` supplies the four component selectors, for example from
-    ///   `TextureComponentMapping::new`.
+    ///   `TextureComponentMapping::new`. See [`TextureComponentMapping`].
     ///
     /// # Example
     ///
@@ -1112,7 +1114,7 @@ impl TextureView2DBuilder {
     /// # Arguments
     ///
     /// - `interpretation` supplies the encoding and alpha declaration without converting sampled
-    ///   values.
+    ///   values. See [`TextureViewInterpretation`].
     ///
     /// # Example
     ///
@@ -1768,17 +1770,18 @@ impl UploadTicket {
     /// Waits up to `timeout` for completion and returns a reusable completion result.
     ///
     /// Finite timeouts poll the fence and never call Vulkano's state-consuming timed wait.
-    /// Repeated waits and cloned tickets observe the same result. `None` waits without a deadline.
+    /// Repeated waits and cloned tickets observe the same upload completion or failure. A timeout
+    /// returns `Ok(UploadWaitOutcome::TimedOut)` and the ticket can be queried or waited on again.
     ///
     /// # Arguments
     ///
-    /// - `timeout` supplies the maximum wait duration, or `None` for an indefinite wait. Zero checks
-    ///   the current state once.
+    /// - `timeout` supplies the wait duration. `None` waits without a deadline. A nonzero
+    ///   duration sets a deadline, and `Some(Duration::ZERO)` checks the current state once.
     ///
     /// # Errors
     ///
     /// Returns `TextureUploadFailed` if fence polling or finalization fails. Subsequent queries
-    /// and waits report the recorded failure. A timeout returns `Ok(UploadWaitOutcome::TimedOut)`.
+    /// and waits report the recorded failure.
     ///
     /// # Example
     ///
@@ -1994,7 +1997,7 @@ impl SamplerBuilder {
     /// # Arguments
     ///
     /// - `config` supplies the requested filtering, addressing, and coordinate policies, typically
-    ///   from a `SamplerConfig` preset.
+    ///   from a [`SamplerConfig`] preset.
     ///
     /// # Example
     ///

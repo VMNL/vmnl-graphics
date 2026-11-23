@@ -117,7 +117,7 @@ impl LineBuilder {
     ///
     /// # Arguments
     ///
-    /// - `cap`: The desired line cap style, which can be `Butt`, `Round`, or `Square`.
+    /// - `cap` selects the endpoint shape from [`LineCap`]. The default is [`LineCap::Butt`].
     ///
     /// # Example
     ///
@@ -142,7 +142,8 @@ impl LineBuilder {
     ///
     /// # Arguments
     ///
-    /// - `color`: Color convertible to `Rgba`, for example `Rgba::BLUE`, `[r, g, b]`, or `[r, g, b, a]`.
+    /// - `color`: Color convertible to [`Rgba`], for example `Rgba::BLUE`, `[r, g, b]`, or
+    ///   `[r, g, b, a]`.
     ///
     /// # Example
     ///
@@ -172,7 +173,7 @@ impl LineBuilder {
     ///
     /// # Arguments
     ///
-    /// - `preference`: Preferred GPU buffer memory placement.
+    /// - `preference`: Preferred GPU buffer memory placement. See [`BufferMemoryPreference`].
     ///
     /// # Example
     ///

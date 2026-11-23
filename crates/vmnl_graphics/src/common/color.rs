@@ -20,6 +20,9 @@ macro_rules! rgba_color_constants {
 ///
 /// `Default` is transparent black (`0, 0, 0, 0`). Named color constants are
 /// opaque except for [`Rgba::TRANSPARENT`].
+///
+/// Converting `[r, g, b]` supplies opaque alpha (`255`). Converting `[r, g, b, a]`
+/// uses the supplied alpha. Both arrays store their components in that order.
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Default, Pod, Zeroable, PartialEq)]
 pub struct Rgba {

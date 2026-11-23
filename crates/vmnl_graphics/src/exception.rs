@@ -235,7 +235,7 @@ impl VMNLError {
     ///
     /// # Arguments
     ///
-    /// - `kind`: The specific kind of error that occurred.
+    /// - `kind`: The specific kind of error that occurred. See [`VMNLErrorKind`].
     ///
     /// # Example
     ///

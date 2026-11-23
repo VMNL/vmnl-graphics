@@ -13,16 +13,19 @@ use vulkano::swapchain::PresentMode as VkPresentMode;
 /// Swapchain presentation mode.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum PresentMode {
-    /// Select the first supported low-latency mode using VMNL's priority order.
+    /// Selects the first surface-supported mode in VMNL's priority order.
+    ///
+    /// The order is [`Self::Mailbox`], [`Self::Immediate`], [`Self::FifoRelaxed`],
+    /// then [`Self::Fifo`]. This is the default window presentation policy.
     #[default]
     Auto,
-    /// V-sync. Normally always supported.
+    /// Queues images in submission order and presents the queued head at vertical refresh.
     Fifo,
-    /// Low latency. Can drop frames.
+    /// Presents at vertical refresh and replaces the pending image with a newer submission.
     Mailbox,
-    /// No v-sync. Tearing is possible.
+    /// Presents without waiting for vertical refresh, so tearing is possible.
     Immediate,
-    /// Relaxed v-sync variant.
+    /// Uses FIFO order and can present a late image immediately, allowing tearing.
     FifoRelaxed,
 }
 
@@ -262,7 +265,7 @@ impl WindowBuilder {
     ///
     /// # Arguments
     ///
-    /// - `config` supplies the dead zone and angle convention for left sticks.
+    /// - `config` supplies the dead zone and angle convention for left sticks. See [`StickConfig`].
     ///
     /// # Example
     ///
@@ -277,7 +280,7 @@ impl WindowBuilder {
     ///
     /// # Arguments
     ///
-    /// - `config` supplies the dead zone and angle convention for right sticks.
+    /// - `config` supplies the dead zone and angle convention for right sticks. See [`StickConfig`].
     ///
     /// # Example
     ///
@@ -411,7 +414,7 @@ impl WindowBuilder {
     ///
     /// # Arguments
     ///
-    /// - `source`: Inline GLSL source or path to a GLSL source file.
+    /// - `source`: Inline GLSL source or path to a GLSL source file. See [`ShaderSource`].
     ///
     /// # Example
     ///
@@ -438,7 +441,7 @@ impl WindowBuilder {
     ///
     /// # Arguments
     ///
-    /// - `source`: Inline GLSL source or path to a GLSL source file.
+    /// - `source`: Inline GLSL source or path to a GLSL source file. See [`ShaderSource`].
     ///
     /// # Example
     ///
@@ -465,7 +468,8 @@ impl WindowBuilder {
     ///
     /// # Arguments
     ///
-    /// - `clear_color`: Color convertible to `Rgba`, for example `Rgba::BLACK`, `[r, g, b]`, or `[r, g, b, a]`.
+    /// - `clear_color`: Color convertible to [`Rgba`], for example `Rgba::BLACK`, `[r, g, b]`, or `[r,
+    ///   g, b, a]`.
     ///
     /// # Example
     ///
@@ -488,15 +492,13 @@ impl WindowBuilder {
         self
     }
 
-    /// Sets the required swapchain presentation mode.
-    ///
-    /// If the mode is unsupported by the surface, [`WindowBuilder::build`]
-    /// returns an error. Use [`WindowBuilder::preferred_present_mode`] for a
-    /// fallback behavior.
+    /// Sets the swapchain presentation mode used at window creation.
     ///
     /// # Arguments
     ///
-    /// - `present_mode`: Required swapchain presentation mode.
+    /// - `present_mode` selects a [`PresentMode`]. [`PresentMode::Auto`] uses the default
+    ///   automatic policy. An explicit mode is a strict request checked by [`Self::build`]
+    ///   against the window surface. Use [`Self::preferred_present_mode`] to allow fallback.
     ///
     /// # Example
     ///
@@ -505,7 +507,7 @@ impl WindowBuilder {
     /// # fn main() -> vmnl_graphics::VMNLResult<()> {
     /// # let context = Context::new()?;
     /// let window = Window::builder()
-    ///     .present_mode(PresentMode::Fifo)
+    ///     .present_mode(PresentMode::Auto)
     ///     .build(&context)?;
     /// # Ok(())
     /// # }
@@ -521,12 +523,11 @@ impl WindowBuilder {
 
     /// Sets the preferred swapchain presentation mode.
     ///
-    /// If the mode is unsupported by the surface, window creation falls back to
-    /// VMNL's automatic priority order instead of returning an error.
-    ///
     /// # Arguments
     ///
-    /// - `present_mode`: Preferred swapchain presentation mode.
+    /// - `present_mode` selects a preferred [`PresentMode`]. [`Self::build`] uses it if the
+    ///   surface supports it and otherwise follows the priority order of [`PresentMode::Auto`].
+    ///   Passing [`PresentMode::Auto`] selects that policy directly.
     ///
     /// # Example
     ///
@@ -557,6 +558,7 @@ impl WindowBuilder {
     /// # Arguments
     ///
     /// - `config` supplies attachment requirements, for example from `RenderTargetConfig::default`.
+    ///   See [`RenderTargetConfig`].
     ///
     /// # Example
     ///
@@ -585,9 +587,10 @@ impl WindowBuilder {
     ///
     /// # Errors
     ///
-    /// Returns `InvalidWindowSize` for invalid dimensions or size limits. Propagates validation
-    /// errors for attachment or presentation requirements and backend errors encountered while
-    /// creating the GLFW window, Vulkan surface, swapchain, or default render resources.
+    /// Returns `InvalidWindowSize` for invalid dimensions or size limits and
+    /// `VulkanUnsupportedFeature` if the surface cannot supply a strictly requested presentation
+    /// mode or any mode in the automatic order. Propagates attachment validation and backend
+    /// errors from creating the window, surface, swapchain, or default render resources.
     ///
     /// # Example
     ///

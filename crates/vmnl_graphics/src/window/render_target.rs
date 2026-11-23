@@ -70,7 +70,8 @@ impl RenderTargetConfig {
     ///
     /// # Arguments
     ///
-    /// - `format` selects the exact depth format requested for each swapchain image.
+    /// - `format` selects the exact depth format requested for each swapchain image. See
+    ///   [`DepthFormat`].
     ///
     /// # Example
     ///

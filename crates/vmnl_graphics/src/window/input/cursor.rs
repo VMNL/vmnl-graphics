@@ -87,7 +87,7 @@ impl Cursor {
     ///
     /// # Arguments
     ///
-    /// - `shape` selects a native system cursor shape from the `StandardCursor` variants.
+    /// - `shape` selects a native system cursor shape from the [`StandardCursor`] variants.
     ///
     /// # Example
     ///
@@ -229,7 +229,7 @@ impl CursorBuilder<'_> {
     ///
     /// # Arguments
     ///
-    /// - `color` supplies the diagnostic hotspot color as an `Rgba` value or an RGB/RGBA byte array.
+    /// - `color` supplies the diagnostic hotspot color as an [`Rgba`] value or an RGB/RGBA byte array.
     ///
     /// # Example
     ///

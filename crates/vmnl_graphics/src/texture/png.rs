@@ -42,7 +42,7 @@ impl PngDecodeOptions {
     /// # Arguments
     ///
     /// - `encoding` supplies the color encoding to assume when the PNG carries no encoding
-    ///   declaration.
+    ///   declaration. See [`ColorEncoding`].
     ///
     /// # Example
     ///
@@ -57,7 +57,7 @@ impl PngDecodeOptions {
     ///
     /// # Arguments
     ///
-    /// - `alpha_mode` declares how alpha is represented in the decoded pixels.
+    /// - `alpha_mode` declares how alpha is represented in the decoded pixels. See [`AlphaMode`].
     ///
     /// # Example
     ///

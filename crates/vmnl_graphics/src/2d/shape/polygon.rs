@@ -69,7 +69,7 @@ impl PolygonBuilder {
     ///
     /// # Arguments
     ///
-    /// - `color` supplies the uniform fill color as an `Rgba` value or an RGB/RGBA byte array.
+    /// - `color` supplies the uniform fill color as an [`Rgba`] value or an RGB/RGBA byte array.
     ///
     /// # Example
     ///
@@ -94,7 +94,8 @@ impl PolygonBuilder {
     ///
     /// # Arguments
     ///
-    /// - `preference` selects preferred host or device placement for the vertex and index buffers.
+    /// - `preference` selects preferred host or device placement for the vertex and index buffers. See
+    ///   [`BufferMemoryPreference`].
     ///
     /// # Example
     ///
@@ -112,7 +113,7 @@ impl PolygonBuilder {
     ///
     /// # Arguments
     ///
-    /// - `colors` supplies one color per boundary position in the original input order.
+    /// - `colors` supplies one color per boundary position in the original input order. See [`Rgba`].
     ///
     /// # Example
     ///

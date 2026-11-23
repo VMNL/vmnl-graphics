@@ -31,8 +31,8 @@ impl Window {
     ///
     /// # Arguments
     ///
-    /// - `cursor` supplies a cursor built using this window's context, or `None` to restore the
-    ///   system default.
+    /// - `cursor` is `Some(&cursor)` for a handle created with [`Cursor::standard`] or
+    ///   [`Cursor::rgba8`] and built on this window's context. `None` restores the system default.
     ///
     /// # Errors
     ///
@@ -151,7 +151,7 @@ impl Window {
     ///
     /// # Arguments
     ///
-    /// - `mode` selects a cursor visibility or confinement policy from `CursorMode`.
+    /// - `mode` selects a cursor visibility or confinement policy from [`CursorMode`].
     ///
     /// # Errors
     ///

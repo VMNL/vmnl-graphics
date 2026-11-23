@@ -70,6 +70,25 @@ window. A link to an existing example that shows the call can replace a local sn
 accessor, the summary can suffice when the type's example already demonstrates the call. Follow the
 [completion checks](../CONTRIBUTING.md#before-submission) when Rustdoc changes.
 
+### Choosing and constructing arguments
+
+Document shared choices on the public type and link to it from `# Arguments`. Put details that
+affect a call before `# Example`. Explain a rule that spans several arguments or builder settings
+in the method contract. Use a short list when callers need to compare several applicable choices.
+
+| Case | Information the caller needs |
+| --- | --- |
+| Enum variants | Describe each variant and its fields on the enum. At the call site, identify the default, accepted variants, or rules that change the meaning of a variant for this call. Link to individual variants when explaining those rules. |
+| Omitted settings and special values | Give the effect of omission, `None`, or any sentinel value. Distinguish inherited settings, explicit values, and resets when the API supports them. |
+| Combinable flags | Describe each flag on its type. At the call site, explain how to combine flags and specify any required, incompatible, or implied flags. |
+| Related arguments and settings | Describe dependencies such as matching lengths, required pairs, and settings that replace earlier choices. Specify which operation checks the combination. |
+| Generic inputs and conversions | Show common accepted forms and explain what a conversion supplies, such as an implicit alpha value, or what the caller must ensure, such as a shader-compatible layout. |
+| Resource provenance | Name the constructor or source and the context, device, window, or pipeline that the argument must belong to. Link to a public compatibility check when one exists. |
+| Callbacks | Explain when and on which thread the callback runs, what its arguments borrow, and whether it can re-enter the API or replace the registration. |
+
+For deferred validation, name the validating operation next to the configuration rule and link to
+that operation. Put the returned error variants and their triggers in its `# Errors` section.
+
 ## Shared backend
 
 Use `///` for internal callable contracts shared across modules. Describe what the caller must

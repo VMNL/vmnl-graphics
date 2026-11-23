@@ -177,7 +177,11 @@ impl Window {
         self.inner.get_timer_frequency()
     }
 
-    /// Sets a custom error callback function for GLFW errors.
+    /// Replaces the error callback for the shared GLFW runtime.
+    ///
+    /// This registration applies to every window on that runtime. The callback runs
+    /// synchronously on the GLFW thread that reports the error. During the callback, avoid
+    /// re-entering operations that can emit a GLFW error or change the registration.
     ///
     /// Platform limitations map to [`VMNLErrorKind::GlfwUnsupportedPlatform`] and the affected
     /// operation has no effect. Unknown GLFW codes map to [`VMNLErrorKind::GlfwUnknownError`] and
@@ -186,7 +190,8 @@ impl Window {
     ///
     /// # Arguments
     ///
-    /// - `callback`: Function called with the mapped VMNL error kind and message.
+    /// - `callback` receives the mapped [`VMNLErrorKind`] and an owned error message. Captured
+    ///   state must satisfy `'static`, for example by moving owned values into the closure.
     ///
     /// # Example
     ///
@@ -206,7 +211,7 @@ impl Window {
         self.inner.set_error_callback(callback);
     }
 
-    /// Unsets the custom error callback, reverting to the default GLFW error handling behavior.
+    /// Removes the shared GLFW error callback and restores the default error logging.
     ///
     /// # Example
     ///

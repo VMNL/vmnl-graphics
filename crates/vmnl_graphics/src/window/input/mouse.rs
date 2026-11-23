@@ -132,7 +132,7 @@ impl MouseState {
     ///
     /// # Arguments
     ///
-    /// - `button`: The `MouseButton` to check.
+    /// - `button`: The [`MouseButton`] to check.
     ///
     /// # Example
     ///
@@ -153,7 +153,7 @@ impl MouseState {
     ///
     /// # Arguments
     ///
-    /// - `button`: The `MouseButton` to check.
+    /// - `button`: The [`MouseButton`] to check.
     ///
     /// # Example
     ///
@@ -174,7 +174,7 @@ impl MouseState {
     ///
     /// # Arguments
     ///
-    /// - `button`: The `MouseButton` to check.
+    /// - `button`: The [`MouseButton`] to check.
     ///
     /// # Example
     ///
@@ -195,7 +195,7 @@ impl MouseState {
     ///
     /// # Arguments
     ///
-    /// - `buttons`: A slice of `MouseButton` variants to check.
+    /// - `buttons`: A slice of [`MouseButton`] variants to check.
     ///
     /// # Example
     ///
@@ -221,7 +221,7 @@ impl MouseState {
     ///
     /// # Arguments
     ///
-    /// - `buttons`: A slice of `MouseButton` variants to check.
+    /// - `buttons`: A slice of [`MouseButton`] variants to check.
     ///
     /// # Example
     ///
@@ -247,7 +247,7 @@ impl MouseState {
     ///
     /// # Arguments
     ///
-    /// - `buttons`: A slice of `MouseButton` variants to check.
+    /// - `buttons`: A slice of [`MouseButton`] variants to check.
     ///
     /// # Example
     ///
@@ -273,7 +273,7 @@ impl MouseState {
     ///
     /// # Arguments
     ///
-    /// - `buttons`: A slice of `MouseButton` variants to check.
+    /// - `buttons`: A slice of [`MouseButton`] variants to check.
     ///
     /// # Example
     ///

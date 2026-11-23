@@ -226,8 +226,10 @@ impl ColorBlendConfig {
     /// # Arguments
     ///
     /// - `source` selects the factor applied to the incoming RGB channels.
-    /// - `destination` selects the factor applied to the RGB channels already in the attachment.
-    /// - `operation` selects how the incoming and stored RGB values are combined.
+    /// - `destination` selects the factor applied to the RGB channels already in the attachment. See
+    ///   [`ColorBlendFactor`].
+    /// - `operation` selects how the incoming and stored RGB values are combined. See
+    ///   [`ColorBlendOperation`].
     ///
     /// # Example
     ///
@@ -250,8 +252,9 @@ impl ColorBlendConfig {
     /// # Arguments
     ///
     /// - `source` selects the factor applied to incoming alpha.
-    /// - `destination` selects the factor applied to alpha already in the attachment.
-    /// - `operation` selects how incoming and stored alpha are combined.
+    /// - `destination` selects the factor applied to alpha already in the attachment. See
+    ///   [`ColorBlendFactor`].
+    /// - `operation` selects how incoming and stored alpha are combined. See [`ColorBlendOperation`].
     ///
     /// # Example
     ///
@@ -526,7 +529,7 @@ impl ColorBlendOverrides {
     ///
     /// # Arguments
     ///
-    /// - `value` selects the factor applied to incoming RGB.
+    /// - `value` selects the factor applied to incoming RGB. See [`ColorBlendFactor`].
     ///
     /// # Example
     ///
@@ -551,7 +554,8 @@ impl ColorBlendOverrides {
     ///
     /// # Arguments
     ///
-    /// - `value` selects the factor applied to RGB already in the attachment.
+    /// - `value` selects the factor applied to RGB already in the attachment. See
+    ///   [`ColorBlendFactor`].
     ///
     /// # Example
     ///
@@ -576,7 +580,8 @@ impl ColorBlendOverrides {
     ///
     /// # Arguments
     ///
-    /// - `value` selects how source and destination RGB values are combined.
+    /// - `value` selects how source and destination RGB values are combined. See
+    ///   [`ColorBlendOperation`].
     ///
     /// # Example
     ///
@@ -601,7 +606,7 @@ impl ColorBlendOverrides {
     ///
     /// # Arguments
     ///
-    /// - `value` selects the factor applied to incoming alpha.
+    /// - `value` selects the factor applied to incoming alpha. See [`ColorBlendFactor`].
     ///
     /// # Example
     ///
@@ -626,7 +631,8 @@ impl ColorBlendOverrides {
     ///
     /// # Arguments
     ///
-    /// - `value` selects the factor applied to alpha already in the attachment.
+    /// - `value` selects the factor applied to alpha already in the attachment. See
+    ///   [`ColorBlendFactor`].
     ///
     /// # Example
     ///
@@ -651,7 +657,7 @@ impl ColorBlendOverrides {
     ///
     /// # Arguments
     ///
-    /// - `value` selects how source and destination alpha are combined.
+    /// - `value` selects how source and destination alpha are combined. See [`ColorBlendOperation`].
     ///
     /// # Example
     ///

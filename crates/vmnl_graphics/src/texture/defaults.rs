@@ -38,11 +38,13 @@ pub struct TextureDefaults {
 }
 
 impl TextureDefaults {
-    /// Sets mutable-format image creation. Pass `None` to remove this context default.
+    /// Sets the context default for mutable-format image creation.
     ///
     /// # Arguments
     ///
-    /// - `value` supplies the mutable-format image default. Pass `Some(true)` to enable it.
+    /// - `value` sets the default for texture builders that omit their own request. `Some(true)`
+    ///   enables mutable-format views by default, `Some(false)` disables them, and `None` clears
+    ///   this context default.
     ///
     /// # Example
     ///
@@ -63,12 +65,12 @@ impl TextureDefaults {
         self.mutable_format_views
     }
 
-    /// Sets the format for explicit views. Pass `None` to remove this context default.
+    /// Sets the context default format for explicitly built texture views.
     ///
     /// # Arguments
     ///
-    /// - `value` supplies the format used by an explicit view when its builder leaves the format
-    ///   unspecified.
+    /// - `value` supplies a [`TextureFormat`] for explicit views that omit their own format.
+    ///   `None` clears this context default, allowing such views to inherit the texture's format.
     ///
     /// # Example
     ///
@@ -94,7 +96,7 @@ impl TextureDefaults {
     /// # Arguments
     ///
     /// - `value` supplies the component mapping used when an explicit view leaves the mapping
-    ///   unspecified.
+    ///   unspecified. See [`TextureComponentMapping`].
     ///
     /// # Example
     ///
@@ -122,7 +124,8 @@ impl TextureDefaults {
     ///
     /// # Arguments
     ///
-    /// - `value` supplies the interpretation used when an explicit view leaves it unspecified.
+    /// - `value` supplies the interpretation used when an explicit view leaves it unspecified. See
+    ///   [`TextureViewInterpretation`].
     ///
     /// # Example
     ///

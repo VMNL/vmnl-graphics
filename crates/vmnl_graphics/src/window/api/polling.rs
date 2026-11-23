@@ -68,7 +68,7 @@ impl Window {
     /// # Arguments
     ///
     /// - `left` supplies the dead zone and angle convention for left sticks.
-    /// - `right` supplies the dead zone and angle convention for right sticks.
+    /// - `right` supplies the dead zone and angle convention for right sticks. See [`StickConfig`].
     ///
     /// # Example
     ///
@@ -81,7 +81,7 @@ impl Window {
     ///
     /// # Arguments
     ///
-    /// - `config` supplies the dead zone and angle convention for left sticks.
+    /// - `config` supplies the dead zone and angle convention for left sticks. See [`StickConfig`].
     ///
     /// # Example
     ///
@@ -94,7 +94,7 @@ impl Window {
     ///
     /// # Arguments
     ///
-    /// - `config` supplies the dead zone and angle convention for right sticks.
+    /// - `config` supplies the dead zone and angle convention for right sticks. See [`StickConfig`].
     ///
     /// # Example
     ///

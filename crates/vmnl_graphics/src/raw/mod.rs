@@ -283,7 +283,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     /// # Arguments
     ///
     /// - `state` selects depth comparison and writes. Enable a compatible depth attachment on the
-    ///   target window.
+    ///   target window. See [`DepthState`].
     ///
     /// # Example
     ///
@@ -308,7 +308,8 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Arguments
     ///
-    /// - `source` supplies inline GLSL source or a GLSL file path for the vertex stage.
+    /// - `source` supplies inline GLSL source or a GLSL file path for the vertex stage. See
+    ///   [`ShaderSource`].
     ///
     /// # Example
     ///
@@ -323,7 +324,8 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Arguments
     ///
-    /// - `source` supplies inline GLSL source or a GLSL file path for the fragment stage.
+    /// - `source` supplies inline GLSL source or a GLSL file path for the fragment stage. See
+    ///   [`ShaderSource`].
     ///
     /// # Example
     ///
@@ -338,7 +340,8 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Arguments
     ///
-    /// - `topology` chooses how vertices or indices assemble into primitives.
+    /// - `topology` chooses how vertices or indices assemble into primitives. See
+    ///   [`PrimitiveTopology`].
     ///
     /// # Example
     ///
@@ -357,6 +360,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     /// # Arguments
     ///
     /// - `blend_mode` selects a legacy blending preset that replaces the existing explicit request.
+    ///   See [`BlendMode`].
     ///
     /// # Example
     ///
@@ -411,7 +415,7 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Arguments
     ///
-    /// - `cull_mode` selects which faces the rasterizer discards.
+    /// - `cull_mode` selects which faces the rasterizer discards. See [`CullMode`].
     ///
     /// # Example
     ///
@@ -427,7 +431,8 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Arguments
     ///
-    /// - `front_face` selects the winding treated as front-facing in framebuffer coordinates.
+    /// - `front_face` selects the winding treated as front-facing in framebuffer coordinates. See
+    ///   [`FrontFace`].
     ///
     /// # Example
     ///
@@ -440,13 +445,14 @@ impl<TVertex> PipelineSpec<TVertex> {
 
     /// Sets triangle rasterization, fixed at pipeline creation. Defaults to [`PolygonMode::Fill`].
     ///
-    /// Non-solid modes require an enabled [`DeviceFeature::FillModeNonSolid`].
-    /// This CPU-only setter does not validate or enable device features; [`Self::build`] does.
+    /// [`Self::build`] validates the mode against the device features already enabled on the
+    /// window's context.
     ///
     /// # Arguments
     ///
-    /// - `mode` selects fill, line, or point rasterization. Non-solid modes require the corresponding
-    ///   device feature.
+    /// - `mode` selects a [`PolygonMode`]. [`PolygonMode::Line`] and [`PolygonMode::Point`]
+    ///   require [`DeviceFeature::FillModeNonSolid`] on the device. See [`PolygonMode::Point`]
+    ///   for its additional portability constraint.
     ///
     /// # Example
     ///
@@ -487,7 +493,8 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Arguments
     ///
-    /// - `policy` selects a framebuffer-sized viewport or an explicit viewport.
+    /// - `policy` selects a framebuffer-sized viewport or an explicit viewport. See
+    ///   [`ViewportPolicy`].
     ///
     /// # Example
     ///
@@ -503,7 +510,8 @@ impl<TVertex> PipelineSpec<TVertex> {
     ///
     /// # Arguments
     ///
-    /// - `policy` selects a framebuffer-sized scissor or an explicit clipping rectangle.
+    /// - `policy` selects a framebuffer-sized scissor or an explicit clipping rectangle. See
+    ///   [`ScissorPolicy`].
     ///
     /// # Example
     ///
@@ -1068,12 +1076,13 @@ pub struct GeometryBuilder<TVertex> {
 }
 
 impl<TVertex> GeometryBuilder<TVertex> {
-    /// Sets optional indices.
+    /// Sets the index list used for indexed draws. Omit this call to draw vertices in array order.
     ///
     /// # Arguments
     ///
-    /// - `indices` supplies zero-based references into the vertex array in the order required by the
-    ///   pipeline topology.
+    /// - `indices` supplies zero-based references into the vertex array in the order required by
+    ///   the pipeline topology. Pass a nonempty array or vector. [`Self::build`] checks index
+    ///   bounds and draw counts.
     ///
     /// # Example
     ///
@@ -1091,7 +1100,8 @@ impl<TVertex> GeometryBuilder<TVertex> {
     ///
     /// # Arguments
     ///
-    /// - `preference` selects preferred host or device placement for the geometry buffers.
+    /// - `preference` selects preferred host or device placement for the geometry buffers. See
+    ///   [`BufferMemoryPreference`].
     ///
     /// # Example
     ///
@@ -1192,8 +1202,9 @@ impl<TData> Uniform<TData> {
     ///
     /// # Arguments
     ///
-    /// - `data` supplies the initial shader-visible value with the layout expected by the uniform
-    ///   binding.
+    /// - `data` supplies the initial shader-visible value. Pass a type that implements
+    ///   [`BufferContents`] at build time and matches the shader's uniform block layout.
+    ///   For example, `[f32; 4]` can represent a block containing a single `vec4`.
     ///
     /// # Example
     ///
@@ -1257,7 +1268,8 @@ impl<TData> UniformBuilder<TData> {
     ///
     /// # Arguments
     ///
-    /// - `preference` selects preferred host or device placement for the uniform buffer.
+    /// - `preference` selects preferred host or device placement for the uniform buffer. See
+    ///   [`BufferMemoryPreference`].
     ///
     /// # Example
     ///
@@ -1345,7 +1357,9 @@ impl<TData> FrameUniform<TData> {
     ///
     /// # Arguments
     ///
-    /// - `data` supplies the initial shader-visible value copied into each swapchain image's slot.
+    /// - `data` supplies the initial value copied into each swapchain image's slot. Pass a
+    ///   cloneable type implementing [`BufferContents`] with the layout declared in the shader's
+    ///   uniform block. See [`Uniform`] for an example value layout.
     ///
     /// # Example
     ///
@@ -1407,7 +1421,8 @@ impl<TData> FrameUniformBuilder<TData> {
     ///
     /// # Arguments
     ///
-    /// - `preference` selects preferred host or device placement for the frame uniform slots.
+    /// - `preference` selects preferred host or device placement for the frame uniform slots. See
+    ///   [`BufferMemoryPreference`].
     ///
     /// # Example
     ///
@@ -1571,6 +1586,11 @@ impl Resources {
 
 /// Builder for raw descriptor resources.
 ///
+/// Take each `set` and `binding` pair from the pipeline's shader declarations. Use one binding
+/// per pair and choose the method that matches the shader's descriptor kind.
+/// [`Self::build`] validates bindings before creating descriptor sets. Frame-uniform slots must
+/// agree on the swapchain image count, which is checked again at frame submission.
+///
 /// This handle implements `Send + Sync` and may be moved or shared between Rust threads. This
 /// does not make [`Context`] or [`Window`] thread-safe; building or using resources still requires
 /// the owning context and window on their permitted threads.
@@ -1592,7 +1612,8 @@ impl ResourcesBuilder {
     ///
     /// - `set` identifies the descriptor set declared by the shader.
     /// - `binding` identifies the frame-uniform descriptor within that set.
-    /// - `uniform` supplies slots built for the window that will submit the draw.
+    /// - `uniform` supplies slots from [`FrameUniformBuilder::build`] for the window that will
+    ///   submit the draw. The uniform's data layout must match the declared block.
     ///
     /// # Example
     ///
@@ -1636,7 +1657,8 @@ impl ResourcesBuilder {
     ///
     /// - `set` identifies the descriptor set declared by the shader.
     /// - `binding` identifies the uniform descriptor within that set.
-    /// - `uniform` supplies a buffer built from the same context as the pipeline.
+    /// - `uniform` supplies a buffer from [`UniformBuilder::build`] using the pipeline's context
+    ///   and a value layout matching the declared block.
     ///
     /// # Example
     ///
@@ -1667,13 +1689,10 @@ impl ResourcesBuilder {
     /// - `set` identifies the descriptor set declared by the shader.
     /// - `binding` identifies the combined image-sampler descriptor within that set.
     /// - `texture` supplies the default texture view from the pipeline's context.
-    /// - `sampler` supplies a compatible sampler from the pipeline's context.
+    /// - `sampler` supplies a sampler from the pipeline's context. Use
+    ///   [`TextureView2D::validate_sampler`] with the default view to check the pairing.
     ///
-    /// # Errors
-    ///
-    /// [`Self::build`] returns `InvalidState` with set/binding detail for a context,
-    /// descriptor-type, sampled-usage, or sampler-compatibility mismatch, or when a
-    /// required descriptor is missing or duplicated.
+    /// [`Self::build`] checks this binding against the shader and the other resources.
     ///
     /// # Example
     ///
@@ -1707,13 +1726,10 @@ impl ResourcesBuilder {
     /// - `set` identifies the descriptor set declared by the shader.
     /// - `binding` identifies the combined image-sampler descriptor within that set.
     /// - `view` supplies a texture view from the pipeline's context.
-    /// - `sampler` supplies a sampler compatible with `view` and built from the same context.
+    /// - `sampler` supplies a sampler from the pipeline's context. Use
+    ///   [`TextureView2D::validate_sampler`] on `view` to check the pairing.
     ///
-    /// # Errors
-    ///
-    /// [`Self::build`] returns `InvalidState` with set/binding detail for a context,
-    /// descriptor-type, sampled-usage, shader/view, or sampler-compatibility mismatch, or when a
-    /// required descriptor is missing or duplicated.
+    /// [`Self::build`] checks this binding against the shader and the other resources.
     ///
     /// # Example
     ///
@@ -1749,11 +1765,7 @@ impl ResourcesBuilder {
     /// - `binding` identifies the sampled-image descriptor within that set.
     /// - `texture` supplies the default texture view from the pipeline's context.
     ///
-    /// # Errors
-    ///
-    /// [`Self::build`] returns `InvalidState` with set/binding detail for a context,
-    /// descriptor-type, image-view/shader compatibility, or sampled-usage mismatch, or
-    /// when a required descriptor is missing or duplicated.
+    /// [`Self::build`] checks descriptor coverage and image compatibility with the shader.
     ///
     /// # Example
     ///
@@ -1782,11 +1794,7 @@ impl ResourcesBuilder {
     /// - `binding` identifies the sampled-image descriptor within that set.
     /// - `view` supplies a sampled texture view from the pipeline's context.
     ///
-    /// # Errors
-    ///
-    /// [`Self::build`] returns `InvalidState` with set/binding detail for a context,
-    /// descriptor-type, image-view/shader compatibility, or sampled-usage mismatch, or when a
-    /// required descriptor is missing or duplicated.
+    /// [`Self::build`] checks descriptor coverage and view compatibility with the shader.
     ///
     /// # Example
     ///
@@ -1813,13 +1821,8 @@ impl ResourcesBuilder {
     ///
     /// - `set` identifies the descriptor set declared by the shader.
     /// - `binding` identifies the sampler descriptor within that set.
-    /// - `sampler` supplies a sampler built from the pipeline's context.
-    ///
-    /// # Errors
-    ///
-    /// [`Self::build`] returns `InvalidState` with set/binding detail for a context,
-    /// descriptor-type, shader/sampler compatibility, or unrepresentable depth-compare
-    /// mismatch, or when a required descriptor is missing or duplicated.
+    /// - `sampler` supplies a sampler from [`crate::texture::SamplerBuilder::build`] using
+    ///   the pipeline's context and a configuration compatible with the shader's sampling.
     ///
     /// # Example
     ///
@@ -1846,11 +1849,11 @@ impl ResourcesBuilder {
     ///
     /// # Errors
     ///
-    /// Returns an error if bindings are missing, extra, unsupported, or duplicated,
-    /// if a supplied buffer belongs to a different context, or if static
-    /// descriptor set allocation fails. Bindings are validated here for both
-    /// `Uniform` and `FrameUniform`; descriptor sets for `FrameUniform` bindings
-    /// are allocated later during frame recording.
+    /// Returns `InvalidState` for missing, extra, unsupported, or duplicate bindings, a context
+    /// mismatch, incompatible sampled resources, or disagreeing frame-uniform image counts.
+    /// Returns `VulkanDescriptorSetCreationFailed` if a static descriptor set cannot be created.
+    /// Bindings for both [`Uniform`] and [`FrameUniform`] are validated here. Descriptor sets
+    /// for frame-uniform bindings are allocated during frame recording.
     ///
     /// # Example
     ///

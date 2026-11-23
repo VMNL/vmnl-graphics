@@ -164,7 +164,7 @@ impl SamplerConfig {
     ///
     /// # Arguments
     ///
-    /// - `filter` selects the filter used when sampling a minified texture.
+    /// - `filter` selects the filter used when sampling a minified texture. See [`Filter`].
     ///
     /// # Example
     ///
@@ -179,7 +179,7 @@ impl SamplerConfig {
     ///
     /// # Arguments
     ///
-    /// - `filter` selects the filter used when sampling a magnified texture.
+    /// - `filter` selects the filter used when sampling a magnified texture. See [`Filter`].
     ///
     /// # Example
     ///
@@ -194,7 +194,7 @@ impl SamplerConfig {
     ///
     /// # Arguments
     ///
-    /// - `filter` selects how adjacent mip levels are sampled.
+    /// - `filter` selects how adjacent mip levels are sampled. See [`Filter`].
     ///
     /// # Example
     ///
@@ -209,7 +209,7 @@ impl SamplerConfig {
     ///
     /// # Arguments
     ///
-    /// - `mode` selects how out-of-range horizontal coordinates are addressed.
+    /// - `mode` selects how out-of-range horizontal coordinates are addressed. See [`AddressMode`].
     ///
     /// # Example
     ///
@@ -224,7 +224,7 @@ impl SamplerConfig {
     ///
     /// # Arguments
     ///
-    /// - `mode` selects how out-of-range vertical coordinates are addressed.
+    /// - `mode` selects how out-of-range vertical coordinates are addressed. See [`AddressMode`].
     ///
     /// # Example
     ///
@@ -239,7 +239,8 @@ impl SamplerConfig {
     ///
     /// # Arguments
     ///
-    /// - `color` selects the typed border color for coordinates addressed via `ClampToBorder`.
+    /// - `color` selects the typed border color for coordinates addressed via `ClampToBorder`. See
+    ///   [`SamplerBorderColor`].
     ///
     /// # Example
     ///
@@ -269,7 +270,8 @@ impl SamplerConfig {
     ///
     /// # Arguments
     ///
-    /// - `limit` supplies either an explicit upper bound in mip levels or the unbounded setting.
+    /// - `limit` supplies either an explicit upper bound in mip levels or the unbounded setting. See
+    ///   [`SamplerLodLimit`].
     ///
     /// # Example
     ///
@@ -314,7 +316,11 @@ impl SamplerConfig {
     ///
     /// # Arguments
     ///
-    /// - `mode` selects normalized or texel-space coordinates.
+    /// - `mode` selects a [`SamplerCoordinateMode`]. [`SamplerCoordinateMode::Normalized`] is
+    ///   the default. [`SamplerCoordinateMode::Texel`] requires equal minification/magnification
+    ///   filters, [`Filter::Nearest`] mip filtering, zero min/max LOD and LOD bias, anisotropy
+    ///   `1.0`, and clamp-to-edge or clamp-to-border addressing on both axes.
+    ///   [`Self::validate`] checks these combinations.
     ///
     /// # Example
     ///

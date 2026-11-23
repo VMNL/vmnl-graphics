@@ -370,7 +370,7 @@ impl GamepadState {
     ///
     /// # Arguments
     ///
-    /// - `button` selects a control from the standard gamepad button layout.
+    /// - `button` selects a control from the standard gamepad button layout. See [`GamepadButton`].
     ///
     /// # Example
     ///
@@ -396,7 +396,7 @@ impl GamepadState {
     ///
     /// # Arguments
     ///
-    /// - `axis` selects a control from the standard gamepad axis layout.
+    /// - `axis` selects a control from the standard gamepad axis layout. See [`GamepadAxis`].
     ///
     /// # Example
     ///
@@ -477,7 +477,8 @@ impl StickConfig {
     /// # Arguments
     ///
     /// - `radial_dead_zone` supplies the normalized radius within which stick movement is suppressed.
-    /// - `angle_convention` selects the orientation used for processed stick vectors and angles.
+    /// - `angle_convention` selects the orientation used for processed stick vectors and angles. See
+    ///   [`StickAngleConvention`].
     ///
     /// # Errors
     ///
@@ -542,7 +543,8 @@ impl StickConfig {
     ///
     /// # Arguments
     ///
-    /// - `angle_convention` selects the replacement orientation for processed vectors and angles.
+    /// - `angle_convention` selects the replacement orientation for processed vectors and angles. See
+    ///   [`StickAngleConvention`].
     ///
     /// # Example
     ///
@@ -876,7 +878,7 @@ impl JoystickState {
     ///
     /// # Arguments
     ///
-    /// - `button` selects the standard mapped button to query.
+    /// - `button` selects the standard mapped button to query. See [`GamepadButton`].
     ///
     /// # Example
     ///
@@ -891,7 +893,8 @@ impl JoystickState {
     ///
     /// # Arguments
     ///
-    /// - `button` selects the standard mapped button whose press transition is queried.
+    /// - `button` selects the standard mapped button whose press transition is queried. See
+    ///   [`GamepadButton`].
     ///
     /// # Example
     ///
@@ -906,7 +909,8 @@ impl JoystickState {
     ///
     /// # Arguments
     ///
-    /// - `button` selects the standard mapped button whose release transition is queried.
+    /// - `button` selects the standard mapped button whose release transition is queried. See
+    ///   [`GamepadButton`].
     ///
     /// # Example
     ///
@@ -921,7 +925,8 @@ impl JoystickState {
     ///
     /// # Arguments
     ///
-    /// - `buttons` supplies the mapped buttons treated as alternatives for the held-state check.
+    /// - `buttons` supplies the mapped buttons treated as alternatives for the held-state check. See
+    ///   [`GamepadButton`].
     ///
     /// # Example
     ///
@@ -935,7 +940,8 @@ impl JoystickState {
     ///
     /// # Arguments
     ///
-    /// - `buttons` supplies the mapped buttons treated as alternatives for the press check.
+    /// - `buttons` supplies the mapped buttons treated as alternatives for the press check. See
+    ///   [`GamepadButton`].
     ///
     /// # Example
     ///
@@ -949,7 +955,8 @@ impl JoystickState {
     ///
     /// # Arguments
     ///
-    /// - `buttons` supplies the mapped buttons treated as alternatives for the release check.
+    /// - `buttons` supplies the mapped buttons treated as alternatives for the release check. See
+    ///   [`GamepadButton`].
     ///
     /// # Example
     ///

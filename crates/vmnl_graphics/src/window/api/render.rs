@@ -59,7 +59,7 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     ///
     /// # Arguments
     ///
-    /// - `mode`: Submission strategy used for objects inside each pass.
+    /// - `mode`: Submission strategy used for objects inside each pass. See [`RenderMode`].
     ///
     /// # Example
     ///
@@ -132,9 +132,10 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     ///
     /// # Arguments
     ///
-    /// - `pipeline` supplies the raw pipeline built for this frame's window.
-    /// - `geometries` supplies the meshes to draw in array order, with the vertex layout expected by
-    ///   `pipeline`.
+    /// - `pipeline` supplies the raw pipeline from [`crate::raw::PipelineSpec::build`] for this
+    ///   frame's window. Use [`crate::raw::Pipeline::validate_target`] to check the target.
+    /// - `geometries` supplies meshes built on the window's context, in draw order, with the
+    ///   vertex layout expected by `pipeline`.
     ///
     /// # Example
     ///
@@ -183,10 +184,12 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     ///
     /// # Arguments
     ///
-    /// - `pipeline` supplies the raw pipeline built for this frame's window.
-    /// - `resources` supplies descriptor bindings built for the pipeline's layout.
-    /// - `geometries` supplies the meshes to draw in array order, with the vertex layout expected by
-    ///   `pipeline`.
+    /// - `pipeline` supplies the raw pipeline built for this frame's window. Use
+    ///   [`crate::raw::Pipeline::validate_target`] to check the target.
+    /// - `resources` supplies descriptor bindings built from [`crate::raw::Resources::builder`]
+    ///   using this pipeline and its context.
+    /// - `geometries` supplies meshes built on the window's context, in draw order, with the vertex
+    ///   layout expected by `pipeline`.
     ///
     /// # Example
     ///

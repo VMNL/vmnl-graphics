@@ -158,7 +158,7 @@ impl InputRuntime {
     /// # Arguments
     ///
     /// - `id` identifies a GLFW slot. Use an ID from an event or construct one with
-    ///   `JoystickId::from_index`.
+    ///   `JoystickId::from_index`. See [`crate::JoystickId`].
     ///
     /// # Errors
     ///
@@ -220,8 +220,8 @@ impl InputRuntime {
     ///
     /// # Arguments
     ///
-    /// - `callback` receives each connection event and its opaque user pointer synchronously during
-    ///   event processing.
+    /// - `callback` receives a connection event borrowed for the invocation and the slot's opaque
+    ///   user pointer. Use owned captures for the `'static` registration.
     ///
     /// # Example
     ///
@@ -325,7 +325,7 @@ impl InputRuntime {
     ///
     /// # Arguments
     ///
-    /// - `id` identifies the GLFW slot whose process-wide pointer to read.
+    /// - `id` identifies the GLFW slot whose process-wide pointer to read. See [`crate::JoystickId`].
     ///
     /// # Safety
     ///
@@ -348,7 +348,8 @@ impl InputRuntime {
     ///
     /// # Arguments
     ///
-    /// - `id` identifies the GLFW slot whose process-wide pointer to replace.
+    /// - `id` identifies the GLFW slot whose process-wide pointer to replace. See
+    ///   [`crate::JoystickId`].
     /// - `pointer` supplies application-owned data as an opaque pointer. Use a null pointer to clear
     ///   the association.
     ///

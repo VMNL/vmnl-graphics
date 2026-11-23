@@ -102,7 +102,8 @@ impl DeviceConfig {
     ///
     /// # Arguments
     ///
-    /// - `feature` identifies a device feature that the selected GPU must support and enable.
+    /// - `feature` identifies a device feature that the selected GPU must support and enable. See
+    ///   [`DeviceFeature`].
     ///
     /// # Example
     ///
@@ -120,7 +121,8 @@ impl DeviceConfig {
     ///
     /// # Arguments
     ///
-    /// - `features` supplies device features that must all be supported by the selected GPU.
+    /// - `features` supplies device features that must all be supported by the selected GPU. See
+    ///   [`DeviceFeature`].
     ///
     /// # Example
     ///
@@ -205,7 +207,8 @@ impl ContextBuilder {
     ///
     /// # Arguments
     ///
-    /// - `config` supplies the required device features, typically from `DeviceConfig::default`.
+    /// - `config` supplies the required device features, typically from `DeviceConfig::default`. See
+    ///   [`DeviceConfig`].
     ///
     /// # Example
     ///
@@ -230,7 +233,8 @@ impl ContextBuilder {
     ///
     /// # Arguments
     ///
-    /// - `defaults` supplies the initial defaults for texture creation and explicit views.
+    /// - `defaults` supplies the initial defaults for texture creation and explicit views. See
+    ///   [`TextureDefaults`].
     ///
     /// # Example
     ///

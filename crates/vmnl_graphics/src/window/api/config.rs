@@ -366,7 +366,8 @@ impl Window {
     ///
     /// # Arguments
     ///
-    /// - `color`: Color convertible to `Rgba`, for example `Rgba::BLACK`, `[r, g, b]`, or `[r, g, b, a]`.
+    /// - `color`: Color convertible to [`Rgba`], for example `Rgba::BLACK`, `[r, g, b]`, or
+    ///   `[r, g, b, a]`.
     ///
     /// # Example
     ///

@@ -155,7 +155,8 @@ impl Context {
     ///
     /// # Arguments
     ///
-    /// - `feature` identifies the capability to query on the selected physical device.
+    /// - `feature` identifies the capability to query on the selected physical device. See
+    ///   [`DeviceFeature`].
     ///
     /// # Example
     ///
@@ -171,7 +172,8 @@ impl Context {
     ///
     /// # Arguments
     ///
-    /// - `feature` identifies the capability to check on the active logical device.
+    /// - `feature` identifies the capability to check on the active logical device. See
+    ///   [`DeviceFeature`].
     ///
     /// # Example
     ///
@@ -214,7 +216,7 @@ impl Context {
     ///
     /// # Arguments
     ///
-    /// - `key` supplies a named key, for example from a keyboard event.
+    /// - `key` supplies a named key, for example from a keyboard event. See [`Key`].
     ///
     /// # Example
     ///
@@ -244,7 +246,7 @@ impl Context {
     /// # Arguments
     ///
     /// - `scancode` supplies a platform scancode, for example from a keyboard event or
-    ///   `Context::get_key_scancode`.
+    ///   `Context::get_key_scancode`. See [`Scancode`].
     ///
     /// # Example
     ///
@@ -277,7 +279,7 @@ impl Context {
     ///
     /// # Arguments
     ///
-    /// - `key` supplies the VMNL key whose native scancode is requested.
+    /// - `key` supplies the VMNL key whose native scancode is requested. See [`Key`].
     ///
     /// # Example
     ///

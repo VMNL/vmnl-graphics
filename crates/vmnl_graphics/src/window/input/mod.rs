@@ -100,7 +100,7 @@ impl Input {
     ///
     /// # Arguments
     ///
-    /// - `id` identifies a slot from a joystick event or `JoystickId::from_index`.
+    /// - `id` identifies a slot from a joystick event or `JoystickId::from_index`. See [`JoystickId`].
     ///
     /// # Example
     ///

@@ -754,7 +754,7 @@ impl KeyboardState {
     ///
     /// # Arguments
     ///
-    /// - `key`: The `Key` variant to check.
+    /// - `key`: The [`Key`] variant to check.
     ///
     /// # Example
     ///
@@ -775,7 +775,7 @@ impl KeyboardState {
     ///
     /// # Arguments
     ///
-    /// - `key`: The `Key` variant to check.
+    /// - `key`: The [`Key`] variant to check.
     ///
     /// # Example
     ///
@@ -796,7 +796,7 @@ impl KeyboardState {
     ///
     /// # Arguments
     ///
-    /// - `key`: The `Key` variant to check.
+    /// - `key`: The [`Key`] variant to check.
     ///
     /// # Example
     ///
@@ -817,7 +817,7 @@ impl KeyboardState {
     ///
     /// # Arguments
     ///
-    /// - `keys`: A slice of `Key` variants to check.
+    /// - `keys`: A slice of [`Key`] variants to check.
     ///
     /// # Example
     ///
@@ -843,7 +843,7 @@ impl KeyboardState {
     ///
     /// # Arguments
     ///
-    /// - `keys`: A slice of `Key` variants to check.
+    /// - `keys`: A slice of [`Key`] variants to check.
     ///
     /// # Example
     ///
@@ -869,7 +869,7 @@ impl KeyboardState {
     ///
     /// # Arguments
     ///
-    /// - `keys`: A slice of `Key` variants to check.
+    /// - `keys`: A slice of [`Key`] variants to check.
     ///
     /// # Example
     ///
@@ -895,7 +895,7 @@ impl KeyboardState {
     ///
     /// # Arguments
     ///
-    /// - `keys`: A slice of `Key` variants to check.
+    /// - `keys`: A slice of [`Key`] variants to check.
     ///
     /// # Example
     ///

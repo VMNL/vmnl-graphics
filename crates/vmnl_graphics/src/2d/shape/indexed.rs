@@ -68,7 +68,7 @@ impl IndexedShapeBuilder {
     ///
     /// # Arguments
     ///
-    /// - `preference`: Preferred GPU buffer memory placement.
+    /// - `preference`: Preferred GPU buffer memory placement. See [`BufferMemoryPreference`].
     ///
     /// # Example
     ///

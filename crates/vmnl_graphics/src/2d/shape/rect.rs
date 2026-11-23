@@ -277,7 +277,8 @@ impl RectBuilder {
     ///
     /// # Arguments
     ///
-    /// - `color`: Color convertible to `Rgba`, for example `Rgba::RED`, `[r, g, b]`, or `[r, g, b, a]`.
+    /// - `color`: Color convertible to [`Rgba`], for example `Rgba::RED`, `[r, g, b]`, or
+    ///   `[r, g, b, a]`.
     ///
     /// # Example
     ///
@@ -334,7 +335,7 @@ impl RectBuilder {
     ///
     /// # Arguments
     ///
-    /// - `anchor`: Predefined local origin used as the rotation pivot.
+    /// - `anchor`: Predefined local origin used as the rotation pivot. See [`Anchor`].
     ///
     /// # Example
     ///
@@ -480,7 +481,7 @@ impl RectBuilder {
     ///
     /// # Arguments
     ///
-    /// - `preference`: Preferred GPU buffer memory placement.
+    /// - `preference`: Preferred GPU buffer memory placement. See [`BufferMemoryPreference`].
     ///
     /// # Example
     ///

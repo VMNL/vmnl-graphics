@@ -135,7 +135,8 @@ impl PolylineBuilder {
     ///
     /// # Arguments
     ///
-    /// - `cap` selects the end treatment for an open path from the `LineCap` variants.
+    /// - `cap` selects the end treatment for an open path from the [`LineCap`](super::LineCap)
+    ///   variants. Closing the path disables end caps.
     ///
     /// # Example
     ///
@@ -153,7 +154,7 @@ impl PolylineBuilder {
     ///
     /// # Arguments
     ///
-    /// - `join` selects how adjacent segments meet at a corner from the `LineJoin` variants.
+    /// - `join` selects how adjacent segments meet at a corner from the [`LineJoin`] variants.
     ///
     /// # Example
     ///
@@ -190,7 +191,7 @@ impl PolylineBuilder {
     ///
     /// # Arguments
     ///
-    /// - `color` supplies the stroke color as an `Rgba` value or an RGB/RGBA byte array.
+    /// - `color` supplies the stroke color as an [`Rgba`] value or an RGB/RGBA byte array.
     ///
     /// # Example
     ///
@@ -229,15 +230,15 @@ impl PolylineBuilder {
 
     /// Sets one flat color for each path segment.
     ///
-    /// Open paths need `points.len() - 1` colors; closed paths need one color
-    /// per point. Adjacent segments with different colors meet at a hard,
-    /// deterministic transition through the join. Calling this method replaces
-    /// the selected uniform or point color mode.
+    /// Open paths need `points.len() - 1` colors. Paths made closed by [`Self::closed`]
+    /// need one color per point, including the closing segment. [`Self::build`] checks the
+    /// count. Adjacent segments with different colors meet at a hard transition through
+    /// the join. This call replaces the selected uniform or point color mode.
     ///
     /// # Arguments
     ///
-    /// - `colors` supplies one color per path segment, in traversal order, including the closing
-    ///   segment when closed.
+    /// - `colors` supplies one [`Rgba`] per path segment, in traversal order. Pass an array or
+    ///   vector of colors.
     ///
     /// # Example
     ///
@@ -272,7 +273,8 @@ impl PolylineBuilder {
     ///
     /// # Arguments
     ///
-    /// - `preference` selects preferred host or device placement for the vertex and index buffers.
+    /// - `preference` selects preferred host or device placement for the vertex and index buffers. See
+    ///   [`BufferMemoryPreference`].
     ///
     /// # Example
     ///
