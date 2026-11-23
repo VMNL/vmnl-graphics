@@ -18,6 +18,7 @@ fn main() -> VMNLResult<()> {
         .set_clear_color([8, 10, 14, 255])
         .present_mode(PresentMode::Auto);
 
+    let shaders = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("shaders");
     if std::env::var_os("VMNL_INLINE_SHADERS").is_some() {
         builder = builder
             .vertex_shader(ShaderSource::Src(VERT_SRC.into()))
@@ -25,12 +26,8 @@ fn main() -> VMNLResult<()> {
         println!("shader source: inline strings");
     } else {
         builder = builder
-            .vertex_shader(ShaderSource::Path(
-                "examples/window/custom_shaders/shaders/color.vert".into(),
-            ))
-            .fragment_shader(ShaderSource::Path(
-                "examples/window/custom_shaders/shaders/color.frag".into(),
-            ));
+            .vertex_shader(ShaderSource::Path(shaders.join("color.vert")))
+            .fragment_shader(ShaderSource::Path(shaders.join("color.frag")));
         println!("shader source: files");
     }
 

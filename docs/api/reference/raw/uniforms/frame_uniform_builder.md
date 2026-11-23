@@ -38,4 +38,4 @@ Depends on the window swapchain and device uniform-buffer layout/size limits.
 
 ## Example and related types
 
-See [`FrameUniform`](frame_uniform.md) and [`examples/raw/uniform`](../../../../../examples/raw/uniform/src/main.rs).
+See [`FrameUniform`](frame_uniform.md) and [`examples/raw/frame_uniform`](../../../../../examples/raw/frame_uniform/src/main.rs).

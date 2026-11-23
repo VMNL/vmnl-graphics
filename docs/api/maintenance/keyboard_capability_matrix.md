@@ -88,7 +88,7 @@ layout, input method, physical keyboard, or standalone Wayland seat.
 Run the public VMNL workflow:
 
 ```bash
-just run window_events_input
+just run input_keyboard
 ```
 
 1. Inspect the startup queries for `A`, `Semicolon`, `Kp0`, and `Escape`. On Wayland, `name` and
@@ -99,12 +99,13 @@ just run window_events_input
 2. Press representative alphanumeric, punctuation, navigation, keypad, function, and modifier
    keys. For named keys, verify `scancode_matches=true` between the event and queried scancode.
 3. Hold a repeatable key and verify repeat events without repeated `is_pressed` transitions.
-4. Enter accented and composed text, then exercise Shift, Control, Alt, Super, Caps Lock, and Num
-   Lock where available. Record unsupported legacy modified-text delivery explicitly.
-5. Use right click to disable and restore key-event delivery; verify keyboard snapshots continue to
-   update. Use `F9` and `F10` to check independent text and legacy modified-text delivery.
-6. Toggle sticky-key configuration with `K`, then Alt+Tab away and back; verify recovery and the
-   absence of stuck keyboard state.
+4. Exercise Shift, Control, Alt, Super, Caps Lock, and Num Lock where available.
+5. Toggle sticky-key configuration with `F2`, then Alt+Tab away and back. Verify that no key
+   remains stuck.
+6. Run `just run input_text` and enter accented and composed text. Use `F9` and `F10` to check
+   independent text and legacy modified-text delivery. Record unsupported legacy delivery.
+7. Run `just run window_event_polling` and press Space to disable and restore key-event
+   delivery. Verify that the `A` snapshot continues to update.
 
 Qualify the underlying GLFW sticky latch separately because VMNL deliberately does not expose the
 consuming `glfwGetKey` read. Replace `wayland` with `x11` when testing that backend, focus the probe

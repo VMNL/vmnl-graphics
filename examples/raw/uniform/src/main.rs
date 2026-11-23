@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Hugo Duda
 // SPDX-License-Identifier: MIT
 
+//! Write a static raw uniform before the first submission.
+
 use vmnl_graphics::{raw, Context, PresentMode, VMNLResult, Window};
 
 const VERT: &str = r#"
@@ -57,7 +59,7 @@ struct RawUniform {
 fn main() -> VMNLResult<()> {
     let context = Context::new()?;
     let mut window = Window::builder()
-        .title("VMNL raw uniform")
+        .title("VMNL raw_uniform | fixed tint and offset")
         .size(900, 600)
         .set_clear_color([8, 10, 14, 255])
         .present_mode(PresentMode::Auto)
@@ -70,13 +72,18 @@ fn main() -> VMNLResult<()> {
         .blend_mode(raw::BlendMode::Alpha)
         .build(&window)?;
 
-    let mut uniform = raw::FrameUniform::builder(RawUniform {
+    let mut uniform = raw::Uniform::builder(RawUniform {
         tint: [0.35, 0.35, 0.35, 0.95],
         offset: [0.0, 0.0, 0.0, 0.0],
     })
-    .build(&window)?;
+    .build(&context)?;
+    // The buffer is not in flight before its first submission.
+    uniform.write(RawUniform {
+        tint: [0.8, 1.0, 0.5, 1.0],
+        offset: [0.18, 0.0, 0.0, 0.0],
+    })?;
     let resources = raw::Resources::builder(&pipeline)
-        .frame_uniform(0, 0, &uniform)
+        .uniform(0, 0, &uniform)
         .build(&context)?;
 
     let geometry = raw::Geometry::builder([
@@ -95,17 +102,10 @@ fn main() -> VMNLResult<()> {
     ])
     .build(&context)?;
 
-    let mut phase = 0.0_f32;
     while window.is_open() {
         for _ in window.poll_events() {}
-        phase = (phase + 0.025) % std::f32::consts::TAU;
-        let pulse = phase.sin().mul_add(0.5, 0.5);
-        let offset = [phase.sin() * 0.22, (phase * 0.7).cos() * 0.12, 0.0, 0.0];
-        let tint = [0.35 + 0.65 * pulse, 0.55 + 0.30 * pulse, 1.0, 0.92];
-
         window
             .render()
-            .write_frame_uniform(&mut uniform, RawUniform { tint, offset })
             .draw_raw_2d_with(&pipeline, &resources, [&geometry])
             .submit()?;
     }

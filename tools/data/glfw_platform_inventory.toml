@@ -452,7 +452,7 @@ category = "events"
 introduced = "3.1"
 vmnl_usage = ["Window::post_empty_event"]
 backends = [{ name = "all", status = "supported", conditions = "GLFW initialized.", behavior = "Wakes an event wait with an empty event.", errors = ["GLFW_PLATFORM_ERROR"], sentinel = "No-op on error", source = "https://www.glfw.org/docs/3.4/group__window.html" }]
-proofs = ["justification:window_events_input exercises this path"]
+proofs = ["justification:window_wait_events exercises this path"]
 
 [[function]]
 c_symbol = "glfwGetTime"

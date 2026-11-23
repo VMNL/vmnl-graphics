@@ -20,22 +20,24 @@ Cargo directly; system dependencies remain a prerequisite.
 ```bash
 just --list
 just build
-just build raw_pipeline
+just build raw_triangle
 just build-workspace
 just hooks-install
 just run
-just run d2_shapes
+just run d2_rectangle
 just test
 just validate
 ```
 
-`just build` and `just run` default to `d2_shapes`. `just build-workspace` compiles every
+`just build` and `just run` default to `d2_rectangle`. `just build-workspace` compiles every
 workspace target. `just validate` runs the required non-GPU build, check, Rustdoc, and headless
 test sequence.
 
 ## Recipes
 
 ```text
+just example-new d2 outline_demo  scaffold and register a runnable example
+just example-check            check the workspace and example catalogue
 just test                  unit + API + smoke tests
 just test-unit             unit tests
 just test-api              API tests
@@ -119,7 +121,7 @@ pkg-config --variable=libdir shaderc
 Instrumentation:
 
 ```bash
-just build d2_shapes
+just build d2_rectangle
 ```
 
 Decision:

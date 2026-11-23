@@ -66,4 +66,6 @@ fn main() -> vmnl_graphics::VMNLResult<()> {
 
 Requirements filter GPUs before ranking and are mandatory together on one device. A lower-ranked compatible GPU can replace a higher-ranked incompatible candidate. No compatible device yields `DeviceRequirementsNotMet`; the caller must explicitly change requirements or the environment. Support reported by `is_device_feature_supported` is distinct from activation reported by `is_device_feature_enabled`; unrequested capabilities can be supported but disabled. Device limits still apply.
 
-`raw_pipeline` requires `LargePoints` for its point shader and prints the selected GPU and enabled state before creating the window. An operator should check the example's points and existing topology/culling workflows, then run `raw_triangle`, `raw_uniform`, and `raw_d2_composition` for visible regressions. Context/feature GPU tests do not assert displayed pixels.
+Run `just run raw_point_size` for a window that requires `LargePoints`. Verify that the three
+points appear larger than a pixel on the selected device. Use the [pipeline scenarios](create_raw_pipeline.md#inspect-pipeline-state)
+to check topology, culling and the other device feature requirements independently.

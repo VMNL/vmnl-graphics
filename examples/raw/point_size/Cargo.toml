@@ -1,0 +1,8 @@
+[package]
+name = "raw_point_size"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[dependencies]
+vmnl_graphics = { path = "../../../crates/vmnl_graphics" }

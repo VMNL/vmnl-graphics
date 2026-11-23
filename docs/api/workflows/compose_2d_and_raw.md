@@ -17,11 +17,13 @@ window.render()
 # }
 ```
 
-The canonical runnable composition is [`examples/raw/d2_composition`](../../../examples/raw/d2_composition/src/main.rs).
+Run [`raw_d2_composition`](../../../examples/raw/d2_composition/src/main.rs). The raw quad
+partly covers the 2D background, and the final white 2D marker remains in front of both.
 
 ## Inspect viewport and scissor policies
 
-Run `just run raw_d2_composition`. Four pipelines are built once at startup; key presses select an existing combination.
+Use `just run raw_viewport` and `just run raw_scissor` for the isolated policies.
+Run `just run raw_viewport_scissor` to exercise their interaction. Four pipelines are built once at startup; key presses select an existing combination.
 
 - `V` toggles full-framebuffer viewport / fixed viewport at `[100, 50]` with extent `[450, 300]` pixels. It moves/scales the alpha triangle's transform.
 - `S` toggles full-framebuffer scissor / fixed scissor at `[250, 150]` with extent `[100, 100]` pixels. With the fixed viewport selected (`V`), it visibly cuts the small triangle to the portion inside this rectangle, without changing its transform. Test all four combinations.
@@ -30,7 +32,7 @@ Run `just run raw_d2_composition`. Four pipelines are built once at startup; key
 - With the full viewport, a large framebuffer can place the entire triangle outside the small fixed scissor; disappearance is then expected. With the fixed viewport, partial clipping must remain visible after resize while the rectangle stays within the image.
 - The cyan square at `[20, 20]` is drawn by a 2D pass after the custom raw draw. It must remain visible and correctly positioned even with the fixed viewport/scissor selected. The green triangle uses a subsequent full-framebuffer raw pipeline and must remain in the upper-right area.
 
-An operator should verify those observations, then run `raw_triangle`, `raw_pipeline` (`C` / `F` / `P` / `W`) and `raw_uniform` for visible regressions. API tests verify policy resolution/ranges; GPU tests exercise mixed draws and resize without asserting displayed pixels.
+API tests verify policy resolution and ranges. GPU tests exercise mixed draws and resize. The observer checks displayed pixels.
 
 Policies are independent and immutable on a built pipeline. Inspect resolution without a GPU:
 
@@ -49,11 +51,11 @@ assert_eq!(spec.scissor_value().resolve([900, 600])?.offset, [250, 150]);
 
 ## Optional depth attachment regression
 
-Run the same scene with an explicit depth attachment:
+Use `just run raw_depth` for the isolated depth comparison. To check depth with viewport and scissor, run the interaction scene with an explicit depth attachment:
 
 ```bash
-VMNL_DEPTH_FORMAT=d16 just run raw_d2_composition
-VMNL_DEPTH_FORMAT=d32 just run raw_d2_composition
+VMNL_DEPTH_FORMAT=d16 just run raw_viewport_scissor
+VMNL_DEPTH_FORMAT=d32 just run raw_viewport_scissor
 ```
 
 `VMNL_DEPTH_FORMAT` accepts `none` (also the default), `d16`, or `d32`; invalid values fail explicitly. Unsupported formats fail at window build with `VulkanFormatNotSupported`. Startup prints the validated target configuration. No format or device fallback occurs.
@@ -66,7 +68,7 @@ With `none`, the original alpha triangle and `V` / `S` workflow above are unchan
 - Press `D` again: depth is disabled. The last drawn triangle wins again. The title and console print depth state and draw order.
 - Repeat with `V`, `S`, and resize. The yellow scissor outline, cyan 2D square and subsequent green depth-disabled raw marker must remain positioned and visible as before. The 2D background must not populate depth or occlude the raw triangles. Depth clears every frame; previous frames must not cause flicker/disappearance.
 
-Closing/reopening should work for both formats when supported. Run `raw_triangle`, `raw_pipeline` (`C` / `F` / `P` / `W`) and `raw_uniform` afterwards for visible regressions. GPU tests exercise pipeline creation, all comparison/write combinations, mixed passes, image reuse and resize; unit tests check backend state translation. They do not assert displayed pixels. These observations require an explicit operator report for manual graphical validation.
+Close and reopen the example with each supported format. GPU tests exercise comparison and write combinations, mixed passes, image reuse and resize. Record the operator's graphical observations separately.
 
 ## Inspect and preflight the target
 

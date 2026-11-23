@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Hugo Duda
 // SPDX-License-Identifier: MIT
 
+//! Render a triangle with a minimal raw pipeline.
+
 use vmnl_graphics::{raw, Context, PresentMode, VMNLResult, Window};
 
 const VERT: &str = r#"

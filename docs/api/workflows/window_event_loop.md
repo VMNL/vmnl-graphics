@@ -37,4 +37,4 @@ fn main() -> vmnl_graphics::VMNLResult<()> {
 }
 ```
 
-Runnable variants: [`events_input`](../../../examples/window/events_input/src/main.rs) and [`wait_events`](../../../examples/window/wait_events/src/main.rs). See [event processing](../reference/window/events/event_processing_and_timers.md).
+Runnable variants: [`window_event_polling`](../../../examples/window/event_polling/src/main.rs) and [`wait_events`](../../../examples/window/wait_events/src/main.rs). See [event processing](../reference/window/events/event_processing_and_timers.md).

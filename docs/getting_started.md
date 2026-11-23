@@ -20,13 +20,12 @@ cd vmnl-graphics
 ## Render a First Example
 
 ```bash
-just run d2_circles
+just run d2_rectangle
 ```
 
-Cargo builds `d2_circles` when needed. Expected result: a window opens and renders the circle-family
-example. This requires a Vulkan-capable GPU, a Vulkan loader, GLFW, and a display server.
+Cargo builds `d2_rectangle` when needed. Expected result: a window opens with a solid cyan rectangle. This requires a Vulkan-capable GPU, a Vulkan loader, GLFW, and a display server.
 
-The other workflows and current example limitations are listed in [Examples](examples.md#commands).
+See the [example catalogue](../examples/README.md) for focused scenarios and prerequisites.
 
 ## Verify the Checkout
 

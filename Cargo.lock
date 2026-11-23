@@ -111,28 +111,105 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "460fbee9c2c2f33933d720630a6a0bac33ba7053db5344fac858d4b8952d77d5"
 
 [[package]]
-name = "d2_advanced_geometry"
+name = "d2_alpha_order"
 version = "0.1.0"
 dependencies = [
  "vmnl_graphics",
 ]
 
 [[package]]
-name = "d2_circles"
+name = "d2_arc"
 version = "0.1.0"
 dependencies = [
  "vmnl_graphics",
 ]
 
 [[package]]
-name = "d2_shapes"
+name = "d2_circle"
 version = "0.1.0"
 dependencies = [
  "vmnl_graphics",
 ]
 
 [[package]]
-name = "d2_texture"
+name = "d2_ellipse"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "d2_indexed"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "d2_line"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "d2_polygon"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "d2_polyline"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "d2_polyline_joins"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "d2_rectangle"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "d2_rectangle_transform"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "d2_ring"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "d2_rounded_rectangle"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "d2_sector"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "d2_triangle"
 version = "0.1.0"
 dependencies = [
  "vmnl_graphics",
@@ -261,6 +338,48 @@ checksum = "d466e9454f08e4a911e14806c24e16fba1b4c121d1ea474396f396069cf949d9"
 dependencies = [
  "equivalent",
  "hashbrown",
+]
+
+[[package]]
+name = "input_cursor"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "input_cursor_modes"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "input_joystick"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "input_keyboard"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "input_mouse"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "input_text"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
 ]
 
 [[package]]
@@ -535,6 +654,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "raw_blend"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "raw_culling"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
 name = "raw_d2_composition"
 version = "0.1.0"
 dependencies = [
@@ -542,14 +675,91 @@ dependencies = [
 ]
 
 [[package]]
-name = "raw_pipeline"
+name = "raw_depth"
 version = "0.1.0"
 dependencies = [
  "vmnl_graphics",
 ]
 
 [[package]]
-name = "raw_texture"
+name = "raw_frame_uniform"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "raw_indexed_geometry"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "raw_line_width"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "raw_point_size"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "raw_scissor"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "raw_shader_path"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "raw_texture_address"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "raw_texture_bindings"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "raw_texture_filter"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "raw_texture_png"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "raw_texture_view"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "raw_topology"
 version = "0.1.0"
 dependencies = [
  "vmnl_graphics",
@@ -564,6 +774,27 @@ dependencies = [
 
 [[package]]
 name = "raw_uniform"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "raw_viewport"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "raw_viewport_scissor"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "raw_wireframe"
 version = "0.1.0"
 dependencies = [
  "vmnl_graphics",
@@ -880,6 +1111,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 
 [[package]]
+name = "window_clock"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "window_config"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
 name = "window_custom_shaders"
 version = "0.1.0"
 dependencies = [
@@ -887,7 +1132,28 @@ dependencies = [
 ]
 
 [[package]]
-name = "window_events_input"
+name = "window_event_polling"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "window_lifecycle"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "window_monitors"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "window_timer"
 version = "0.1.0"
 dependencies = [
  "vmnl_graphics",
