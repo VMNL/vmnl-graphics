@@ -51,6 +51,12 @@ status query fails. Pending uploads join the GPU dependency chain without a host
 
 `submit` returns `VulkanDeviceLost` when presentation or the subsequent fence submission reports device loss. Error cleanup can block the calling thread while the queue retires submitted resources.
 
+Recreation preserves the [surface color pair](../surface_color.md). `SurfaceColorPairLost` means
+the pair is absent from the current inventory. Retry if it returns or build a new window. An
+allocation failure while preparing replacement framebuffers can be retried. Subsequent submits
+return `SwapchainRecreationRequiresNewWindow` when native replacement failed after retiring the
+swapchain.
+
 Earlier `0.1.0` builds logged a presentation-stage out-of-date result and returned `Ok(())`. That result is now `Err(VulkanOutOfDate)`, matching the documented error contract. Callers that depended on the previous behavior must handle this transient error.
 
 Optional depth attachments are cleared with the window's immutable `RenderTargetConfig::clear_depth_value` each frame. High-level 2D disables depth testing/writes; each raw pipeline uses its own immutable `DepthState`. Depth values are shared between ordered raw draws in the frame, including across intervening 2D draws; 2D neither tests nor changes them. Resize allocates replacement depth images/views with the same count and extent as the new swapchain images; those allocation/format/extent errors propagate from submission.

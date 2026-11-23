@@ -51,6 +51,7 @@ members = [
     "examples/window/event_polling",
     "examples/window/lifecycle",
     "examples/window/monitors",
+    "examples/window/surface_color",
     "examples/window/timer",
     "examples/window/wait_events",
     "tests/api",

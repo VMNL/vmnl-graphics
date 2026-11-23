@@ -1037,6 +1037,7 @@ dependencies = [
 name = "vmnl_graphics"
 version = "0.1.0"
 dependencies = [
+ "ash",
  "bytemuck",
  "glfw",
  "log",
@@ -1147,6 +1148,13 @@ dependencies = [
 
 [[package]]
 name = "window_monitors"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
+name = "window_surface_color"
 version = "0.1.0"
 dependencies = [
  "vmnl_graphics",

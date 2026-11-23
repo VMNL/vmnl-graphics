@@ -15,6 +15,8 @@ Controls visibility, focus, minimized/maximized state, and application-driven cl
 ## Construction, defaults, and validation
 
 New windows start open; visibility/readiness are finalized by platform creation. No builder value is required for lifecycle operations.
+`is_ready` becomes false if swapchain recreation retires the old swapchain and native creation
+fails. It does not check whether the current framebuffer extent is renderable.
 
 ## Units, coordinates, and valid ranges
 

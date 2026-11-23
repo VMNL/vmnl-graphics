@@ -59,5 +59,6 @@ pub use window::{
     JoystickId, JoystickSample, JoystickState, JoystickStatus, Key, KeyboardState, Modifiers,
     MonitorInfo, Monitors, MouseButton, MouseState, PresentMode, RenderMode, RenderTargetConfig,
     RenderTargetInfo, Scancode, StandardCursor, StandardCursorBuilder, StickAngleConvention,
-    StickConfig, StickState, VideoMode, Window, WindowBuilder,
+    StickConfig, StickState, SurfaceColorConfig, SurfaceColorFallback, SurfaceColorInfo,
+    SurfaceColorPair, SurfaceColorSelection, SurfaceColorSpace, VideoMode, Window, WindowBuilder,
 };

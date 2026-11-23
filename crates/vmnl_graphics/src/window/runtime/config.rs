@@ -26,6 +26,8 @@ pub(crate) struct WindowConfig {
     pub(crate) render_target: crate::RenderTargetConfig,
     /// Resolved properties of the created render-pass attachments.
     pub(crate) render_target_info: crate::RenderTargetInfo,
+    /// Surface color request and pair resolved when this window was built.
+    pub(crate) surface_color_info: crate::SurfaceColorInfo,
 }
 
 impl VMNLWindow {

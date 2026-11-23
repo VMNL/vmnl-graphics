@@ -78,8 +78,22 @@ pub enum VMNLErrorKind {
     VulkanInitFailed,
     /// Vulkan surface creation failed.
     VulkanSurfaceCreationFailed,
+    /// Vulkan could not enumerate the format and color-space pairs of the surface.
+    VulkanSurfaceColorQueryFailed,
+    /// The surface did not report a pair satisfying the window's color policy.
+    SurfaceColorUnavailable {
+        /// Original per-window policy.
+        requested: crate::SurfaceColorConfig,
+    },
+    /// The window's previously selected pair is absent from a fresh surface report.
+    SurfaceColorPairLost {
+        /// The pair that the window requires to resume rendering.
+        pair: crate::SurfaceColorPair,
+    },
     /// Vulkan swapchain creation failed.
     VulkanSwapchainCreationFailed,
+    /// Swapchain replacement failed after retirement. The window must be rebuilt.
+    SwapchainRecreationRequiresNewWindow,
     /// Vulkan shader module creation failed.
     VulkanShaderModuleCreationFailed,
     /// Vulkan pipeline creation failed.
@@ -326,8 +340,20 @@ impl fmt::Display for VMNLError {
             VMNLErrorKind::VulkanSurfaceCreationFailed => {
                 f.write_str("vulkan surface creation failed")
             }
+            VMNLErrorKind::VulkanSurfaceColorQueryFailed => {
+                f.write_str("vulkan surface color query failed")
+            }
+            VMNLErrorKind::SurfaceColorUnavailable { requested } => {
+                write!(f, "surface offers no color pair for {requested:?}")
+            }
+            VMNLErrorKind::SurfaceColorPairLost { pair } => {
+                write!(f, "surface no longer offers {} / {}", pair.format(), pair.color_space())
+            }
             VMNLErrorKind::VulkanSwapchainCreationFailed => {
                 f.write_str("vulkan swapchain creation failed")
+            }
+            VMNLErrorKind::SwapchainRecreationRequiresNewWindow => {
+                f.write_str("swapchain recreation failed after retirement; rebuild the window")
             }
             VMNLErrorKind::VulkanShaderModuleCreationFailed => {
                 f.write_str("vulkan shader module creation failed")

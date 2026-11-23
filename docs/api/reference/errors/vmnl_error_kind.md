@@ -19,6 +19,7 @@ Classifies initialization, windowing, Vulkan, validation, and client-state failu
 | Texture source and upload | `TextureDecodeFailed(String)`, `TextureCpuAllocationFailed(String)`, `TextureSourceReadFailed(String)`, `TextureUploadFailed(String)`, `UnsupportedTextureSource(String)` |
 | Device requirements | `DeviceRequirementsNotMet { required_features: Vec<DeviceFeature> }` |
 | Pipeline rasterization | `DeviceFeatureNotEnabled { feature: DeviceFeature }`, `InvalidLineWidth { value: f32, min: f32, max: f32 }` |
+| Surface color and recreation | `VulkanSurfaceColorQueryFailed`, `SurfaceColorUnavailable { requested: SurfaceColorConfig }`, `SurfaceColorPairLost { pair: SurfaceColorPair }`, `SwapchainRecreationRequiresNewWindow` |
 
 Only `Debug` is derived. Human-readable text is provided through `VMNLError`'s `Display` implementation.
 

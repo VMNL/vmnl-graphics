@@ -2348,6 +2348,49 @@ impl core::marker::Unpin for vmnl_graphics::StickAngleConvention
 impl core::marker::UnsafeUnpin for vmnl_graphics::StickAngleConvention
 impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::StickAngleConvention
 impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::StickAngleConvention
+#[non_exhaustive] pub enum vmnl_graphics::SurfaceColorFallback
+pub vmnl_graphics::SurfaceColorFallback::FirstReported
+pub vmnl_graphics::SurfaceColorFallback::Reject
+impl core::clone::Clone for vmnl_graphics::SurfaceColorFallback
+pub fn vmnl_graphics::SurfaceColorFallback::clone(&self) -> vmnl_graphics::SurfaceColorFallback
+impl core::cmp::Eq for vmnl_graphics::SurfaceColorFallback
+impl core::cmp::PartialEq for vmnl_graphics::SurfaceColorFallback
+pub fn vmnl_graphics::SurfaceColorFallback::eq(&self, &vmnl_graphics::SurfaceColorFallback) -> bool
+impl core::default::Default for vmnl_graphics::SurfaceColorFallback
+pub fn vmnl_graphics::SurfaceColorFallback::default() -> vmnl_graphics::SurfaceColorFallback
+impl core::fmt::Debug for vmnl_graphics::SurfaceColorFallback
+pub fn vmnl_graphics::SurfaceColorFallback::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::SurfaceColorFallback
+impl core::marker::StructuralPartialEq for vmnl_graphics::SurfaceColorFallback
+impl core::marker::Freeze for vmnl_graphics::SurfaceColorFallback
+impl core::marker::Send for vmnl_graphics::SurfaceColorFallback
+impl core::marker::Sync for vmnl_graphics::SurfaceColorFallback
+impl core::marker::Unpin for vmnl_graphics::SurfaceColorFallback
+impl core::marker::UnsafeUnpin for vmnl_graphics::SurfaceColorFallback
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::SurfaceColorFallback
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::SurfaceColorFallback
+#[non_exhaustive] pub enum vmnl_graphics::SurfaceColorSelection
+pub vmnl_graphics::SurfaceColorSelection::Exact
+pub vmnl_graphics::SurfaceColorSelection::FirstReported
+pub vmnl_graphics::SurfaceColorSelection::LegacyPreferred
+pub vmnl_graphics::SurfaceColorSelection::Preference
+pub vmnl_graphics::SurfaceColorSelection::Preference::index: usize
+impl core::clone::Clone for vmnl_graphics::SurfaceColorSelection
+pub fn vmnl_graphics::SurfaceColorSelection::clone(&self) -> vmnl_graphics::SurfaceColorSelection
+impl core::cmp::Eq for vmnl_graphics::SurfaceColorSelection
+impl core::cmp::PartialEq for vmnl_graphics::SurfaceColorSelection
+pub fn vmnl_graphics::SurfaceColorSelection::eq(&self, &vmnl_graphics::SurfaceColorSelection) -> bool
+impl core::fmt::Debug for vmnl_graphics::SurfaceColorSelection
+pub fn vmnl_graphics::SurfaceColorSelection::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::SurfaceColorSelection
+impl core::marker::StructuralPartialEq for vmnl_graphics::SurfaceColorSelection
+impl core::marker::Freeze for vmnl_graphics::SurfaceColorSelection
+impl core::marker::Send for vmnl_graphics::SurfaceColorSelection
+impl core::marker::Sync for vmnl_graphics::SurfaceColorSelection
+impl core::marker::Unpin for vmnl_graphics::SurfaceColorSelection
+impl core::marker::UnsafeUnpin for vmnl_graphics::SurfaceColorSelection
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::SurfaceColorSelection
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::SurfaceColorSelection
 #[non_exhaustive] pub enum vmnl_graphics::VMNLErrorKind
 pub vmnl_graphics::VMNLErrorKind::DeviceFeatureNotEnabled
 pub vmnl_graphics::VMNLErrorKind::DeviceFeatureNotEnabled::feature: vmnl_graphics::DeviceFeature
@@ -2373,6 +2416,11 @@ pub vmnl_graphics::VMNLErrorKind::InvalidLineWidth::min: f32
 pub vmnl_graphics::VMNLErrorKind::InvalidLineWidth::value: f32
 pub vmnl_graphics::VMNLErrorKind::InvalidState(alloc::string::String)
 pub vmnl_graphics::VMNLErrorKind::InvalidWindowSize
+pub vmnl_graphics::VMNLErrorKind::SurfaceColorPairLost
+pub vmnl_graphics::VMNLErrorKind::SurfaceColorPairLost::pair: vmnl_graphics::SurfaceColorPair
+pub vmnl_graphics::VMNLErrorKind::SurfaceColorUnavailable
+pub vmnl_graphics::VMNLErrorKind::SurfaceColorUnavailable::requested: vmnl_graphics::SurfaceColorConfig
+pub vmnl_graphics::VMNLErrorKind::SwapchainRecreationRequiresNewWindow
 pub vmnl_graphics::VMNLErrorKind::TextureCpuAllocationFailed(alloc::string::String)
 pub vmnl_graphics::VMNLErrorKind::TextureDecodeFailed(alloc::string::String)
 pub vmnl_graphics::VMNLErrorKind::TextureSourceReadFailed(alloc::string::String)
@@ -2405,6 +2453,7 @@ pub vmnl_graphics::VMNLErrorKind::VulkanSamplerCreationFailed
 pub vmnl_graphics::VMNLErrorKind::VulkanSemaphoreCreationFailed
 pub vmnl_graphics::VMNLErrorKind::VulkanShaderCompilationFailed
 pub vmnl_graphics::VMNLErrorKind::VulkanShaderModuleCreationFailed
+pub vmnl_graphics::VMNLErrorKind::VulkanSurfaceColorQueryFailed
 pub vmnl_graphics::VMNLErrorKind::VulkanSurfaceCreationFailed
 pub vmnl_graphics::VMNLErrorKind::VulkanSurfaceLost
 pub vmnl_graphics::VMNLErrorKind::VulkanSwapchainCreationFailed
@@ -3018,6 +3067,96 @@ impl core::marker::Unpin for vmnl_graphics::StickState
 impl core::marker::UnsafeUnpin for vmnl_graphics::StickState
 impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::StickState
 impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::StickState
+pub struct vmnl_graphics::SurfaceColorConfig(_)
+impl vmnl_graphics::SurfaceColorConfig
+pub const fn vmnl_graphics::SurfaceColorConfig::exact(vmnl_graphics::ColorFormat, vmnl_graphics::SurfaceColorSpace) -> Self
+pub const fn vmnl_graphics::SurfaceColorConfig::exact_pair(&self) -> core::option::Option<vmnl_graphics::SurfaceColorPair>
+pub const fn vmnl_graphics::SurfaceColorConfig::fallback(&self) -> core::option::Option<vmnl_graphics::SurfaceColorFallback>
+pub const fn vmnl_graphics::SurfaceColorConfig::is_legacy_auto(&self) -> bool
+pub const fn vmnl_graphics::SurfaceColorConfig::legacy_auto() -> Self
+pub fn vmnl_graphics::SurfaceColorConfig::prefer(impl core::iter::traits::collect::IntoIterator<Item = vmnl_graphics::SurfaceColorPair>) -> vmnl_graphics::VMNLResult<Self>
+pub fn vmnl_graphics::SurfaceColorConfig::prefer_with_fallback(impl core::iter::traits::collect::IntoIterator<Item = vmnl_graphics::SurfaceColorPair>, vmnl_graphics::SurfaceColorFallback) -> vmnl_graphics::VMNLResult<Self>
+pub fn vmnl_graphics::SurfaceColorConfig::preferences(&self) -> core::option::Option<&[vmnl_graphics::SurfaceColorPair]>
+impl core::clone::Clone for vmnl_graphics::SurfaceColorConfig
+pub fn vmnl_graphics::SurfaceColorConfig::clone(&self) -> vmnl_graphics::SurfaceColorConfig
+impl core::cmp::Eq for vmnl_graphics::SurfaceColorConfig
+impl core::cmp::PartialEq for vmnl_graphics::SurfaceColorConfig
+pub fn vmnl_graphics::SurfaceColorConfig::eq(&self, &vmnl_graphics::SurfaceColorConfig) -> bool
+impl core::default::Default for vmnl_graphics::SurfaceColorConfig
+pub fn vmnl_graphics::SurfaceColorConfig::default() -> vmnl_graphics::SurfaceColorConfig
+impl core::fmt::Debug for vmnl_graphics::SurfaceColorConfig
+pub fn vmnl_graphics::SurfaceColorConfig::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::StructuralPartialEq for vmnl_graphics::SurfaceColorConfig
+impl core::marker::Freeze for vmnl_graphics::SurfaceColorConfig
+impl core::marker::Send for vmnl_graphics::SurfaceColorConfig
+impl core::marker::Sync for vmnl_graphics::SurfaceColorConfig
+impl core::marker::Unpin for vmnl_graphics::SurfaceColorConfig
+impl core::marker::UnsafeUnpin for vmnl_graphics::SurfaceColorConfig
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::SurfaceColorConfig
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::SurfaceColorConfig
+pub struct vmnl_graphics::SurfaceColorInfo
+impl vmnl_graphics::SurfaceColorInfo
+pub const fn vmnl_graphics::SurfaceColorInfo::pair(&self) -> vmnl_graphics::SurfaceColorPair
+pub const fn vmnl_graphics::SurfaceColorInfo::requested(&self) -> &vmnl_graphics::SurfaceColorConfig
+pub const fn vmnl_graphics::SurfaceColorInfo::selection(&self) -> vmnl_graphics::SurfaceColorSelection
+pub const fn vmnl_graphics::SurfaceColorInfo::used_fallback(&self) -> bool
+impl core::clone::Clone for vmnl_graphics::SurfaceColorInfo
+pub fn vmnl_graphics::SurfaceColorInfo::clone(&self) -> vmnl_graphics::SurfaceColorInfo
+impl core::cmp::Eq for vmnl_graphics::SurfaceColorInfo
+impl core::cmp::PartialEq for vmnl_graphics::SurfaceColorInfo
+pub fn vmnl_graphics::SurfaceColorInfo::eq(&self, &vmnl_graphics::SurfaceColorInfo) -> bool
+impl core::fmt::Debug for vmnl_graphics::SurfaceColorInfo
+pub fn vmnl_graphics::SurfaceColorInfo::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::StructuralPartialEq for vmnl_graphics::SurfaceColorInfo
+impl core::marker::Freeze for vmnl_graphics::SurfaceColorInfo
+impl core::marker::Send for vmnl_graphics::SurfaceColorInfo
+impl core::marker::Sync for vmnl_graphics::SurfaceColorInfo
+impl core::marker::Unpin for vmnl_graphics::SurfaceColorInfo
+impl core::marker::UnsafeUnpin for vmnl_graphics::SurfaceColorInfo
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::SurfaceColorInfo
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::SurfaceColorInfo
+pub struct vmnl_graphics::SurfaceColorPair
+impl vmnl_graphics::SurfaceColorPair
+pub const fn vmnl_graphics::SurfaceColorPair::color_space(self) -> vmnl_graphics::SurfaceColorSpace
+pub const fn vmnl_graphics::SurfaceColorPair::format(self) -> vmnl_graphics::ColorFormat
+pub const fn vmnl_graphics::SurfaceColorPair::new(vmnl_graphics::ColorFormat, vmnl_graphics::SurfaceColorSpace) -> Self
+impl core::clone::Clone for vmnl_graphics::SurfaceColorPair
+pub fn vmnl_graphics::SurfaceColorPair::clone(&self) -> vmnl_graphics::SurfaceColorPair
+impl core::cmp::Eq for vmnl_graphics::SurfaceColorPair
+impl core::cmp::PartialEq for vmnl_graphics::SurfaceColorPair
+pub fn vmnl_graphics::SurfaceColorPair::eq(&self, &vmnl_graphics::SurfaceColorPair) -> bool
+impl core::fmt::Debug for vmnl_graphics::SurfaceColorPair
+pub fn vmnl_graphics::SurfaceColorPair::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::SurfaceColorPair
+impl core::marker::StructuralPartialEq for vmnl_graphics::SurfaceColorPair
+impl core::marker::Freeze for vmnl_graphics::SurfaceColorPair
+impl core::marker::Send for vmnl_graphics::SurfaceColorPair
+impl core::marker::Sync for vmnl_graphics::SurfaceColorPair
+impl core::marker::Unpin for vmnl_graphics::SurfaceColorPair
+impl core::marker::UnsafeUnpin for vmnl_graphics::SurfaceColorPair
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::SurfaceColorPair
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::SurfaceColorPair
+pub struct vmnl_graphics::SurfaceColorSpace(_)
+impl vmnl_graphics::SurfaceColorSpace
+pub const vmnl_graphics::SurfaceColorSpace::SRGB_NON_LINEAR: Self
+impl core::clone::Clone for vmnl_graphics::SurfaceColorSpace
+pub fn vmnl_graphics::SurfaceColorSpace::clone(&self) -> vmnl_graphics::SurfaceColorSpace
+impl core::cmp::Eq for vmnl_graphics::SurfaceColorSpace
+impl core::cmp::PartialEq for vmnl_graphics::SurfaceColorSpace
+pub fn vmnl_graphics::SurfaceColorSpace::eq(&self, &vmnl_graphics::SurfaceColorSpace) -> bool
+impl core::fmt::Debug for vmnl_graphics::SurfaceColorSpace
+pub fn vmnl_graphics::SurfaceColorSpace::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::fmt::Display for vmnl_graphics::SurfaceColorSpace
+pub fn vmnl_graphics::SurfaceColorSpace::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::SurfaceColorSpace
+impl core::marker::StructuralPartialEq for vmnl_graphics::SurfaceColorSpace
+impl core::marker::Freeze for vmnl_graphics::SurfaceColorSpace
+impl core::marker::Send for vmnl_graphics::SurfaceColorSpace
+impl core::marker::Sync for vmnl_graphics::SurfaceColorSpace
+impl core::marker::Unpin for vmnl_graphics::SurfaceColorSpace
+impl core::marker::UnsafeUnpin for vmnl_graphics::SurfaceColorSpace
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::SurfaceColorSpace
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::SurfaceColorSpace
 pub struct vmnl_graphics::VMNLError
 impl vmnl_graphics::VMNLError
 pub const fn vmnl_graphics::VMNLError::kind(&self) -> &vmnl_graphics::VMNLErrorKind
@@ -3085,6 +3224,8 @@ pub fn vmnl_graphics::Window::builder() -> vmnl_graphics::WindowBuilder
 pub fn vmnl_graphics::Window::new(&vmnl_graphics::Context) -> vmnl_graphics::VMNLResult<Self>
 pub const fn vmnl_graphics::Window::render_target_config(&self) -> vmnl_graphics::RenderTargetConfig
 pub const fn vmnl_graphics::Window::render_target_info(&self) -> vmnl_graphics::RenderTargetInfo
+pub const fn vmnl_graphics::Window::surface_color_info(&self) -> &vmnl_graphics::SurfaceColorInfo
+pub fn vmnl_graphics::Window::surface_color_pairs(&self) -> vmnl_graphics::VMNLResult<alloc::vec::Vec<vmnl_graphics::SurfaceColorPair>>
 impl vmnl_graphics::Window
 pub const fn vmnl_graphics::Window::clear_input_transitions(&mut self)
 pub fn vmnl_graphics::Window::get_time(&mut self) -> f64
@@ -3209,6 +3350,8 @@ pub const fn vmnl_graphics::WindowBuilder::right_stick_config(self, vmnl_graphic
 pub fn vmnl_graphics::WindowBuilder::set_clear_color<C>(self, C) -> Self where C: core::convert::Into<vmnl_graphics::common::Rgba>
 pub const fn vmnl_graphics::WindowBuilder::size(self, u32, u32) -> Self
 pub fn vmnl_graphics::WindowBuilder::size_limit(self, core::option::Option<u32>, core::option::Option<u32>, core::option::Option<u32>, core::option::Option<u32>) -> vmnl_graphics::VMNLResult<Self>
+pub fn vmnl_graphics::WindowBuilder::surface_color(self, vmnl_graphics::SurfaceColorConfig) -> Self
+pub const fn vmnl_graphics::WindowBuilder::surface_color_value(&self) -> &vmnl_graphics::SurfaceColorConfig
 pub fn vmnl_graphics::WindowBuilder::title(self, &str) -> Self
 pub const fn vmnl_graphics::WindowBuilder::unset_configure_window_polling(self) -> Self
 pub fn vmnl_graphics::WindowBuilder::vertex_shader(self, vmnl_graphics::ShaderSource) -> Self

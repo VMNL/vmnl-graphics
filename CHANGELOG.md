@@ -11,6 +11,8 @@ Notable user-facing changes are recorded here.
 
 ### Added
 
+- Windows can request and inspect exact or ordered swapchain format and color-space pairs.
+  Resize preserves the resolved pair.
 - Circle builder getters expose the selected fill mode and stored inner/outer offsets.
 - `vmnl_graphics::time::{Clock, Duration}`: an owned elapsed-time `Clock` for independent
   measurements such as frame deltas, with explicit `pause`/`resume`/`restart`, backed by

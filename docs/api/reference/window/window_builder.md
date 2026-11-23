@@ -31,6 +31,10 @@ The type implements `Default`.
 
 ## Construction, defaults, and validation
 
+`surface_color(config)` sets the per-window [surface color policy](surface_color.md).
+`surface_color_value()` borrows the request before construction. The default keeps the historical
+automatic pair selection. `build` reports `SurfaceColorUnavailable` for an unmatched policy.
+
 Defaults: title `VMNL Window`, size `800x600`, common public event delivery enabled, joystick event delivery and joystick state tracking disabled, default left/right `StickConfig`, no size limits, built-in 2D shaders, opaque black clear color, `PresentMode::Auto`, and color-only `RenderTargetConfig` with clear depth `1.0`. Both initial dimensions must be at least 64. Minimum limits cannot exceed corresponding maximum limits. Joystick event delivery and state tracking are independent. Stick configs affect processed `JoystickState` views; mapped `GamepadState` axes remain raw.
 
 ## Units, coordinates, and valid ranges

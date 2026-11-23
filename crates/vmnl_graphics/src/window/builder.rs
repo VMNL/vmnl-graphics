@@ -6,7 +6,7 @@
 use crate::common::{Rgba, ShaderSource};
 use crate::window::input::StickConfig;
 use crate::window::shaders::WindowShaders;
-use crate::window::{RenderTargetConfig, Window};
+use crate::window::{RenderTargetConfig, SurfaceColorConfig, Window};
 use crate::{Context, VMNLError, VMNLErrorKind, VMNLResult};
 use vulkano::swapchain::PresentMode as VkPresentMode;
 
@@ -155,6 +155,8 @@ pub(crate) struct WindowOptions {
     pub(crate) clear_color: [f32; 4],
     /// Swapchain presentation mode.
     pub(crate) present_mode: PresentModeSelection,
+    /// Requested color format and presentation color-space policy.
+    pub(crate) surface_color: SurfaceColorConfig,
     /// Immutable render attachment configuration.
     pub(crate) render_target: RenderTargetConfig,
 }
@@ -181,6 +183,7 @@ impl Default for WindowOptions {
             },
             clear_color: [0.0, 0.0, 0.0, 1.0],
             present_mode: PresentModeSelection::default(),
+            surface_color: SurfaceColorConfig::default(),
             render_target: RenderTargetConfig::default(),
         }
     }
@@ -579,6 +582,32 @@ impl WindowBuilder {
         self.options.render_target
     }
 
+    /// Sets the per-window surface color policy. The default is historical automatic selection.
+    ///
+    /// # Arguments
+    ///
+    /// - `config` supplies an exact pair, ordered preferences or the historical policy.
+    ///   This moves the configuration without querying a surface.
+    ///
+    /// # Example
+    ///
+    /// See the [resolved window example](Window#example-window-surface-color).
+    #[must_use]
+    pub fn surface_color(mut self, config: SurfaceColorConfig) -> Self {
+        self.options.surface_color = config;
+        self
+    }
+
+    /// Borrows the requested surface color policy without querying a surface.
+    ///
+    /// # Example
+    ///
+    /// See the [configuration example](SurfaceColorConfig#example).
+    #[must_use]
+    pub const fn surface_color_value(&self) -> &SurfaceColorConfig {
+        &self.options.surface_color
+    }
+
     /// Builds a `Window` from the configured options and an existing [`Context`].
     ///
     /// # Arguments
@@ -589,8 +618,9 @@ impl WindowBuilder {
     ///
     /// Returns `InvalidWindowSize` for invalid dimensions or size limits and
     /// `VulkanUnsupportedFeature` if the surface cannot supply a strictly requested presentation
-    /// mode or any mode in the automatic order. Propagates attachment validation and backend
-    /// errors from creating the window, surface, swapchain, or default render resources.
+    /// mode or any mode in the automatic order. Returns `SurfaceColorUnavailable` when no
+    /// reported pair satisfies the surface color policy. Propagates attachment validation and
+    /// backend errors from creating the window, surface, swapchain, or default render resources.
     ///
     /// # Example
     ///

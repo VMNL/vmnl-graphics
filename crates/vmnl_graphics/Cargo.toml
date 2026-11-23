@@ -17,6 +17,7 @@ name = "vmnl_graphics"
 
 [dependencies]
 vulkano         = { package = "vmnl_vulkano", version = "=0.35.2-vmnl.1" }
+ash             = { version = "=0.38.0", default-features = false }
 glfw            = { workspace = true }
 bytemuck        = "1.25.0"
 log             = "0.4.30"

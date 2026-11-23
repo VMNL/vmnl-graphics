@@ -275,6 +275,41 @@
 | `vmnl_graphics::StickState` | `magnitude` | [Joystick and gamepad samples](../reference/joystick_gamepad.md) | [`magnitude`](../../../target/doc/vmnl_graphics/struct.StickState.html#method.magnitude) |
 | `vmnl_graphics::StickState` | `x` | [Joystick and gamepad samples](../reference/joystick_gamepad.md) | [`x`](../../../target/doc/vmnl_graphics/struct.StickState.html#method.x) |
 | `vmnl_graphics::StickState` | `y` | [Joystick and gamepad samples](../reference/joystick_gamepad.md) | [`y`](../../../target/doc/vmnl_graphics/struct.StickState.html#method.y) |
+| `vmnl_graphics::SurfaceColorConfig` | `clone` | [Surface color](../reference/window/surface_color.md) | [`clone`](../../../target/doc/vmnl_graphics/struct.SurfaceColorConfig.html#method.clone) |
+| `vmnl_graphics::SurfaceColorConfig` | `default` | [Surface color](../reference/window/surface_color.md) | [`default`](../../../target/doc/vmnl_graphics/struct.SurfaceColorConfig.html#method.default) |
+| `vmnl_graphics::SurfaceColorConfig` | `eq` | [Surface color](../reference/window/surface_color.md) | [`eq`](../../../target/doc/vmnl_graphics/struct.SurfaceColorConfig.html#method.eq) |
+| `vmnl_graphics::SurfaceColorConfig` | `exact` | [Surface color](../reference/window/surface_color.md) | [`exact`](../../../target/doc/vmnl_graphics/struct.SurfaceColorConfig.html#method.exact) |
+| `vmnl_graphics::SurfaceColorConfig` | `exact_pair` | [Surface color](../reference/window/surface_color.md) | [`exact_pair`](../../../target/doc/vmnl_graphics/struct.SurfaceColorConfig.html#method.exact_pair) |
+| `vmnl_graphics::SurfaceColorConfig` | `fallback` | [Surface color](../reference/window/surface_color.md) | [`fallback`](../../../target/doc/vmnl_graphics/struct.SurfaceColorConfig.html#method.fallback) |
+| `vmnl_graphics::SurfaceColorConfig` | `fmt` | [Surface color](../reference/window/surface_color.md) | [`fmt`](../../../target/doc/vmnl_graphics/struct.SurfaceColorConfig.html#method.fmt) |
+| `vmnl_graphics::SurfaceColorConfig` | `is_legacy_auto` | [Surface color](../reference/window/surface_color.md) | [`is_legacy_auto`](../../../target/doc/vmnl_graphics/struct.SurfaceColorConfig.html#method.is_legacy_auto) |
+| `vmnl_graphics::SurfaceColorConfig` | `legacy_auto` | [Surface color](../reference/window/surface_color.md) | [`legacy_auto`](../../../target/doc/vmnl_graphics/struct.SurfaceColorConfig.html#method.legacy_auto) |
+| `vmnl_graphics::SurfaceColorConfig` | `prefer` | [Surface color](../reference/window/surface_color.md) | [`prefer`](../../../target/doc/vmnl_graphics/struct.SurfaceColorConfig.html#method.prefer) |
+| `vmnl_graphics::SurfaceColorConfig` | `prefer_with_fallback` | [Surface color](../reference/window/surface_color.md) | [`prefer_with_fallback`](../../../target/doc/vmnl_graphics/struct.SurfaceColorConfig.html#method.prefer_with_fallback) |
+| `vmnl_graphics::SurfaceColorConfig` | `preferences` | [Surface color](../reference/window/surface_color.md) | [`preferences`](../../../target/doc/vmnl_graphics/struct.SurfaceColorConfig.html#method.preferences) |
+| `vmnl_graphics::SurfaceColorFallback` | `clone` | [Surface color](../reference/window/surface_color.md) | [`clone`](../../../target/doc/vmnl_graphics/enum.SurfaceColorFallback.html#method.clone) |
+| `vmnl_graphics::SurfaceColorFallback` | `default` | [Surface color](../reference/window/surface_color.md) | [`default`](../../../target/doc/vmnl_graphics/enum.SurfaceColorFallback.html#method.default) |
+| `vmnl_graphics::SurfaceColorFallback` | `eq` | [Surface color](../reference/window/surface_color.md) | [`eq`](../../../target/doc/vmnl_graphics/enum.SurfaceColorFallback.html#method.eq) |
+| `vmnl_graphics::SurfaceColorFallback` | `fmt` | [Surface color](../reference/window/surface_color.md) | [`fmt`](../../../target/doc/vmnl_graphics/enum.SurfaceColorFallback.html#method.fmt) |
+| `vmnl_graphics::SurfaceColorInfo` | `clone` | [Surface color](../reference/window/surface_color.md) | [`clone`](../../../target/doc/vmnl_graphics/struct.SurfaceColorInfo.html#method.clone) |
+| `vmnl_graphics::SurfaceColorInfo` | `eq` | [Surface color](../reference/window/surface_color.md) | [`eq`](../../../target/doc/vmnl_graphics/struct.SurfaceColorInfo.html#method.eq) |
+| `vmnl_graphics::SurfaceColorInfo` | `fmt` | [Surface color](../reference/window/surface_color.md) | [`fmt`](../../../target/doc/vmnl_graphics/struct.SurfaceColorInfo.html#method.fmt) |
+| `vmnl_graphics::SurfaceColorInfo` | `pair` | [Surface color](../reference/window/surface_color.md) | [`pair`](../../../target/doc/vmnl_graphics/struct.SurfaceColorInfo.html#method.pair) |
+| `vmnl_graphics::SurfaceColorInfo` | `requested` | [Surface color](../reference/window/surface_color.md) | [`requested`](../../../target/doc/vmnl_graphics/struct.SurfaceColorInfo.html#method.requested) |
+| `vmnl_graphics::SurfaceColorInfo` | `selection` | [Surface color](../reference/window/surface_color.md) | [`selection`](../../../target/doc/vmnl_graphics/struct.SurfaceColorInfo.html#method.selection) |
+| `vmnl_graphics::SurfaceColorInfo` | `used_fallback` | [Surface color](../reference/window/surface_color.md) | [`used_fallback`](../../../target/doc/vmnl_graphics/struct.SurfaceColorInfo.html#method.used_fallback) |
+| `vmnl_graphics::SurfaceColorPair` | `clone` | [Surface color](../reference/window/surface_color.md) | [`clone`](../../../target/doc/vmnl_graphics/struct.SurfaceColorPair.html#method.clone) |
+| `vmnl_graphics::SurfaceColorPair` | `color_space` | [Surface color](../reference/window/surface_color.md) | [`color_space`](../../../target/doc/vmnl_graphics/struct.SurfaceColorPair.html#method.color_space) |
+| `vmnl_graphics::SurfaceColorPair` | `eq` | [Surface color](../reference/window/surface_color.md) | [`eq`](../../../target/doc/vmnl_graphics/struct.SurfaceColorPair.html#method.eq) |
+| `vmnl_graphics::SurfaceColorPair` | `fmt` | [Surface color](../reference/window/surface_color.md) | [`fmt`](../../../target/doc/vmnl_graphics/struct.SurfaceColorPair.html#method.fmt) |
+| `vmnl_graphics::SurfaceColorPair` | `format` | [Surface color](../reference/window/surface_color.md) | [`format`](../../../target/doc/vmnl_graphics/struct.SurfaceColorPair.html#method.format) |
+| `vmnl_graphics::SurfaceColorPair` | `new` | [Surface color](../reference/window/surface_color.md) | [`new`](../../../target/doc/vmnl_graphics/struct.SurfaceColorPair.html#method.new) |
+| `vmnl_graphics::SurfaceColorSelection` | `clone` | [Surface color](../reference/window/surface_color.md) | [`clone`](../../../target/doc/vmnl_graphics/enum.SurfaceColorSelection.html#method.clone) |
+| `vmnl_graphics::SurfaceColorSelection` | `eq` | [Surface color](../reference/window/surface_color.md) | [`eq`](../../../target/doc/vmnl_graphics/enum.SurfaceColorSelection.html#method.eq) |
+| `vmnl_graphics::SurfaceColorSelection` | `fmt` | [Surface color](../reference/window/surface_color.md) | [`fmt`](../../../target/doc/vmnl_graphics/enum.SurfaceColorSelection.html#method.fmt) |
+| `vmnl_graphics::SurfaceColorSpace` | `clone` | [Surface color](../reference/window/surface_color.md) | [`clone`](../../../target/doc/vmnl_graphics/struct.SurfaceColorSpace.html#method.clone) |
+| `vmnl_graphics::SurfaceColorSpace` | `eq` | [Surface color](../reference/window/surface_color.md) | [`eq`](../../../target/doc/vmnl_graphics/struct.SurfaceColorSpace.html#method.eq) |
+| `vmnl_graphics::SurfaceColorSpace` | `fmt` | [Surface color](../reference/window/surface_color.md) | [`fmt`](../../../target/doc/vmnl_graphics/struct.SurfaceColorSpace.html#method.fmt) |
 | `vmnl_graphics::VMNLError` | `fmt` | [VMNLError](../reference/errors/vmnl_error.md) | [`fmt`](../../../target/doc/vmnl_graphics/struct.VMNLError.html#method.fmt) |
 | `vmnl_graphics::VMNLError` | `kind` | [VMNLError](../reference/errors/vmnl_error.md) | [`kind`](../../../target/doc/vmnl_graphics/struct.VMNLError.html#method.kind) |
 | `vmnl_graphics::VMNLError` | `location` | [VMNLError](../reference/errors/vmnl_error.md) | [`location`](../../../target/doc/vmnl_graphics/struct.VMNLError.html#method.location) |
@@ -386,6 +421,8 @@
 | `vmnl_graphics::Window` | `set_time` | [Events and timers](../reference/window/events/event_processing_and_timers.md) | [`set_time`](../../../target/doc/vmnl_graphics/struct.Window.html#method.set_time) |
 | `vmnl_graphics::Window` | `set_title` | [Window configuration](../reference/window/configuration.md) | [`set_title`](../../../target/doc/vmnl_graphics/struct.Window.html#method.set_title) |
 | `vmnl_graphics::Window` | `show` | [Window lifecycle](../reference/window/lifecycle.md) | [`show`](../../../target/doc/vmnl_graphics/struct.Window.html#method.show) |
+| `vmnl_graphics::Window` | `surface_color_info` | [Window](../reference/window/window.md) | [`surface_color_info`](../../../target/doc/vmnl_graphics/struct.Window.html#method.surface_color_info) |
+| `vmnl_graphics::Window` | `surface_color_pairs` | [Window](../reference/window/window.md) | [`surface_color_pairs`](../../../target/doc/vmnl_graphics/struct.Window.html#method.surface_color_pairs) |
 | `vmnl_graphics::Window` | `unconfigure_window_polling` | [Window polling](../reference/window/polling.md) | [`unconfigure_window_polling`](../../../target/doc/vmnl_graphics/struct.Window.html#method.unconfigure_window_polling) |
 | `vmnl_graphics::Window` | `unset_error_callback` | [Events and timers](../reference/window/events/event_processing_and_timers.md) | [`unset_error_callback`](../../../target/doc/vmnl_graphics/struct.Window.html#method.unset_error_callback) |
 | `vmnl_graphics::Window` | `wait_events` | [Events and timers](../reference/window/events/event_processing_and_timers.md) | [`wait_events`](../../../target/doc/vmnl_graphics/struct.Window.html#method.wait_events) |
@@ -405,6 +442,8 @@
 | `vmnl_graphics::WindowBuilder` | `set_clear_color` | [WindowBuilder](../reference/window/window_builder.md) | [`set_clear_color`](../../../target/doc/vmnl_graphics/struct.WindowBuilder.html#method.set_clear_color) |
 | `vmnl_graphics::WindowBuilder` | `size` | [WindowBuilder](../reference/window/window_builder.md) | [`size`](../../../target/doc/vmnl_graphics/struct.WindowBuilder.html#method.size) |
 | `vmnl_graphics::WindowBuilder` | `size_limit` | [WindowBuilder](../reference/window/window_builder.md) | [`size_limit`](../../../target/doc/vmnl_graphics/struct.WindowBuilder.html#method.size_limit) |
+| `vmnl_graphics::WindowBuilder` | `surface_color` | [WindowBuilder](../reference/window/window_builder.md) | [`surface_color`](../../../target/doc/vmnl_graphics/struct.WindowBuilder.html#method.surface_color) |
+| `vmnl_graphics::WindowBuilder` | `surface_color_value` | [WindowBuilder](../reference/window/window_builder.md) | [`surface_color_value`](../../../target/doc/vmnl_graphics/struct.WindowBuilder.html#method.surface_color_value) |
 | `vmnl_graphics::WindowBuilder` | `title` | [WindowBuilder](../reference/window/window_builder.md) | [`title`](../../../target/doc/vmnl_graphics/struct.WindowBuilder.html#method.title) |
 | `vmnl_graphics::WindowBuilder` | `unset_configure_window_polling` | [WindowBuilder](../reference/window/window_builder.md) | [`unset_configure_window_polling`](../../../target/doc/vmnl_graphics/struct.WindowBuilder.html#method.unset_configure_window_polling) |
 | `vmnl_graphics::WindowBuilder` | `vertex_shader` | [WindowBuilder](../reference/window/window_builder.md) | [`vertex_shader`](../../../target/doc/vmnl_graphics/struct.WindowBuilder.html#method.vertex_shader) |
