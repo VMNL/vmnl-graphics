@@ -12,7 +12,7 @@ against a [`Context`](../../context.md).
 ## Public API
 
 | Member | Contract |
-|---|---|
+| --- | --- |
 | `Cursor::rgba8` | Create a builder with required dimensions and borrowed pixels. |
 | `hotspot` | Replace the default upper-left hotspot. |
 | `hotspot_marker` | Overwrite the final hotspot pixel with an explicit diagnostic color. |
@@ -23,8 +23,8 @@ against a [`Context`](../../context.md).
 `Cursor::rgba8(width, height, pixels)` supplies all required image data. The hotspot defaults to
 `(0, 0)` and the hotspot marker is disabled. `build` requires positive `c_int`-representable
 dimensions, exactly `width * height * 4` bytes, and a hotspot strictly inside the image. VMNL
-rejects invalid values and overflow before FFI. A marker uses the final hotspot regardless of
-setter order and preserves the exact client-supplied RGBA components; VMNL does not infer contrast.
+rejects invalid values and overflow before FFI. A marker uses the final hotspot regardless of setter
+order and preserves the exact client-supplied RGBA components; VMNL does not infer contrast.
 
 ## Units, coordinates, and valid ranges
 
@@ -46,14 +46,14 @@ creation failures retain their VMNL GLFW category. Valid configuration does not 
 ## Allocation, transfers, synchronization, and GPU cost
 
 Creation, `hotspot`, and `hotspot_marker` allocate nothing. Without a marker, `build` performs one
-native cursor allocation and the existing synchronous GLFW copy. With a marker, `build`
-additionally allocates and drops one temporary `width * height * 4` byte buffer before returning.
-It performs no GPU allocation, transfer, or synchronization.
+native cursor allocation and the existing synchronous GLFW copy. With a marker, `build` additionally
+allocates and drops one temporary `width * height * 4` byte buffer before returning. It performs no
+GPU allocation, transfer, or synchronization.
 
 ## Platform, Vulkan, and display constraints
 
-Building requires initialized GLFW on its platform-compatible thread. Native scaling can affect
-the displayed size. Vulkan and the GPU do not participate.
+Building requires initialized GLFW on its platform-compatible thread. Native scaling can affect the
+displayed size. Vulkan and the GPU do not participate.
 
 ## Example and related types
 
@@ -73,5 +73,5 @@ let cursor = Cursor::rgba8(4, 4, &pixels)
 # }
 ```
 
-Related: [`Cursor`](cursor.md), [`StandardCursorBuilder`](standard_cursor_builder.md), and
-[cursor controls](../cursor.md).
+Related: [`Cursor`](cursor.md), [`StandardCursorBuilder`](standard_cursor_builder.md), and [cursor
+controls](../cursor.md).

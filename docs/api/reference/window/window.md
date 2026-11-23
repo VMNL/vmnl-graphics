@@ -6,46 +6,57 @@ Import path: `vmnl_graphics::Window`. Status: 0.1.0, operational window/render t
 
 ## Purpose and use cases
 
-Owns a native GLFW window plus the Vulkan surface, swapchain, render pass, synchronization state, input snapshot, and monitor snapshot required by VMNL.
+Owns a native GLFW window plus the Vulkan surface, swapchain, render pass, synchronization state,
+input snapshot, and monitor snapshot required by VMNL.
 
 ## Public API
 
 Constructors are `new(&Context)` and `builder()`. The remaining methods are partitioned by
-responsibility: [configuration](configuration.md), [cursor controls](cursor.md),
-[input modes](input/modes.md), [lifecycle](lifecycle.md), [polling](polling.md),
-[event processing and timers](events/event_processing_and_timers.md), and
-[rendering](rendering/README.md).
+responsibility: [configuration](configuration.md), [cursor controls](cursor.md), [input
+modes](input/modes.md), [lifecycle](lifecycle.md), [polling](polling.md), [event processing and
+timers](events/event_processing_and_timers.md), and [rendering](rendering/README.md).
 
 ## Construction, defaults, and validation
 
-`new` is equivalent to `Window::builder().build(context)`. See [`WindowBuilder`](window_builder.md) for defaults and validation.
+`new` is equivalent to `Window::builder().build(context)`. See [`WindowBuilder`](window_builder.md)
+for defaults and validation.
 
-`render_target_config() -> RenderTargetConfig` returns the immutable validated attachment configuration, without allocation or GPU access. Defaults to color only; optional depth format/clear value persist across resize. Attachment extent follows the actual swapchain image. See [`RenderTargetConfig`](render_target_config.md).
+`render_target_config() -> RenderTargetConfig` returns the immutable validated attachment
+configuration, without allocation or GPU access. Defaults to color only; optional depth format/clear
+value persist across resize. Attachment extent follows the actual swapchain image. See
+[`RenderTargetConfig`](render_target_config.md).
 
-`render_target_info() -> RenderTargetInfo` copies the actual render-pass color format, sample count and optional depth format. It performs no allocation, GPU query or synchronization. Resize preserves these properties. Equal descriptions do not imply pipeline compatibility across windows; use `Pipeline::validate_target`. See [`RenderTargetInfo`](render_target_info.md).
+`render_target_info() -> RenderTargetInfo` copies the actual render-pass color format, sample count
+and optional depth format. It performs no allocation, GPU query or synchronization. Resize preserves
+these properties. Equal descriptions do not imply pipeline compatibility across windows; use
+`Pipeline::validate_target`. See [`RenderTargetInfo`](render_target_info.md).
 
 ## Units, coordinates, and valid ranges
 
 Logical window and framebuffer sizes are pixels but may differ under content scaling. Window
-positions are virtual-screen coordinates. Cursor positions are `f64` screen coordinates relative
-to the content-area upper-left and are distinct from framebuffer pixels. Timing methods use
-seconds or platform timer ticks.
+positions are virtual-screen coordinates. Cursor positions are `f64` screen coordinates relative to
+the content-area upper-left and are distinct from framebuffer pixels. Timing methods use seconds or
+platform timer ticks.
 
 ## Ownership, lifecycle, and threading
 
-`Window` owns mutable platform and frame state and is tied to its creating context/device. It is not cloneable. Keep it on the platform-compatible creating thread; cross-thread use is not specified.
+`Window` owns mutable platform and frame state and is tied to its creating context/device. It is not
+cloneable. Keep it on the platform-compatible creating thread; cross-thread use is not specified.
 
 ## Errors, panics, and failure conditions
 
-Creation and fallible configuration/render methods return `VMNLResult`. Platform calls without a result may report errors through GLFW's callback. No public intentional-panic contract is specified.
+Creation and fallible configuration/render methods return `VMNLResult`. Platform calls without a
+result may report errors through GLFW's callback. No public intentional-panic contract is specified.
 
 ## Allocation, transfers, synchronization, and GPU cost
 
-Creation allocates native and Vulkan surface/swapchain/render-target/synchronization resources. Rendering acquires, records, submits, and presents. Exact costs and scheduling are not specified.
+Creation allocates native and Vulkan surface/swapchain/render-target/synchronization resources.
+Rendering acquires, records, submits, and presents. Exact costs and scheduling are not specified.
 
 ## Platform, Vulkan, and display constraints
 
-Requires a compatible `Context`, GLFW, Vulkan presentation support, and a usable display/session. Minimized/zero-sized framebuffers are temporarily unrenderable.
+Requires a compatible `Context`, GLFW, Vulkan presentation support, and a usable display/session.
+Minimized/zero-sized framebuffers are temporarily unrenderable.
 
 ## Example and related types
 
@@ -64,4 +75,5 @@ fn main() -> vmnl_graphics::VMNLResult<()> {
 }
 ```
 
-Related: [`Context`](../context.md), [`WindowBuilder`](window_builder.md), and [`FrameRenderer`](rendering/frame_renderer.md).
+Related: [`Context`](../context.md), [`WindowBuilder`](window_builder.md), and
+[`FrameRenderer`](rendering/frame_renderer.md).

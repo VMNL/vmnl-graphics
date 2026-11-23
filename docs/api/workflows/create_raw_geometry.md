@@ -1,6 +1,8 @@
 # Create raw geometry
 
-After defining a `BufferContents` vertex type, pass a non-empty vertex collection to `Geometry::builder`. Add optional non-empty in-bounds `u32` indices and choose a memory preference before `build(&Context)`.
+After defining a `BufferContents` vertex type, pass a non-empty vertex collection to
+`Geometry::builder`. Add optional non-empty in-bounds `u32` indices and choose a memory preference
+before `build(&Context)`.
 
 ```rust,no_run
 # extern crate vmnl_graphics;
@@ -17,4 +19,6 @@ fn main() -> vmnl_graphics::VMNLResult<()> {
 }
 ```
 
-Topology-specific primitive counts are not validated by `GeometryBuilder`; align the data with `PipelineSpec::topology`. Use [`examples/raw/triangle`](../../../examples/raw/triangle/src/main.rs) and [`GeometryBuilder`](../reference/raw/geometry/geometry_builder.md).
+Topology-specific primitive counts are not validated by `GeometryBuilder`; align the data with
+`PipelineSpec::topology`. Use [`examples/raw/triangle`](../../../examples/raw/triangle/src/main.rs)
+and [`GeometryBuilder`](../reference/raw/geometry/geometry_builder.md).

@@ -10,7 +10,8 @@ Uniform return type for fallible VMNL operations.
 
 ## Public API
 
-Equivalent to `Result<T, VMNLError>` and therefore exposes the standard `Result` API; no VMNL-specific method is added.
+Equivalent to `Result<T, VMNLError>` and therefore exposes the standard `Result` API; no
+VMNL-specific method is added.
 
 ## Construction, defaults, and validation
 
@@ -26,7 +27,8 @@ Ownership and auto traits follow `T` and `VMNLError`.
 
 ## Errors, panics, and failure conditions
 
-The alias represents typed failure. Standard operations such as `unwrap` can panic according to the standard library contract.
+The alias represents typed failure. Standard operations such as `unwrap` can panic according to the
+standard library contract.
 
 ## Allocation, transfers, synchronization, and GPU cost
 

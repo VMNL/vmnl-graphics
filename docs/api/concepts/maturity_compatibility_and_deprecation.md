@@ -1,7 +1,7 @@
 # Maturity, compatibility, and deprecation
 
-The current version of `vmnl_graphics` is `0.1.0`, the initial graphics API baseline. Reference
-page status labels identify this version and retain each item's operational limits.
+The current version of `vmnl_graphics` is `0.1.0`, the initial graphics API baseline. Reference page
+status labels identify this version and retain each item's operational limits.
 
 The `0.1.0` baseline follows the compatibility policy defined in
 [`docs/deployment.md`](../../deployment.md): published Rust source APIs, documented behavior,
@@ -10,7 +10,7 @@ interoperability marked unstable, undocumented implementation details, and forma
 declared stable are excluded.
 
 | Area | Maturity |
-|---|---|
+| --- | --- |
 | Context/window/input/monitors | 0.1.0, operational within platform limits |
 | 2D shapes/rendering | 0.1.0, operational |
 | Raw pipelines/geometry/uniforms | 0.1.0, operational within documented limits; backend-coupled traits remain unstable |

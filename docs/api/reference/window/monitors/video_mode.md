@@ -10,11 +10,14 @@ Describes one monitor video mode.
 
 ## Public API
 
-Public `u32` fields: `width`, `height`, `red_bits`, `green_bits`, `blue_bits`, and `refresh_rate`. Derives `Debug`, `Clone`, `PartialEq`, `Eq`, and `Hash`; explicitly implements `From<glfw::VidMode>` inside the implementation crate.
+Public `u32` fields: `width`, `height`, `red_bits`, `green_bits`, `blue_bits`, and `refresh_rate`.
+Derives `Debug`, `Clone`, `PartialEq`, `Eq`, and `Hash`; explicitly implements `From<glfw::VidMode>`
+inside the implementation crate.
 
 ## Construction, defaults, and validation
 
-No `Default`. Public fields allow literals. Values from monitor discovery are copied from GLFW without extra validation.
+No `Default`. Public fields allow literals. Values from monitor discovery are copied from GLFW
+without extra validation.
 
 ## Units, coordinates, and valid ranges
 

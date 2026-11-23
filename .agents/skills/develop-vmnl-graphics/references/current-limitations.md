@@ -1,10 +1,12 @@
 # Current Graphics Limitations
 
-Treat these as implementation snapshots, not permanent contracts. Verify the referenced code before relying on them and remove or update an entry when the repository resolves it.
+Treat these as implementation snapshots, not permanent contracts. Verify the referenced code before
+relying on them and remove or update an entry when the repository resolves it.
 
 ## Device and Queue Selection
 
-`Context::new()` currently ranks compatible physical devices and selects the first graphics queue. Equal-rank devices follow backend enumeration order.
+`Context::new()` currently ranks compatible physical devices and selects the first graphics queue.
+Equal-rank devices follow backend enumeration order.
 
 Consequences:
 

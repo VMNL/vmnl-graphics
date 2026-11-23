@@ -10,11 +10,13 @@ Requests CPU-friendly or GPU-friendly memory for buffers uploaded directly by VM
 
 ## Public API
 
-Variants: `Host` and `Device`. The type derives `Debug`, `Clone`, `Copy`, `Default`, `PartialEq`, `Eq`, and `Hash`; `Device` is the default.
+Variants: `Host` and `Device`. The type derives `Debug`, `Clone`, `Copy`, `Default`, `PartialEq`,
+`Eq`, and `Hash`; `Device` is the default.
 
 ## Construction, defaults, and validation
 
-Select a variant and pass it to a shape, geometry, or uniform builder. The value is a preference, not a guarantee. VMNL requires host-visible sequential-write memory for current direct uploads.
+Select a variant and pass it to a shape, geometry, or uniform builder. The value is a preference,
+not a guarantee. VMNL requires host-visible sequential-write memory for current direct uploads.
 
 ## Units, coordinates, and valid ranges
 
@@ -26,11 +28,13 @@ Plain copied value with no resource ownership.
 
 ## Errors, panics, and failure conditions
 
-Selecting a preference is infallible. A later `build` may fail if no compatible memory type/allocation is available.
+Selecting a preference is infallible. A later `build` may fail if no compatible memory
+type/allocation is available.
 
 ## Allocation, transfers, synchronization, and GPU cost
 
-`Host` prefers CPU-friendly memory; `Device` prefers GPU-friendly memory while retaining host-write requirements. Exact placement, transfer strategy, caching, and performance are not specified.
+`Host` prefers CPU-friendly memory; `Device` prefers GPU-friendly memory while retaining host-write
+requirements. Exact placement, transfer strategy, caching, and performance are not specified.
 
 ## Platform, Vulkan, and display constraints
 
@@ -45,4 +49,5 @@ use vmnl_graphics::common::BufferMemoryPreference;
 assert_eq!(BufferMemoryPreference::default(), BufferMemoryPreference::Device);
 ```
 
-Related: [`GeometryBuilder`](../raw/geometry/geometry_builder.md) and [`UniformBuilder`](../raw/uniforms/uniform_builder.md).
+Related: [`GeometryBuilder`](../raw/geometry/geometry_builder.md) and
+[`UniformBuilder`](../raw/uniforms/uniform_builder.md).

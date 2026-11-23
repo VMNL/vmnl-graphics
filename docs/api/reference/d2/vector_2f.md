@@ -10,20 +10,25 @@ Stores 2D positions, dimensions, offsets, and application-defined vector values.
 
 ## Public API
 
-Public fields: `x: f32`, `y: f32`. `#[repr(C)]`; derives `Clone`, `Copy`, `Debug`, `Default`, `Pod`, `Zeroable`, and `PartialEq`; implements component-wise `Add`, `Sub`, `SubAssign`, `AddAssign`, and `Mul<f32>`, plus `Eq`, `Ord::cmp`, and `PartialOrd::partial_cmp`.
+Public fields: `x: f32`, `y: f32`. `#[repr(C)]`; derives `Clone`, `Copy`, `Debug`, `Default`, `Pod`,
+`Zeroable`, and `PartialEq`; implements component-wise `Add`, `Sub`, `SubAssign`, `AddAssign`, and
+`Mul<f32>`, plus `Eq`, `Ord::cmp`, and `PartialOrd::partial_cmp`.
 
 ## Construction, defaults, and validation
 
-Construct with a literal. Default/zeroed value is `(0.0, 0.0)`. Every `f32` bit pattern is representable; builders apply their own finite/range validation.
+Construct with a literal. Default/zeroed value is `(0.0, 0.0)`. Every `f32` bit pattern is
+representable; builders apply their own finite/range validation.
 
 ## Units, coordinates, and valid ranges
 
-Units are determined by the consuming API; 2D shape builders use pixel-like coordinates. Partial equality compares components using IEEE-754 semantics: NaN is unequal to itself, and signed zeros compare equal.
+Units are determined by the consuming API; 2D shape builders use pixel-like coordinates. Partial
+equality compares components using IEEE-754 semantics: NaN is unequal to itself, and signed zeros
+compare equal.
 
 Ordering compares X then Y with `f32::total_cmp`; `partial_cmp` always returns `Some(cmp(...))`.
 Current limitation: this order and the `Eq` implementation conflict with partial equality for NaN
-and signed zero. Equal signed-zero vectors can sort differently, while a NaN-containing vector
-is unequal to itself. These traits do not provide a lawful total order for all representable values.
+and signed zero. Equal signed-zero vectors can sort differently, while a NaN-containing vector is
+unequal to itself. These traits do not provide a lawful total order for all representable values.
 
 ## Ownership, lifecycle, and threading
 

@@ -3,7 +3,7 @@
 Capabilities of `vmnl_graphics 0.1.0`. Versioning does not qualify a native platform.
 
 | Capability | Status | Evidence boundary |
-|---|---|---|
+| --- | --- | --- |
 | Context/device initialization | Operational in 0.1.0 | GPU/display runtime required for execution |
 | Native window, events, input, monitors | Operational in 0.1.0 | GLFW/display runtime required |
 | 2D predefined/indexed shapes | Operational in 0.1.0 | Unit/API checks plus GPU/examples for runtime visuals |
@@ -16,4 +16,5 @@ Capabilities of `vmnl_graphics 0.1.0`. Versioning does not qualify a native plat
 | Raw textures/samplers/storage/descriptors arrays/push constants | Unsupported | Rejected by pipeline/resource validation |
 | `RenderMode::Batched` optimization | Not implemented | Falls back to `PerObject` |
 
-Compilation, doctests, and headless tests do not prove Vulkan execution or correct pixels. No performance/synchronization claim beyond documented behavior is specified.
+Compilation, doctests, and headless tests do not prove Vulkan execution or correct pixels. No
+performance/synchronization claim beyond documented behavior is specified.

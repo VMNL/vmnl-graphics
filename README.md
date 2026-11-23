@@ -49,10 +49,10 @@ A Rust graphics library for games and engines, from useful defaults to explicit 
 
 ## Overview
 
-**VMNL Graphics** provides Vulkan rendering, windowing, events, input, and GPU resources for
-games, real-time applications, and engines. Applications depend directly on the `vmnl_graphics`
-package and import `vmnl_graphics`. The procedural macros used by its raw API are provided through
-the same public crate.
+**VMNL Graphics** provides Vulkan rendering, windowing, events, input, and GPU resources for games,
+real-time applications, and engines. Applications depend directly on the `vmnl_graphics` package and
+import `vmnl_graphics`. The procedural macros used by its raw API are provided through the same
+public crate.
 
 | Area | Purpose |
 | --- | --- |
@@ -76,8 +76,8 @@ VMNL applies these principles to every stable public contract:
   identifiable owners.
 - **Scoped determinism** - VMNL claims deterministic behavior only for decisions it controls;
   backend and platform choices are reported explicitly.
-- **Composition** - windowing, input, 2D, and raw graphics share explicit ownership and compose
-  with the application's own loop and other libraries.
+- **Composition** - windowing, input, 2D, and raw graphics share explicit ownership and compose with
+  the application's own loop and other libraries.
 - **Safe defaults** - defaults simplify common use without removing lower-level control or accepting
   invalid public combinations silently.
 
@@ -101,7 +101,8 @@ VMNL exposes a control ladder:
   Vulkano part of the stable public API.
 - **Backend interoperability** - an explicitly unstable escape hatch when raw VMNL is insufficient.
 
-Textures, text, batching, and scene helpers are planned rather than current capabilities. The canonical direction and boundaries are documented in
+Textures, text, batching, and scene helpers are planned rather than current capabilities. The
+canonical direction and boundaries are documented in
 [Architecture](https://github.com/VMNL/vmnl-graphics/blob/main/docs/architecture.md).
 
 ---
@@ -109,7 +110,8 @@ Textures, text, batching, and scene helpers are planned rather than current capa
 ## Status
 
 This documentation describes `vmnl_graphics 0.1.0`. Versioned public contracts follow the
-[compatibility policy](https://github.com/VMNL/vmnl-graphics/blob/main/docs/deployment.md#version-and-compatibility-policy);
+[compatibility
+policy](https://github.com/VMNL/vmnl-graphics/blob/main/docs/deployment.md#version-and-compatibility-policy);
 backend interoperability explicitly marked unstable is excluded.
 
 ### Graphics - available
@@ -137,17 +139,17 @@ backend interoperability explicitly marked unstable is excluded.
 
 ### Module overview
 
-| Area                | State            |
-| ------------------- | ---------------- |
-| Graphics - 2D       | Available        |
-| Windowing / Input   | Available        |
+| Area | State |
+| --- | --- |
+| Graphics - 2D | Available |
+| Windowing / Input | Available |
 
 ---
 
 ## Installation
 
-The current version is `0.1.0`. Publication under the package name `vmnl_graphics` is pending;
-use a checkout from a neighboring application until that package name is available on the registry:
+The current version is `0.1.0`. Publication under the package name `vmnl_graphics` is pending; use a
+checkout from a neighboring application until that package name is available on the registry:
 
 ```toml
 [dependencies]
@@ -180,7 +182,8 @@ just build-workspace
 
 ## Technical Documentation
 
-Technical documentation starts at [docs/README.md](https://github.com/VMNL/vmnl-graphics/blob/main/docs/README.md).
+Technical documentation starts at
+[docs/README.md](https://github.com/VMNL/vmnl-graphics/blob/main/docs/README.md).
 
 - [Getting Started](https://github.com/VMNL/vmnl-graphics/blob/main/docs/getting_started.md)
 - [Coding Instructions](https://github.com/VMNL/vmnl-graphics/blob/main/docs/INSTRUCTIONS.md)
@@ -194,12 +197,14 @@ Technical documentation starts at [docs/README.md](https://github.com/VMNL/vmnl-
 1. **`0.1.0` (current)** - window/input, 2D shapes, and minimal raw graphics form the initial
    graphics API baseline; documented implementation and qualification limits still apply.
 2. **`0.2.0`** - textures without breaking `0.1.0`; text and batching begin in parallel.
-3. **Later `0.x`** - optional graphics composition helpers, 3D rendering, and reference applications.
+3. **Later `0.x`** - optional graphics composition helpers, 3D rendering, and reference
+   applications.
 4. **`1.0.0`** - complete stable graphics APIs, qualified platform support, stable C ABI, priority
    C++ wrapper, and demonstrated game and engine rendering workflows.
 
 VMNL preserves published `0.x` Rust contracts after `0.1.0`; deprecated APIs remain until `1.0.0`.
-See [Deployment](https://github.com/VMNL/vmnl-graphics/blob/main/docs/deployment.md) for the exact compatibility, release, and distribution policy.
+See [Deployment](https://github.com/VMNL/vmnl-graphics/blob/main/docs/deployment.md) for the exact
+compatibility, release, and distribution policy.
 
 ---
 
@@ -216,7 +221,7 @@ See [Deployment](https://github.com/VMNL/vmnl-graphics/blob/main/docs/deployment
 Original VMNL project contributors and their historical roles:
 
 | Name | Historical role |
-| ---- | ---- |
+| --- | --- |
 | [Hugo Duda](https://github.com/HugoDuda) | Product Owner · Graphics Lead (low-level & high-level) |
 | [Maxence Pierre](https://github.com/Anexoms) | Low-level developer |
 | [Nathan Flachat](https://github.com/NathanFlachat) | Low-level & high-level developer |

@@ -1,7 +1,7 @@
 # Glossary
 
 | Term | Meaning in VMNL |
-|---|---|
+| --- | --- |
 | Graphics crate | The client dependency boundary provided by package `vmnl_graphics`, imported as `vmnl_graphics`. |
 | Context | Shared single-threaded owner of Vulkan device/queue/allocators. |
 | Window | Native window plus Vulkan presentation/render-target state. |

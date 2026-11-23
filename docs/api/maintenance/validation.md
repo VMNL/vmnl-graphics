@@ -2,7 +2,8 @@
 
 Prerequisites and exact versions are listed in [`docs/build.md`](../../build.md). Documentation-only
 edits require structure, generated-file, snippet, and local-link checks. Source or tooling edits
-follow the single ordered completion sequence in [`CONTRIBUTING.md`](../../../CONTRIBUTING.md#before-submission).
+follow the single ordered completion sequence in
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.md#before-submission).
 
 Before completion, regenerate and review the API book only when the public surface intentionally
 changes:

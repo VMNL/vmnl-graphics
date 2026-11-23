@@ -6,15 +6,19 @@ Import path: `vmnl_graphics::raw::GeometryBuilder<TVertex>`. Status: 0.1.0, oper
 
 ## Purpose and use cases
 
-Configures optional indexing and memory preference, validates counts/bounds, and uploads typed raw geometry.
+Configures optional indexing and memory preference, validates counts/bounds, and uploads typed raw
+geometry.
 
 ## Public API
 
-`indices(indices)`, `buffer_memory_preference(preference)`, and `build(&Context)` where `TVertex: BufferContents`.
+`indices(indices)`, `buffer_memory_preference(preference)`, and `build(&Context)` where
+`TVertex: BufferContents`.
 
 ## Construction, defaults, and validation
 
-Vertices are required. Default has no indices and prefers `Device`. Build rejects zero vertices, an explicitly empty index list, out-of-bounds indices, or counts not representable as `u32`. It does not validate topology-specific group sizes.
+Vertices are required. Default has no indices and prefers `Device`. Build rejects zero vertices, an
+explicitly empty index list, out-of-bounds indices, or counts not representable as `u32`. It does
+not validate topology-specific group sizes.
 
 ## Units, coordinates, and valid ranges
 
@@ -30,7 +34,8 @@ Returns `InvalidState` for validation/count errors and Vulkan buffer errors for 
 
 ## Allocation, transfers, synchronization, and GPU cost
 
-`Into<Vec>` and optional indices may allocate. Build directly uploads host-written vertex/index buffers using the requested memory preference. Exact placement/cost is unspecified.
+`Into<Vec>` and optional indices may allocate. Build directly uploads host-written vertex/index
+buffers using the requested memory preference. Exact placement/cost is unspecified.
 
 ## Platform, Vulkan, and display constraints
 
@@ -56,4 +61,5 @@ fn main() -> vmnl_graphics::VMNLResult<()> {
 }
 ```
 
-Related: [`Geometry`](geometry.md) and [`BufferMemoryPreference`](../../common/buffer_memory_preference.md).
+Related: [`Geometry`](geometry.md) and
+[`BufferMemoryPreference`](../../common/buffer_memory_preference.md).

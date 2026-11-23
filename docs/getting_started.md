@@ -48,8 +48,10 @@ validate Vulkan, GLFW, or display-dependent behavior.
 ## Diagnose a Failure
 
 - Build cannot find `shaderc`: follow [shaderc discovery](build.md#shaderc-discovery).
-- `vulkaninfo` fails or rendering cannot initialize: follow [Vulkan loader or driver failure](troubleshooting.md#vulkan-loader-or-driver-failure).
-- GLFW cannot create a window: follow [GLFW or display failure](troubleshooting.md#glfw-or-display-failure).
+- `vulkaninfo` fails or rendering cannot initialize: follow [Vulkan loader or driver
+  failure](troubleshooting.md#vulkan-loader-or-driver-failure).
+- GLFW cannot create a window: follow [GLFW or display
+  failure](troubleshooting.md#glfw-or-display-failure).
 
 Use [Examples](examples.md) to choose another visual program, or [Testing](testing.md) for the test
 classification and GPU-test workflow.

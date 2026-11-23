@@ -6,15 +6,18 @@ Import path: `vmnl_graphics::d2::RenderItem2D`. Status: 0.1.0 opaque backend des
 
 ## Purpose and use cases
 
-Transfers a drawable's pipeline/material/blend selection, buffers, and counts into VMNL's frame renderer.
+Transfers a drawable's pipeline/material/blend selection, buffers, and counts into VMNL's frame
+renderer.
 
 ## Public API
 
-Derives `Clone`. All fields are private and no public constructor or accessor exists. Values are returned by `Drawable2D::render_item_2d`.
+Derives `Clone`. All fields are private and no public constructor or accessor exists. Values are
+returned by `Drawable2D::render_item_2d`.
 
 ## Construction, defaults, and validation
 
-Clients cannot directly construct or validate the descriptor. `Shape` creates a consistent item internally.
+Clients cannot directly construct or validate the descriptor. `Shape` creates a consistent item
+internally.
 
 ## Units, coordinates, and valid ranges
 
@@ -30,7 +33,8 @@ Creation through `Shape`'s trait method is infallible. Submission can reject inc
 
 ## Allocation, transfers, synchronization, and GPU cost
 
-Cloning handles does not upload geometry. Rendering the item records and submits draw commands; exact cost is not specified.
+Cloning handles does not upload geometry. Rendering the item records and submits draw commands;
+exact cost is not specified.
 
 ## Platform, Vulkan, and display constraints
 

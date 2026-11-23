@@ -6,62 +6,59 @@ Import path: `vmnl_graphics::d2::RectBuilder`; created by `Shape::rect`. Status:
 
 ## Purpose and use cases
 
-Builds a positioned, colored, optionally rotated indexed rectangle with sharp or rounded
-circular corners.
+Builds a positioned, colored, optionally rotated indexed rectangle with sharp or rounded circular
+corners.
 
 ## Public API
 
 `position(x, y)`, `color(color)`, `rotation(degrees)`, `anchor(Anchor)`, `origin(x, y)`,
 `corner_radius(radius)`, `corner_radii(CornerRadii)`, `corner_segments(segments)`,
-`buffer_memory_preference(preference)`, and `build(&Context)`. `anchor` and `origin` replace
-each other. `corner_radius(radius)` is equivalent to `corner_radii(CornerRadii::all(radius))`;
-the last call to either corner method replaces the previous corner configuration.
+`buffer_memory_preference(preference)`, and `build(&Context)`. `anchor` and `origin` replace each
+other. `corner_radius(radius)` is equivalent to `corner_radii(CornerRadii::all(radius))`; the last
+call to either corner method replaces the previous corner configuration.
 
 ## Construction, defaults, and validation
 
 Width/height are required. Defaults: position `(0,0)`, opaque white, rotation `0`,
-`Anchor::TopLeft`, sharp corners (`CornerRadii::default()`), `8` corner segments,
-`Device` preference. Size must be finite and strictly positive; position, rotation, custom
-origin, and computed bounds must be finite/not NaN. Each corner radius must be finite and
-`>= 0`; the segment count must be at least one; adjacent corner radii must satisfy
-`top_left + top_right <= width`, `bottom_left + bottom_right <= width`,
-`top_left + bottom_left <= height`, and `top_right + bottom_right <= height`. Overlapping
-or otherwise invalid corner configurations are rejected before GPU allocation, never clamped
-or rescaled. Computed arc centers, contour vertices, transformed vertices, and generated
-counts must remain finite and representable. Final vertex positions from both sharp and
-rounded paths, including rotation, are checked before GPU allocation.
+`Anchor::TopLeft`, sharp corners (`CornerRadii::default()`), `8` corner segments, `Device`
+preference. Size must be finite and strictly positive; position, rotation, custom origin, and
+computed bounds must be finite/not NaN. Each corner radius must be finite and `>= 0`; the segment
+count must be at least one; adjacent corner radii must satisfy `top_left + top_right <= width`,
+`bottom_left + bottom_right <= width`, `top_left + bottom_left <= height`, and
+`top_right + bottom_right <= height`. Overlapping or otherwise invalid corner configurations are
+rejected before GPU allocation, never clamped or rescaled. Computed arc centers, contour vertices,
+transformed vertices, and generated counts must remain finite and representable. Final vertex
+positions from both sharp and rounded paths, including rotation, are checked before GPU allocation.
 
 ## Units, coordinates, and valid ranges
 
-Position, size, origin, and radii are 2D pixel-like values. Rotation is degrees and reduced
-modulo 360 for geometry. Segments are `u16`, at least one; zero-radius corners ignore the
-segment setting.
+Position, size, origin, and radii are 2D pixel-like values. Rotation is degrees and reduced modulo
+360 for geometry. Segments are `u16`, at least one; zero-radius corners ignore the segment setting.
 
 ## Ownership, lifecycle, and threading
 
-CPU-only builder consumed by build; resulting shape owns context-associated buffers. The
-shape is immutable after build; rebuild to change geometry.
+CPU-only builder consumed by build; resulting shape owns context-associated buffers. The shape is
+immutable after build; rebuild to change geometry.
 
 ## Errors, panics, and failure conditions
 
 Invalid numeric geometry, invalid or overlapping corner radii, zero segments, non-finite final
-vertex positions, and unrepresentable generated geometry return `VMNLErrorKind::InvalidState`;
-GPU buffer creation can return Vulkan errors. Building never panics on invalid input.
+vertex positions, and unrepresentable generated geometry return `VMNLErrorKind::InvalidState`; GPU
+buffer creation can return Vulkan errors. Building never panics on invalid input.
 
 ## Allocation, transfers, synchronization, and GPU cost
 
-With all four radii zero, build keeps four vertices and six indices in fixed arrays through
-shared preflight and allocates/uploads one vertex and one index buffer; it does not convert
-those arrays into temporary CPU vectors. With any non-zero radius,
-build performs CPU tessellation: one clockwise boundary of straight edges between tangent
-points, one quarter arc per non-zero corner, and one sharp point per zero-radius corner,
-triangulated as one triangle fan around the rectangle center. For four non-zero corners and
-`S` segments per corner the shape has `4 * (S + 1) + 1` vertices and `3 * 4 * (S + 1)`
-indices; rounded generation uses checked count arithmetic and fallible CPU reservation.
-Rotation around the configured anchor or custom origin is applied after local boundary
+With all four radii zero, build keeps four vertices and six indices in fixed arrays through shared
+preflight and allocates/uploads one vertex and one index buffer; it does not convert those arrays
+into temporary CPU vectors. With any non-zero radius, build performs CPU tessellation: one clockwise
+boundary of straight edges between tangent points, one quarter arc per non-zero corner, and one
+sharp point per zero-radius corner, triangulated as one triangle fan around the rectangle center.
+For four non-zero corners and `S` segments per corner the shape has `4 * (S + 1) + 1` vertices and
+`3 * 4 * (S + 1)` indices; rounded generation uses checked count arithmetic and fallible CPU
+reservation. Rotation around the configured anchor or custom origin is applied after local boundary
 generation. Drawing reuses the immutable buffers with no per-frame allocation. `corner_segments`
-controls the geometric approximation only and does not provide anti-aliasing. Exact cost
-is unspecified.
+controls the geometric approximation only and does not provide anti-aliasing. Exact cost is
+unspecified.
 
 ## Platform, Vulkan, and display constraints
 

@@ -4,18 +4,18 @@
 
 `vmnl_graphics::Cursor`, `vmnl_graphics::CursorBuilder`, `vmnl_graphics::StandardCursor`,
 `vmnl_graphics::StandardCursorBuilder`, methods on `vmnl_graphics::Window`, plus
-`Context::is_raw_mouse_motion_supported`. Status: 0.1.0, operational where the active
-backend supports the requested cursor or mode.
+`Context::is_raw_mouse_motion_supported`. Status: 0.1.0, operational where the active backend
+supports the requested cursor or mode.
 
 ## Purpose and use cases
 
-Creates and assigns cursor resources, and reads or updates cursor position, visibility,
-confinement, hover state, and raw-motion configuration without exposing GLFW types.
+Creates and assigns cursor resources, and reads or updates cursor position, visibility, confinement,
+hover state, and raw-motion configuration without exposing GLFW types.
 
 ## Public API
 
 | Member | Contract |
-|---|---|
+| --- | --- |
 | `Cursor::standard` | Configure a [standard cursor builder](input/standard_cursor_builder.md). |
 | `Cursor::rgba8` | Configure a custom [RGBA8 cursor builder](input/cursor_builder.md). |
 | `CursorBuilder::hotspot_marker` | Replace the final hotspot pixel with a client-selected diagnostic color. |
@@ -33,14 +33,13 @@ confinement, hover state, and raw-motion configuration without exposing GLFW typ
 New windows start in `CursorMode::Normal`, with the backend default cursor and raw motion disabled.
 The first transition to `CursorMode::Hidden` creates one transparent native cursor for that window;
 later transitions reuse it. The cursor selected by the client remains inspectable while hidden and
-is restored when another mode makes cursor images visible.
-Custom cursor dimensions must be positive and fit `c_int`; the byte slice must contain exactly
-`width * height * 4` bytes and the hotspot must be inside the image. These conditions and overflow
-are checked during `CursorBuilder::build` before GLFW. The custom hotspot defaults to `(0, 0)`.
-Its diagnostic marker is disabled by default and does not choose a contrast color implicitly.
-Cursor coordinates must be finite. Enabling raw motion is rejected with
-`GlfwUnsupportedPlatform` when the context reports it unavailable. Disabling it on an unsupported
-system is a successful no-op.
+is restored when another mode makes cursor images visible. Custom cursor dimensions must be positive
+and fit `c_int`; the byte slice must contain exactly `width * height * 4` bytes and the hotspot must
+be inside the image. These conditions and overflow are checked during `CursorBuilder::build` before
+GLFW. The custom hotspot defaults to `(0, 0)`. Its diagnostic marker is disabled by default and does
+not choose a contrast color implicitly. Cursor coordinates must be finite. Enabling raw motion is
+rejected with `GlfwUnsupportedPlatform` when the context reports it unavailable. Disabling it on an
+unsupported system is a successful no-op.
 
 ## Units, coordinates, and valid ranges
 
@@ -68,26 +67,25 @@ Custom cursor building returns `InvalidState` for invalid image parameters,
 `GlfwUnsupportedPlatform` when a standard shape is unavailable, or the corresponding GLFW category
 for another native failure. `Window::set_cursor` preserves the previous resource when GLFW reports
 an error. While hidden, it updates only the client-selected resource because the internal
-transparent cursor remains active. `Window::set_cursor_mode` returns the native error produced
-while creating or assigning that transparent cursor or applying the effective GLFW mode; VMNL keeps
-the previously requested mode and attempts to restore its native state. Destruction errors can only
-be reported through the configured GLFW callback because destruction occurs during `Drop`.
+transparent cursor remains active. `Window::set_cursor_mode` returns the native error produced while
+creating or assigning that transparent cursor or applying the effective GLFW mode; VMNL keeps the
+previously requested mode and attempts to restore its native state. Destruction errors can only be
+reported through the configured GLFW callback because destruction occurs during `Drop`.
 
 `set_cursor_position` returns `InvalidState` for NaN or infinite coordinates. An unfocused window
 silently ignores position updates as specified by GLFW. Native positioning failures not covered by
 that validation are reported through the configured GLFW error callback. Other getters can return
 GLFW sentinels or stored configuration even when native behavior is unavailable.
 
-`set_raw_mouse_motion(true)` returns `GlfwUnsupportedPlatform` when the availability query is
-false. A true configured state only changes delivered deltas while `CursorMode::Disabled` is
-effective.
+`set_raw_mouse_motion(true)` returns `GlfwUnsupportedPlatform` when the availability query is false.
+A true configured state only changes delivered deltas while `CursorMode::Disabled` is effective.
 
 ## Allocation, transfers, synchronization, and GPU cost
 
-Cursor factories and `Window::set_cursor` allocate no native resource. Each builder `build`
-performs one native allocation. The first successful hidden-mode request performs one additional
-native allocation per window for a one-pixel transparent cursor; the window caches that resource
-until destruction.
+Cursor factories and `Window::set_cursor` allocate no native resource. Each builder `build` performs
+one native allocation. The first successful hidden-mode request performs one additional native
+allocation per window for a one-pixel transparent cursor; the window caches that resource until
+destruction.
 
 `CursorBuilder::build` synchronously copies the borrowed pixel slice before returning. An enabled
 hotspot marker adds one temporary full-image VMNL allocation; the unmarked path adds none. Cloning
@@ -99,9 +97,9 @@ are unspecified.
 
 Disabled/captured confinement is effective only while focused. Wayland requires compositor
 relative-pointer and pointer-constraint support; non-disabled cursor warping is unavailable.
-Captured mode is not implemented by GLFW 3.4 on Cocoa, where raw motion is also unavailable. X11
-raw motion requires XInput 2. Diagonal resize and not-allowed standard cursors can be unavailable
-with some X11 or Wayland cursor themes. See [platform compatibility](platform_compatibility.md).
+Captured mode is not implemented by GLFW 3.4 on Cocoa, where raw motion is also unavailable. X11 raw
+motion requires XInput 2. Diagonal resize and not-allowed standard cursors can be unavailable with
+some X11 or Wayland cursor themes. See [platform compatibility](platform_compatibility.md).
 
 ## Example and related types
 

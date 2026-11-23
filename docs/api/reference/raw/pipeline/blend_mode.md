@@ -14,7 +14,8 @@ Variants: `Opaque` and `Alpha`. Derives `Clone`, `Copy`, `Debug`, `PartialEq`, `
 
 ## Construction, defaults, and validation
 
-`PipelineSpec` defaults to `Opaque`. `Alpha` uses Vulkano's standard source-alpha attachment blend state.
+`PipelineSpec` defaults to `Opaque`. `Alpha` uses Vulkano's standard source-alpha attachment blend
+state.
 
 ## Units, coordinates, and valid ranges
 

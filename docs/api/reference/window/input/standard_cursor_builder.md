@@ -13,14 +13,14 @@ Defers native allocation of a [`StandardCursor`](standard_cursor.md) until a
 ## Public API
 
 | Member | Contract |
-|---|---|
+| --- | --- |
 | `Cursor::standard` | Create a builder containing the requested standard shape. |
 | `build` | Allocate and return the corresponding native [`Cursor`](cursor.md). |
 
 ## Construction, defaults, and validation
 
-There is no default shape. `Cursor::standard` requires one explicit `StandardCursor`; `build`
-passes that validated enum value to the backend.
+There is no default shape. `Cursor::standard` requires one explicit `StandardCursor`; `build` passes
+that validated enum value to the backend.
 
 ## Units, coordinates, and valid ranges
 
@@ -42,8 +42,8 @@ Configuration allocates nothing. `build` performs one native cursor allocation a
 
 ## Platform, Vulkan, and display constraints
 
-Building requires initialized GLFW on its platform-compatible thread. Exact appearance and size
-come from the platform theme. Vulkan and the GPU do not participate.
+Building requires initialized GLFW on its platform-compatible thread. Exact appearance and size come
+from the platform theme. Vulkan and the GPU do not participate.
 
 ## Example and related types
 

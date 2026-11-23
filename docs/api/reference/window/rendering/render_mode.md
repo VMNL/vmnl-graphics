@@ -10,11 +10,13 @@ Requests how compatible objects inside each logical pass should be submitted.
 
 ## Public API
 
-Variants: `PerObject` (default) and `Batched`. Derives: `Debug`, `Clone`, `Copy`, `Default`, `PartialEq`, `Eq`, and `Hash`.
+Variants: `PerObject` (default) and `Batched`. Derives: `Debug`, `Clone`, `Copy`, `Default`,
+`PartialEq`, `Eq`, and `Hash`.
 
 ## Construction, defaults, and validation
 
-`FrameRenderer` defaults to `PerObject`. `Batched` is accepted but currently falls back to `PerObject`; it does not reorder logical pass calls.
+`FrameRenderer` defaults to `PerObject`. `Batched` is accepted but currently falls back to
+`PerObject`; it does not reorder logical pass calls.
 
 ## Units, coordinates, and valid ranges
 
@@ -30,7 +32,8 @@ Selection is infallible. Submission failures belong to `FrameRenderer::submit`.
 
 ## Allocation, transfers, synchronization, and GPU cost
 
-No quantitative batching or performance guarantee is specified. Current variants use the per-object backend.
+No quantitative batching or performance guarantee is specified. Current variants use the per-object
+backend.
 
 ## Platform, Vulkan, and display constraints
 

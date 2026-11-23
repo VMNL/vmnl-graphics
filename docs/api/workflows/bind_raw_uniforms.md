@@ -1,6 +1,7 @@
 # Bind raw uniforms
 
-Use `Uniform<T>` for stable data or one-off direct writes. Use `FrameUniform<T>` for data that changes every frame.
+Use `Uniform<T>` for stable data or one-off direct writes. Use `FrameUniform<T>` for data that
+changes every frame.
 
 Direct write workflow:
 
@@ -17,6 +18,16 @@ Frame-varying workflow:
 3. In each frame, call `write_frame_uniform(&mut uniform, data)` before `submit`.
 4. Submit with `draw_raw_2d_with` using the same `Resources`.
 
-`Uniform::write` updates one existing buffer directly and can fail if it conflicts with active CPU or GPU access. `FrameUniform` keeps one current slot per swapchain image; `write_frame_uniform` allocates or reuses a fresh subbuffer for the acquired image slot during submit. All queued frame-uniform writes happen before command recording, not between draw passes. Frame-uniform descriptor sets are allocated during command recording so they point at the current slot. It does not wait for GPU work or overwrite a buffer that may still be read by queued GPU work. Descriptor arrays, non-uniform resources, storage buffers, textures/samplers, and push constants are unsupported.
+`Uniform::write` updates one existing buffer directly and can fail if it conflicts with active CPU
+or GPU access. `FrameUniform` keeps one current slot per swapchain image; `write_frame_uniform`
+allocates or reuses a fresh subbuffer for the acquired image slot during submit. All queued
+frame-uniform writes happen before command recording, not between draw passes. Frame-uniform
+descriptor sets are allocated during command recording so they point at the current slot. It does
+not wait for GPU work or overwrite a buffer that may still be read by queued GPU work. Descriptor
+arrays, non-uniform resources, storage buffers, textures/samplers, and push constants are
+unsupported.
 
-Use the complete [`examples/raw/uniform`](../../../examples/raw/uniform/src/main.rs). See [`Uniform`](../reference/raw/uniforms/uniform.md), [`FrameUniform`](../reference/raw/uniforms/frame_uniform.md), and [`ResourcesBuilder`](../reference/raw/resources/resources_builder.md).
+Use the complete [`examples/raw/uniform`](../../../examples/raw/uniform/src/main.rs). See
+[`Uniform`](../reference/raw/uniforms/uniform.md),
+[`FrameUniform`](../reference/raw/uniforms/frame_uniform.md), and
+[`ResourcesBuilder`](../reference/raw/resources/resources_builder.md).

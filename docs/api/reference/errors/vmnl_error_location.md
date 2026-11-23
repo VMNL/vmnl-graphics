@@ -10,7 +10,8 @@ Reports the file, line, and column captured when `VMNLError::new` was called.
 
 ## Public API
 
-`file() -> &'static str`, `line() -> u32`, and `column() -> u32`; the type derives `Debug`, `Clone`, and `Copy`. Fields are private.
+`file() -> &'static str`, `line() -> u32`, and `column() -> u32`; the type derives `Debug`, `Clone`,
+and `Copy`. Fields are private.
 
 ## Construction, defaults, and validation
 
@@ -18,7 +19,8 @@ Clients receive it from `VMNLError::location`; direct construction and `Default`
 
 ## Units, coordinates, and valid ranges
 
-`line` and `column` are source coordinates reported by Rust's caller location. `file` is compiler-provided and may be relative or absolute depending on the build.
+`line` and `column` are source coordinates reported by Rust's caller location. `file` is
+compiler-provided and may be relative or absolute depending on the build.
 
 ## Ownership, lifecycle, and threading
 

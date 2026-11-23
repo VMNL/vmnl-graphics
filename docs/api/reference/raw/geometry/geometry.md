@@ -10,7 +10,8 @@ Owns typed GPU vertex data plus optional indices for a raw pipeline with the sam
 
 ## Public API
 
-`Geometry::<TVertex>::builder(vertices) -> GeometryBuilder<TVertex>`. Fields are private; no `Clone`/`Default`.
+`Geometry::<TVertex>::builder(vertices) -> GeometryBuilder<TVertex>`. Fields are private; no
+`Clone`/`Default`.
 
 ## Construction, defaults, and validation
 
@@ -30,7 +31,8 @@ Builder entry is infallible; build and frame compatibility checks can fail.
 
 ## Allocation, transfers, synchronization, and GPU cost
 
-Builder construction may allocate a vector; build uploads buffers. Draw reuses them. Exact cost is unspecified.
+Builder construction may allocate a vector; build uploads buffers. Draw reuses them. Exact cost is
+unspecified.
 
 ## Platform, Vulkan, and display constraints
 
@@ -52,4 +54,5 @@ fn main() -> vmnl_graphics::VMNLResult<()> {
 }
 ```
 
-Related: [`GeometryBuilder`](geometry_builder.md), [`Pipeline`](../pipeline/pipeline.md), and [`BufferContents`](../traits/buffer_contents.md).
+Related: [`GeometryBuilder`](geometry_builder.md), [`Pipeline`](../pipeline/pipeline.md), and
+[`BufferContents`](../traits/buffer_contents.md).

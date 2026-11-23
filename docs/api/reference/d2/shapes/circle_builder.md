@@ -2,10 +2,11 @@
 
 ## Public path and maturity
 
-Entry point: `vmnl_graphics::d2::Shape::circle(radius)`. Status: 0.1.0, operational geometry builder.
-The returned type currently has no public import path: keep its type inferred. In particular,
-`vmnl_graphics::d2::CircleBuilder` is not exported, and Rustdoc does not expose a standalone builder page.
-The accessible Rustdoc entry is [`Shape::circle`](../../../../../target/doc/vmnl_graphics/d2/struct.Shape.html#method.circle).
+Entry point: `vmnl_graphics::d2::Shape::circle(radius)`. Status: 0.1.0, operational geometry
+builder. The returned type currently has no public import path: keep its type inferred. In
+particular, `vmnl_graphics::d2::CircleBuilder` is not exported, and Rustdoc does not expose a
+standalone builder page. The accessible Rustdoc entry is
+[`Shape::circle`](../../../../../target/doc/vmnl_graphics/d2/struct.Shape.html#method.circle).
 
 ## Purpose and use cases
 
@@ -14,8 +15,8 @@ builder. Ellipse strokes follow the ellipse normal rather than subtracting a sec
 
 ## Public API
 
-All setters consume and return the builder. Its fields and constructor are private; it has no
-public `Default`, `Clone`, or `Copy` implementation.
+All setters consume and return the builder. Its fields and constructor are private; it has no public
+`Default`, `Clone`, or `Copy` implementation.
 
 | Method | Effect |
 | --- | --- |
@@ -46,16 +47,15 @@ geometry, opaque white, 32 segments, inner and outer offsets of `0.5`, no sector
 
 `width`, `inner`, and `outer` preserve the selected fill mode. The fill setter preserves both
 offsets, so its order relative to a width setter does not change the resulting configuration.
-`width` still replaces both offsets, so its order relative to `inner` or `outer` matters.
-The getters return stored values without validation or GLFW/Vulkan initialization.
-Filled geometry omits the inner boundary but
-still offsets the outer boundary. A filled circle with default offsets and reference radius
-`50.0` has boundary radius `50.5`. For a filled circle with boundary radius `50.0`, use
-`Shape::circle(50.0).outer(0.0).filled(true)`; zero outer width is accepted only in filled mode.
+`width` still replaces both offsets, so its order relative to `inner` or `outer` matters. The
+getters return stored values without validation or GLFW/Vulkan initialization. Filled geometry omits
+the inner boundary but still offsets the outer boundary. A filled circle with default offsets and
+reference radius `50.0` has boundary radius `50.5`. For a filled circle with boundary radius `50.0`,
+use `Shape::circle(50.0).outer(0.0).filled(true)`; zero outer width is accepted only in filled mode.
 For ellipses, the outer offset follows the unit normal and is not generally another exact ellipse.
 
-**Migration:** Width setters previously selected an outline even after `filled(true)`.
-Call `.filled(false)` explicitly when an outline is intended. The default remains unfilled.
+**Migration:** Width setters previously selected an outline even after `filled(true)`. Call
+`.filled(false)` explicitly when an outline is intended. The default remains unfilled.
 
 Validation occurs on `build`, before GPU allocation:
 
@@ -70,20 +70,20 @@ Validation occurs on `build`, before GPU allocation:
 | Sector sweep | Finite, `0 < abs(sweep) <= 360`; fractional degrees are accepted |
 | Sector/cap pair | Either both absent or both present, including filled/full-turn sectors |
 
-Without a sector, geometry covers a full turn and cannot have caps. An explicit sector with a
-`360` or `-360` sweep still requires a cap and receives cap geometry when unfilled. Cap selection
-is mandatory when unfilled and has no geometric effect when filled. `Butt` leaves the endpoints unchanged;
-`Square` extends each endpoint tangentially by `(inner + outer) / 2`; `Round` adds a semicircle of
-that radius at each end, with its center shifted for asymmetric offsets. Round caps use 32 fixed
-subdivisions each, independently of `segments`.
+Without a sector, geometry covers a full turn and cannot have caps. An explicit sector with a `360`
+or `-360` sweep still requires a cap and receives cap geometry when unfilled. Cap selection is
+mandatory when unfilled and has no geometric effect when filled. `Butt` leaves the endpoints
+unchanged; `Square` extends each endpoint tangentially by `(inner + outer) / 2`; `Round` adds a
+semicircle of that radius at each end, with its center shifted for asymmetric offsets. Round caps
+use 32 fixed subdivisions each, independently of `segments`.
 
 ## Units, coordinates, and valid ranges
 
-Centers, radii, and widths are `f32` pixel-like 2D values. Position is the center, not a bounding-box
-corner. Angles are degrees: zero is the top, `90` the right, `180` the bottom, and `270` the left.
-Positive sweeps are clockwise in the built-in X-right/Y-down coordinates; negative sweeps reverse
-direction. Start angles are checked rather than normalized. For ellipses, these are parametric
-ellipse angles, not equal arc-length steps.
+Centers, radii, and widths are `f32` pixel-like 2D values. Position is the center, not a
+bounding-box corner. Angles are degrees: zero is the top, `90` the right, `180` the bottom, and
+`270` the left. Positive sweeps are clockwise in the built-in X-right/Y-down coordinates; negative
+sweeps reverse direction. Start angles are checked rather than normalized. For ellipses, these are
+parametric ellipse angles, not equal arc-length steps.
 
 Offsets are not constrained relative to the radii. Large inward offsets, low segment counts, or
 explicit full-turn caps can produce degenerate or overlapping geometry. There is no
@@ -92,21 +92,21 @@ self-intersection or single-coverage guarantee.
 ## Ownership, lifecycle, and threading
 
 The builder holds CPU configuration and no context borrow. `build` consumes it; the resulting
-immutable shape owns shared vertex/index buffer handles associated with the supplied context.
-Use it with a window from the same context. Rebuild to change geometry or style. No worker thread
-is created; dropping the shape releases its ownership shares.
+immutable shape owns shared vertex/index buffer handles associated with the supplied context. Use it
+with a window from the same context. Rebuild to change geometry or style. No worker thread is
+created; dropping the shape releases its ownership shares.
 
 ## Errors, panics, and failure conditions
 
-Invalid parameters, invalid triangle topology/counts, or non-finite final generated positions
-return `VMNLErrorKind::InvalidState`. GPU buffer creation/upload errors propagate from `build`.
-All generated vertex positions are checked before buffer allocation, including output that
-overflows during tessellation or becomes non-finite from the outer offset in filled mode.
+Invalid parameters, invalid triangle topology/counts, or non-finite final generated positions return
+`VMNLErrorKind::InvalidState`. GPU buffer creation/upload errors propagate from `build`. All
+generated vertex positions are checked before buffer allocation, including output that overflows
+during tessellation or becomes non-finite from the outer offset in filled mode.
 
-Finite degenerate, overlapping, or self-intersecting geometry is not rejected. Filled mode
-does not parameter-validate its stored widths, and parameter acceptance does not guarantee
-usable geometry for oversized inward offsets or extreme finite values. Allocation exhaustion
-is not covered by a recoverable-error guarantee.
+Finite degenerate, overlapping, or self-intersecting geometry is not rejected. Filled mode does not
+parameter-validate its stored widths, and parameter acceptance does not guarantee usable geometry
+for oversized inward offsets or extreme finite values. Allocation exhaustion is not covered by a
+recoverable-error guarantee.
 
 ## Allocation, transfers, synchronization, and GPU cost
 
@@ -121,14 +121,14 @@ allocates/uploads one vertex buffer and one index buffer through the indexed-sha
 
 At the default 32 segments, a filled circle has 34 vertices and 96 indices; a ring has 66 vertices
 and 192 indices. Square caps reuse endpoint vertices. Drawing reuses the buffers. Memory placement
-is a preference, not a guarantee; exact timing, internal allocations, and synchronization costs
-are unspecified.
+is a preference, not a guarantee; exact timing, internal allocations, and synchronization costs are
+unspecified.
 
 ## Platform, Vulkan, and display constraints
 
-Builder configuration is headless. Building requires a Vulkan context; drawing additionally
-requires a compatible window/render backend. Compilation and CPU geometry tests do not establish
-correct pixels or platform qualification.
+Builder configuration is headless. Building requires a Vulkan context; drawing additionally requires
+a compatible window/render backend. Compilation and CPU geometry tests do not establish correct
+pixels or platform qualification.
 
 ## Example and related types
 
@@ -155,8 +155,7 @@ fn main() -> vmnl_graphics::VMNLResult<()> {
 ```
 
 Full visual program: [`d2_circles`](../../../../../examples/d2/circles/src/main.rs), run with
-`just run d2_circles`. CPU geometry/validation evidence lives in the
-[`circle` unit tests](../../../../../crates/vmnl_graphics/src/2d/shape/circle.rs).
-Related: [`Shape`](shape.md), [`LineCap`](line_cap.md),
-[`BufferMemoryPreference`](../../common/buffer_memory_preference.md), and the
-[draw-2D workflow](../../../workflows/draw_2d.md).
+`just run d2_circles`. CPU geometry/validation evidence lives in the [`circle` unit
+tests](../../../../../crates/vmnl_graphics/src/2d/shape/circle.rs). Related: [`Shape`](shape.md),
+[`LineCap`](line_cap.md), [`BufferMemoryPreference`](../../common/buffer_memory_preference.md), and
+the [draw-2D workflow](../../../workflows/draw_2d.md).

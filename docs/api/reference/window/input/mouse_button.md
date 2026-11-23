@@ -10,7 +10,8 @@ Identifies mouse buttons supported by VMNL events and snapshots.
 
 ## Public API
 
-Variants: `Left`, `Right`, `Middle`, `Button4`, `Button5`, `Button6`, `Button7`, and `Button8`. The enum is `#[repr(usize)]` and derives `Copy`, `Clone`, `Eq`, `PartialEq`, `Hash`, and `Debug`.
+Variants: `Left`, `Right`, `Middle`, `Button4`, `Button5`, `Button6`, `Button7`, and `Button8`. The
+enum is `#[repr(usize)]` and derives `Copy`, `Clone`, `Eq`, `PartialEq`, `Hash`, and `Debug`.
 
 ## Construction, defaults, and validation
 
@@ -34,7 +35,8 @@ None.
 
 ## Platform, Vulkan, and display constraints
 
-Availability of auxiliary buttons depends on device/platform. Cursor positions and scroll axes are separate events.
+Availability of auxiliary buttons depends on device/platform. Cursor positions and scroll axes are
+separate events.
 
 ## Example and related types
 

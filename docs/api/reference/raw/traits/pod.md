@@ -10,11 +10,13 @@ Exposes the bytemuck plain-old-data contract through the public graphics API for
 
 ## Public API
 
-No methods. Supertrait: `bytemuck::Pod`; blanket-adapted for underlying implementations and omitted from inventory.
+No methods. Supertrait: `bytemuck::Pod`; blanket-adapted for underlying implementations and omitted
+from inventory.
 
 ## Construction, defaults, and validation
 
-Prefer the same-named derive. `Pod` requires every bit pattern to be valid, no padding bytes, stable layout, `Copy`, and compatible field types according to bytemuck's safety contract.
+Prefer the same-named derive. `Pod` requires every bit pattern to be valid, no padding bytes, stable
+layout, `Copy`, and compatible field types according to bytemuck's safety contract.
 
 ## Units, coordinates, and valid ranges
 
@@ -26,11 +28,13 @@ POD values contain no invalid uninitialized/pointer-like state under the underly
 
 ## Errors, panics, and failure conditions
 
-False unsafe implementations are unsound. The derive rejects obvious unsupported representation/field/padding cases at compile time.
+False unsafe implementations are unsound. The derive rejects obvious unsupported
+representation/field/padding cases at compile time.
 
 ## Allocation, transfers, synchronization, and GPU cost
 
-The marker itself performs no runtime work; buffer creation can use the proven byte representation for uploads.
+The marker itself performs no runtime work; buffer creation can use the proven byte representation
+for uploads.
 
 ## Platform, Vulkan, and display constraints
 

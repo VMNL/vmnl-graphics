@@ -7,7 +7,8 @@
 ## Coding Standards
 
 - `rustfmt` and `clippy -D warnings` are mandatory.
-- Every maintained Rust file under `crates/`, `examples/`, and `tests/` must begin with the following SPDX header:
+- Every maintained Rust file under `crates/`, `examples/`, and `tests/` must begin with the
+  following SPDX header:
 
   ```rust
   // SPDX-FileCopyrightText: 2026 <Your Name>
@@ -17,11 +18,15 @@
   ```
 
 - Do not modify generated or third-party files solely to add SPDX metadata.
-- When a legacy file header provides a description, preserve it as the `//!` Rustdoc summary. Otherwise, add a summary only when a public module boundary needs context beyond its item-level Rustdoc.
+- When a legacy file header provides a description, preserve it as the `//!` Rustdoc summary.
+  Otherwise, add a summary only when a public module boundary needs context beyond its item-level
+  Rustdoc.
 - Every `unsafe` block must include a `// SAFETY:` comment that states the verifiable invariant.
-- Do not use `unwrap` or `expect` in library crates unless the documented invariant makes failure impossible.
+- Do not use `unwrap` or `expect` in library crates unless the documented invariant makes failure
+  impossible.
 - Prefer types, `Result`, and dedicated error types over ambiguous error strings.
-- A function must have one observable responsibility. Extract a function only when it clarifies an invariant or removes meaningful duplication.
+- A function must have one observable responsibility. Extract a function only when it clarifies an
+  invariant or removes meaningful duplication.
 
 ## Naming Conventions
 
@@ -31,7 +36,8 @@
 - Constants and statics use `SCREAMING_SNAKE_CASE`.
 - Boolean values use the `is_`, `has_`, `can_`, or `should_` prefix.
 - Conversions use `from_*`, `to_*`, `as_*`, or `into_*` according to Rust conventions.
-- Avoid opaque abbreviations. Keep established Rust and Vulkan terminology such as `Vk`, `SPIR-V`, and `ID`.
+- Avoid opaque abbreviations. Keep established Rust and Vulkan terminology such as `Vk`, `SPIR-V`,
+  and `ID`.
 
 ## Documentation
 
@@ -63,7 +69,7 @@ targeting `main` enforces commit metadata independently of local hooks.
 ## Commit Type usage guidelines
 
 | Type | Use when |
-|------|----------|
+| --- | --- |
 | `build` | build system or external dependency changes |
 | `cicd` | CI/CD pipeline or script changes |
 | `chore` | no-impact housekeeping (e.g. .gitignore, tooling config) |
@@ -90,11 +96,10 @@ Use this validation sequence before any GPU allocation or upload:
 
 1. Validate public parameters in a shape-local `validate_parameters` method.
 2. Generate final vertices and indices deterministically.
-3. Send indexed triangle geometry through `IndexedShapeBuilder::indexed_shape_with_kind`;
-   explicit `Shape::indexed` input uses the `indexed_shape` wrapper and its `IndexedGeometry`
-   kind/label.
-4. Let the shared `preflight_indexed_geometry` check triangle structure, bounds, and draw
-   counts first, then all final vertex positions, before either GPU buffer is allocated.
+3. Send indexed triangle geometry through `IndexedShapeBuilder::indexed_shape_with_kind`; explicit
+   `Shape::indexed` input uses the `indexed_shape` wrapper and its `IndexedGeometry` kind/label.
+4. Let the shared `preflight_indexed_geometry` check triangle structure, bounds, and draw counts
+   first, then all final vertex positions, before either GPU buffer is allocated.
 5. Only after preflight, derive blending, convert directly to GPU vertices, and create buffers.
 
 Reuse validators by invariant, not by parameter name:
@@ -104,15 +109,14 @@ Reuse validators by invariant, not by parameter name:
 - `shape::validation::validate_finite_positions` scans every supplied vertex, including unused
   vertices; all NaN coordinates are rejected before any infinity coordinate.
 - Keep shape-specific relations, such as distinct line endpoints, in `validate_parameters`.
-- `common::validate_indexed_triangle_geometry` validates shared triangle topology, index bounds,
-  and draw-count conversion.
-- `TriangleBuilder::validate_vertices` checks duplicate positions first, then finite positions,
-  then non-zero signed double area in `f64`. Its area rule applies only to primitive triangles;
-  explicit indexed triangles continue to allow degeneracy.
+- `common::validate_indexed_triangle_geometry` validates shared triangle topology, index bounds, and
+  draw-count conversion.
+- `TriangleBuilder::validate_vertices` checks duplicate positions first, then finite positions, then
+  non-zero signed double area in `f64`. Its area rule applies only to primitive triangles; explicit
+  indexed triangles continue to allow degeneracy.
 - `IndexedShapeBuilder::indexed_shape_with_kind` owns shared indexed preflight, blending, direct
   vertex conversion, GPU buffer construction, and the caller-supplied `ShapeKind`.
-- `raw::validate_geometry_inputs` remains the separate, topology-independent raw rendering
-  boundary.
+- `raw::validate_geometry_inputs` remains the separate, topology-independent raw rendering boundary.
 
 Test generic truth tables in the shared validator module. Shape tests must cover composition of
 shared invariants and shape-specific rules. Update this inventory when adding a new shared

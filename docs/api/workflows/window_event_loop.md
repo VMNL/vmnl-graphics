@@ -5,12 +5,14 @@ Choose one loop policy:
 - continuous: call `poll_events`, update, then submit;
 - event-driven: call `wait_events`/`wait_events_timeout`, process, then submit only when needed.
 
-Common event delivery is configured by default, but the application still chooses every `poll_events` call. Use `unset_configure_window_polling` when configuring public event delivery source by source.
+Common event delivery is configured by default, but the application still chooses every
+`poll_events` call. Use `unset_configure_window_polling` when configuring public event delivery
+source by source.
 
 Joystick connection events are separate and disabled by default. Opt in with
-`WindowBuilder::joystick_event_delivery(true)` or
-`Window::set_joystick_event_delivery(true)`; enabled windows receive connect/disconnect events from
-`poll_events`. These notifications do not enable joystick state tracking.
+`WindowBuilder::joystick_event_delivery(true)` or `Window::set_joystick_event_delivery(true)`;
+enabled windows receive connect/disconnect events from `poll_events`. These notifications do not
+enable joystick state tracking.
 
 Joystick state sampling is a separate per-window opt-in with
 `WindowBuilder::joystick_tracking(true)` or `Window::set_joystick_tracking(true)?`. After each
@@ -37,4 +39,6 @@ fn main() -> vmnl_graphics::VMNLResult<()> {
 }
 ```
 
-Runnable variants: [`events_input`](../../../examples/window/events_input/src/main.rs) and [`wait_events`](../../../examples/window/wait_events/src/main.rs). See [event processing](../reference/window/events/event_processing_and_timers.md).
+Runnable variants: [`events_input`](../../../examples/window/events_input/src/main.rs) and
+[`wait_events`](../../../examples/window/wait_events/src/main.rs). See [event
+processing](../reference/window/events/event_processing_and_timers.md).

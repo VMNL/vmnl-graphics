@@ -2,7 +2,8 @@
 
 This directory is the canonical technical documentation for VMNL Graphics `0.1.0`.
 
-Local `README.md` files are only navigation aids for their directory. Public API contracts belong in Rustdoc. Behavior must be covered by tests.
+Local `README.md` files are only navigation aids for their directory. Public API contracts belong in
+Rustdoc. Behavior must be covered by tests.
 
 ## Index
 
@@ -11,6 +12,7 @@ Local `README.md` files are only navigation aids for their directory. Public API
   current workspace layout.
 - [Build](build.md): toolchain, system dependencies, shaderc/Vulkan discovery, Justfile usage.
 - [Coding Instructions](INSTRUCTIONS.md): project coding and documentation standards.
+- [Markdown Style](markdown_style.md): shared formatting rules and content-preservation checks.
 - [Contributing](../CONTRIBUTING.md): contribution workflow and commit convention.
 - [Deployment](deployment.md): compatibility, milestones, distribution, manual releases, and
   publication status and prerequisites.

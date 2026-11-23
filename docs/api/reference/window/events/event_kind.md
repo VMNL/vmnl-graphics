@@ -6,21 +6,20 @@ Import path: `vmnl_graphics::EventKind`. Status: 0.1.0, operational event payloa
 
 ## Purpose and use cases
 
-Represents the translated payload carried by an [`Event`](event.md). Derives `Debug`, `Clone`, and `PartialEq`.
+Represents the translated payload carried by an [`Event`](event.md). Derives `Debug`, `Clone`, and
+`PartialEq`.
 
 ## Public API
 
 Variants: `Closed`, `FocusGained`, `FocusLost`, `Resized { width, height }`,
-`FramebufferResized { width, height }`,
-`KeyPressed { key, scancode, modifiers, repeat }`,
+`FramebufferResized { width, height }`, `KeyPressed { key, scancode, modifiers, repeat }`,
 `KeyReleased { key, scancode, modifiers }`, `MouseMoved { x, y }`, `MouseEntered`, `MouseLeft`,
 `MouseButtonPressed { button, modifiers }`, `MouseButtonReleased { button, modifiers }`,
-`MouseScrolled { dx, dy }`, `Text(char)`, and
-`TextWithModifiers { character, modifiers }`, `JoystickConnected { id }`, and
-`JoystickDisconnected { id }`.
+`MouseScrolled { dx, dy }`, `Text(char)`, and `TextWithModifiers { character, modifiers }`,
+`JoystickConnected { id }`, and `JoystickDisconnected { id }`.
 
-`TextWithModifiers` preserves GLFW's deprecated modified-character callback for compatibility.
-New code should combine `Text` with key events instead of relying on this legacy source.
+`TextWithModifiers` preserves GLFW's deprecated modified-character callback for compatibility. New
+code should combine `Text` with key events instead of relying on this legacy source.
 
 ## Construction, defaults, and validation
 
@@ -41,7 +40,8 @@ Payloads own/copy their data and do not remain synchronized with later window st
 
 ## Errors, panics, and failure conditions
 
-Translation is not fallible through the public API; unrepresentable or unsupported native events may be omitted.
+Translation is not fallible through the public API; unrepresentable or unsupported native events may
+be omitted.
 
 ## Allocation, transfers, synchronization, and GPU cost
 

@@ -2,7 +2,8 @@
 
 ## Public path and maturity
 
-Import path: `vmnl_graphics::FrameRenderer<'w, 'g>`; created by `Window::render()`. Status: 0.1.0; 2D and raw rendering.
+Import path: `vmnl_graphics::FrameRenderer<'w, 'g>`; created by `Window::render()`. Status: 0.1.0;
+2D and raw rendering.
 
 ## Purpose and use cases
 
@@ -11,7 +12,7 @@ Records ordered logical passes for one frame and submits them through the borrow
 ## Public API
 
 | Method | Contract |
-|---|---|
+| --- | --- |
 | `mode(RenderMode)` | Select object submission strategy. |
 | `draw2d([&D; N])` | Append a pass from `Drawable2D` values. |
 | `draw_raw_2d(&Pipeline<T>, [&Geometry<T>; N])` | Append raw pass without descriptors. |
@@ -19,39 +20,63 @@ Records ordered logical passes for one frame and submits them through the borrow
 | `write_frame_uniform(&mut FrameUniform<T>, data)` | Queue one frame-uniform write for the acquired swapchain image. |
 | `submit()` | Consume the builder, acquire/record/submit/present, optionally poll events. |
 
-Passes execute in append order. Empty arrays create empty logical passes; a frame with no pass still clears and presents.
+Passes execute in append order. Empty arrays create empty logical passes; a frame with no pass still
+clears and presents.
 
 ## Construction, defaults, and validation
 
-`Window::render()` starts with `RenderMode::PerObject`, no passes, and no queued frame-uniform writes. Compatibility of raw pipeline, geometry, resources, window render pass, swapchain image count, and device is checked during submission/build paths.
+`Window::render()` starts with `RenderMode::PerObject`, no passes, and no queued frame-uniform
+writes. Compatibility of raw pipeline, geometry, resources, window render pass, swapchain image
+count, and device is checked during submission/build paths.
 
 ## Units, coordinates, and valid ranges
 
-Pass element count is the const-generic `N`. Rendering coordinates follow each layer's shader contract.
+Pass element count is the const-generic `N`. Rendering coordinates follow each layer's shader
+contract.
 
-Every raw draw applies its own viewport/scissor policies using the actual acquired image extent. Full policies follow resize; fixed rectangles remain in framebuffer pixels. The following raw draw applies its own two policies, and a following 2D pass restores the full viewport and unclipped 2D pipeline state. No custom raw viewport/scissor leaks into subsequent draws.
+Every raw draw applies its own viewport/scissor policies using the actual acquired image extent.
+Full policies follow resize; fixed rectangles remain in framebuffer pixels. The following raw draw
+applies its own two policies, and a following 2D pass restores the full viewport and unclipped 2D
+pipeline state. No custom raw viewport/scissor leaks into subsequent draws.
 
 ## Ownership, lifecycle, and threading
 
-The builder mutably borrows `Window` and borrows draw resources for `'g`; those values must outlive submission. Setters consume and return the builder; `submit` consumes it.
+The builder mutably borrows `Window` and borrows draw resources for `'g`; those values must outlive
+submission. Setters consume and return the builder; `submit` consumes it.
 
 ## Errors, panics, and failure conditions
 
-`submit` can fail for incompatible devices/layouts/render passes, incompatible frame-uniform image counts, frame-uniform allocation/write/binding, zero-size/out-of-date swapchains, command recording, acquisition, device loss, queue submission, or presentation.
+`submit` can fail for incompatible devices/layouts/render passes, incompatible frame-uniform image
+counts, frame-uniform allocation/write/binding, zero-size/out-of-date swapchains, command recording,
+acquisition, device loss, queue submission, or presentation.
 
-Optional depth attachments are cleared with the window's immutable `RenderTargetConfig::clear_depth_value` each frame. High-level 2D disables depth testing/writes; each raw pipeline uses its own immutable `DepthState`. Depth values are shared between ordered raw draws in the frame, including across intervening 2D draws; 2D neither tests nor changes them. Resize allocates replacement depth images/views with the same count and extent as the new swapchain images; those allocation/format/extent errors propagate from submission.
+Optional depth attachments are cleared with the window's immutable
+`RenderTargetConfig::clear_depth_value` each frame. High-level 2D disables depth testing/writes;
+each raw pipeline uses its own immutable `DepthState`. Depth values are shared between ordered raw
+draws in the frame, including across intervening 2D draws; 2D neither tests nor changes them. Resize
+allocates replacement depth images/views with the same count and extent as the new swapchain images;
+those allocation/format/extent errors propagate from submission.
 
 ## Allocation, transfers, synchronization, and GPU cost
 
-Recording passes allocates CPU vectors and clones shared GPU handles. Queued frame-uniform writes are applied during `submit` after swapchain image acquisition and before command recording; they are not ordered between draw passes. Frame-uniform resources allocate descriptor sets during command recording. `submit` performs swapchain acquisition, command recording, queue submission, synchronization, and presentation. Exact batching/performance guarantees are not specified.
+Recording passes allocates CPU vectors and clones shared GPU handles. Queued frame-uniform writes
+are applied during `submit` after swapchain image acquisition and before command recording; they are
+not ordered between draw passes. Frame-uniform resources allocate descriptor sets during command
+recording. `submit` performs swapchain acquisition, command recording, queue submission,
+synchronization, and presentation. Exact batching/performance guarantees are not specified.
 
-With a depth attachment, `submit` waits on the acquired image's previous frame fence before reusing its depth image. This can block the calling thread but adds no device-wide wait. Color-only windows keep the existing synchronization path.
+With a depth attachment, `submit` waits on the acquired image's previous frame fence before reusing
+its depth image. This can block the calling thread but adds no device-wide wait. Color-only windows
+keep the existing synchronization path.
 
-Viewport/scissor resolution is CPU-only and allocates nothing on success; recording sets two dynamic states per raw draw and restores the full viewport for each 2D pass. It does not rebuild pipelines on resize.
+Viewport/scissor resolution is CPU-only and allocates nothing on success; recording sets two dynamic
+states per raw draw and restores the full viewport for each 2D pass. It does not rebuild pipelines
+on resize.
 
 ## Platform, Vulkan, and display constraints
 
-Requires a ready window and renderable framebuffer. Resize can trigger swapchain/framebuffer recreation. `RenderMode::Batched` currently behaves like `PerObject`.
+Requires a ready window and renderable framebuffer. Resize can trigger swapchain/framebuffer
+recreation. `RenderMode::Batched` currently behaves like `PerObject`.
 
 ## Example and related types
 
@@ -69,4 +94,6 @@ fn main() -> vmnl_graphics::VMNLResult<()> {
 }
 ```
 
-Related: [`RenderMode`](render_mode.md), [`Drawable2D`](../../d2/drawable_2d.md), [`FrameUniform`](../../raw/uniforms/frame_uniform.md), and [raw pipelines](../../raw/pipeline/README.md).
+Related: [`RenderMode`](render_mode.md), [`Drawable2D`](../../d2/drawable_2d.md),
+[`FrameUniform`](../../raw/uniforms/frame_uniform.md), and [raw
+pipelines](../../raw/pipeline/README.md).

@@ -10,11 +10,13 @@ Selects a predefined local pivot for rectangle rotation.
 
 ## Public API
 
-Variants: `TopLeft` (default), `Top`, `TopRight`, `Left`, `Center`, `Right`, `BottomLeft`, `Bottom`, and `BottomRight`. Derives `Debug`, `Clone`, `Copy`, `PartialEq`, `Eq`, `Hash`, and `Default`.
+Variants: `TopLeft` (default), `Top`, `TopRight`, `Left`, `Center`, `Right`, `BottomLeft`, `Bottom`,
+and `BottomRight`. Derives `Debug`, `Clone`, `Copy`, `PartialEq`, `Eq`, `Hash`, and `Default`.
 
 ## Construction, defaults, and validation
 
-Every variant is valid. `TopLeft` maps to `(0,0)`; edge/center variants map to the corresponding fractions of rectangle size.
+Every variant is valid. `TopLeft` maps to `(0,0)`; edge/center variants map to the corresponding
+fractions of rectangle size.
 
 ## Units, coordinates, and valid ranges
 

@@ -10,11 +10,14 @@ Stores monitor information queried when the window runtime is created.
 
 ## Public API
 
-`infos() -> &[MonitorInfo]`, `names() -> Vec<Option<String>>`, and `primary() -> Option<&MonitorInfo>`. Derives `Debug` and `Clone`; fields and direct construction are private.
+`infos() -> &[MonitorInfo]`, `names() -> Vec<Option<String>>`, and
+`primary() -> Option<&MonitorInfo>`. Derives `Debug` and `Clone`; fields and direct construction are
+private.
 
 ## Construction, defaults, and validation
 
-Obtained from `Window::monitor()`. No public `Default`/constructor. The first GLFW monitor at collection time is marked primary.
+Obtained from `Window::monitor()`. No public `Default`/constructor. The first GLFW monitor at
+collection time is marked primary.
 
 ## Units, coordinates, and valid ranges
 
@@ -22,7 +25,8 @@ See `MonitorInfo` and `VideoMode`.
 
 ## Ownership, lifecycle, and threading
 
-Owns a snapshot `Vec`; cloning duplicates owned metadata. It does not live-update after monitor connection or mode changes.
+Owns a snapshot `Vec`; cloning duplicates owned metadata. It does not live-update after monitor
+connection or mode changes.
 
 ## Errors, panics, and failure conditions
 

@@ -10,43 +10,50 @@ Owns GPU-backed 2D geometry accepted by `FrameRenderer::draw2d`.
 
 ## Public API
 
-Builder entry points: `circle(radius)`, `rect(w, h)`, `indexed(vertices, indices)`, `triangle(a, b, c)`, `triangle_from_vertices([Vertex2D; 3])`, `polygon(points)`, `polygon_from_vertices(vertices)`, `line(from, to)`, and `polyline(points)`. Implements `Drawable2D` and `AsRef<Shape>`; fields and direct construction are private.
+Builder entry points: `circle(radius)`, `rect(w, h)`, `indexed(vertices, indices)`,
+`triangle(a, b, c)`, `triangle_from_vertices([Vertex2D; 3])`, `polygon(points)`,
+`polygon_from_vertices(vertices)`, `line(from, to)`, and `polyline(points)`. Implements `Drawable2D`
+and `AsRef<Shape>`; fields and direct construction are private.
 
-`circle` returns the inferred [`CircleBuilder`](circle_builder.md), with outlined geometry by default.
-Use `.ellipse(radius_y)` for a second radius, `.width(w)` for a ring, and
+`circle` returns the inferred [`CircleBuilder`](circle_builder.md), with outlined geometry by
+default. Use `.ellipse(radius_y)` for a second radius, `.width(w)` for a ring, and
 `.sector(start, sweep).cap(LineCap::...)` for a sector or arc. `Shape::ellipse` and `EllipseBuilder`
 have been removed; the replacement builder currently has no public import path.
 
 ## Construction, defaults, and validation
 
-Each entry point captures required CPU data; its builder validates and allocates on `build(&Context)`. Alpha values select opaque versus alpha blending internally.
+Each entry point captures required CPU data; its builder validates and allocates on
+`build(&Context)`. Alpha values select opaque versus alpha blending internally.
 
-`Shape::indexed` preserves explicit triangle-list control, including degenerate triangles,
-repeated indices, duplicate positions, unused vertices, and either winding; it rejects every
-non-finite supplied position after checking indexed structure and bounds. `Shape::triangle`
-is a non-indexed primitive builder and additionally requires distinct positions and non-zero
-finite signed area. See the [indexed](indexed_shape_builder.md) and
-[triangle](triangle_builder.md) builder contracts.
+`Shape::indexed` preserves explicit triangle-list control, including degenerate triangles, repeated
+indices, duplicate positions, unused vertices, and either winding; it rejects every non-finite
+supplied position after checking indexed structure and bounds. `Shape::triangle` is a non-indexed
+primitive builder and additionally requires distinct positions and non-zero finite signed area. See
+the [indexed](indexed_shape_builder.md) and [triangle](triangle_builder.md) builder contracts.
 
-Circle-family width setters preserve filling. `.filled(true)` preserves widths, and the
-outer offset still affects the filled boundary. See the [circle builder contract](circle_builder.md)
-for defaults, setter order, sector/cap validation, and numeric limitations.
+Circle-family width setters preserve filling. `.filled(true)` preserves widths, and the outer offset
+still affects the filled boundary. See the [circle builder contract](circle_builder.md) for
+defaults, setter order, sector/cap validation, and numeric limitations.
 
 ## Units, coordinates, and valid ranges
 
-Shape dimensions, positions, endpoints, widths, origins, and vertices are `f32` pixel-like 2D coordinates; detailed rules are builder-specific.
+Shape dimensions, positions, endpoints, widths, origins, and vertices are `f32` pixel-like 2D
+coordinates; detailed rules are builder-specific.
 
 ## Ownership, lifecycle, and threading
 
-Owns shared Vulkan buffer handles associated with its context/device. It is not cloneable. Borrow it through a frame submission; drop releases its ownership shares.
+Owns shared Vulkan buffer handles associated with its context/device. It is not cloneable. Borrow it
+through a frame submission; drop releases its ownership shares.
 
 ## Errors, panics, and failure conditions
 
-Builder entry points are infallible. `build` can reject invalid geometry/counts and GPU buffer creation failures.
+Builder entry points are infallible. `build` can reject invalid geometry/counts and GPU buffer
+creation failures.
 
 ## Allocation, transfers, synchronization, and GPU cost
 
-Build allocates and directly uploads vertex data and, when indexed, index data. Drawing reuses these buffers. Exact allocation count/performance is not specified.
+Build allocates and directly uploads vertex data and, when indexed, index data. Drawing reuses these
+buffers. Exact allocation count/performance is not specified.
 
 ## Platform, Vulkan, and display constraints
 
@@ -67,4 +74,5 @@ fn main() -> vmnl_graphics::VMNLResult<()> {
 }
 ```
 
-Related: [`PolygonBuilder`](polygon_builder.md), [`Drawable2D`](../drawable_2d.md) and the [draw-2D workflow](../../../workflows/draw_2d.md).
+Related: [`PolygonBuilder`](polygon_builder.md), [`Drawable2D`](../drawable_2d.md) and the [draw-2D
+workflow](../../../workflows/draw_2d.md).

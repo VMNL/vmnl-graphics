@@ -3,10 +3,10 @@
 Native results recorded against the GLFW Git fork remain historical evidence for that source.
 Qualification of crates.io `glfw 0.63.0` requires new executions.
 
-This matrix tracks issue [#94](https://github.com/VMNL/vmnl-graphics/issues/94) against the bundled GLFW
-3.4 joystick/gamepad surface. It complements the generated
-[GLFW platform inventory](glfw_platform_inventory.md): that inventory owns backend-specific
-behavior, while this page maps each capability to its VMNL contract and required evidence.
+This matrix tracks issue [#94](https://github.com/VMNL/vmnl-graphics/issues/94) against the bundled
+GLFW 3.4 joystick/gamepad surface. It complements the generated [GLFW platform
+inventory](glfw_platform_inventory.md): that inventory owns backend-specific behavior, while this
+page maps each capability to its VMNL contract and required evidence.
 
 The baseline is `main` at `9a690cd` (after PR #92), where joystick support was planned and absent.
 Current status below reflects the implementation through window snapshots, transitions, and stick
@@ -37,20 +37,37 @@ processing. A planned test target is not evidence that the behavior has been tes
 
 ## Approved contract decisions
 
-Lazy activation has separate deterministic/Null regression coverage: the shared-runtime test
-counts zero VMNL slot queries/callback installations before joystick opt-in, then checks
-explicit sampling and first/last-subscriber callback ownership. The snapshot transaction used
-by `Window::poll_events()` checks zero sampler calls with default keyboard/mouse batches and
-one complete slot sweep per tracked batch. These private checks do not observe GLFW's internal
-enumeration or qualify native/physical devices. See
-[lazy activation regressions](../../testing.md#lazy-joystick-activation-regressions).
+Lazy activation has separate deterministic/Null regression coverage: the shared-runtime test counts
+zero VMNL slot queries/callback installations before joystick opt-in, then checks explicit sampling
+and first/last-subscriber callback ownership. The snapshot transaction used by
+`Window::poll_events()` checks zero sampler calls with default keyboard/mouse batches and one
+complete slot sweep per tracked batch. These private checks do not observe GLFW's internal
+enumeration or qualify native/physical devices. See [lazy activation
+regressions](../../testing.md#lazy-joystick-activation-regressions).
 
-- `InputRuntime::acquire()` adopts an active configuration or uses GLFW defaults on first acquisition. The explicit builder may choose `hat_buttons` only for the first initializer. `Context::new()` keeps its signature and adopts the active configuration. Later incompatible explicit choices fail before GLFW is called.
-- `InputRuntime` is not `Clone` in the initial API. Each `acquire()` creates a distinct queue; the first `poll_events` or synchronous callback registration subscribes it. `Context`, windows, and each standalone handle keep the shared GLFW runtime alive until their own references are dropped.
-- Tracking controls state snapshots; event delivery controls connection notifications. State belongs to each window, while global mapping operations, the initialization hint, direct samples, user pointers, and runtime subscriptions belong to `InputRuntime`.
-- Follow GLFW 3.4 thread-safety rules per operation; do not promise that GLFW calls may run from worker threads. `JoystickSample` owns copied names and variable-length raw arrays, so direct sampling may allocate. No allocation-free guarantee is made. A `JoystickId` is a reusable slot index, not a persistent physical-device identity; GUIDs may be shared by identical devices.
-- `Math2D`, `Screen2D`, and `Heading` use the formulas in the matrix. In 2D, `Math2D` gives zero to the right and increases counter-clockwise with y-up coordinates; `Screen2D` gives zero to the right and increases clockwise with screen y-down coordinates. `Heading` gives zero upward and turns toward the right on a local movement plane; world or camera yaw remains the application's choice.
-- Invoke user callbacks without holding the dispatcher registry lock. Recursive GLFW event pumping from a joystick callback is unsupported. With unwinding enabled, catch callback panics in the C trampoline and resume unwinding only after the outer GLFW event-pump call returns to Rust; never unwind through C.
+- `InputRuntime::acquire()` adopts an active configuration or uses GLFW defaults on first
+  acquisition. The explicit builder may choose `hat_buttons` only for the first initializer.
+  `Context::new()` keeps its signature and adopts the active configuration. Later incompatible
+  explicit choices fail before GLFW is called.
+- `InputRuntime` is not `Clone` in the initial API. Each `acquire()` creates a distinct queue; the
+  first `poll_events` or synchronous callback registration subscribes it. `Context`, windows, and
+  each standalone handle keep the shared GLFW runtime alive until their own references are dropped.
+- Tracking controls state snapshots; event delivery controls connection notifications. State belongs
+  to each window, while global mapping operations, the initialization hint, direct samples, user
+  pointers, and runtime subscriptions belong to `InputRuntime`.
+- Follow GLFW 3.4 thread-safety rules per operation; do not promise that GLFW calls may run from
+  worker threads. `JoystickSample` owns copied names and variable-length raw arrays, so direct
+  sampling may allocate. No allocation-free guarantee is made. A `JoystickId` is a reusable slot
+  index, not a persistent physical-device identity; GUIDs may be shared by identical devices.
+- `Math2D`, `Screen2D`, and `Heading` use the formulas in the matrix. In 2D, `Math2D` gives zero to
+  the right and increases counter-clockwise with y-up coordinates; `Screen2D` gives zero to the
+  right and increases clockwise with screen y-down coordinates. `Heading` gives zero upward and
+  turns toward the right on a local movement plane; world or camera yaw remains the application's
+  choice.
+- Invoke user callbacks without holding the dispatcher registry lock. Recursive GLFW event pumping
+  from a joystick callback is unsupported. With unwinding enabled, catch callback panics in the C
+  trampoline and resume unwinding only after the outer GLFW event-pump call returns to Rust; never
+  unwind through C.
 - `examples/input/joystick_runtime` is the deliberate narrow exception to the visual-only example
   rule: it demonstrates standalone sampling without creating a `Context`, Vulkan instance, or
   window. “Without Vulkan” describes runtime initialization; it does not promise that GLFW can
@@ -60,13 +77,14 @@ enumeration or qualify native/physical devices. See
 
 ### Functional Linux coverage added for issue #94
 
-The test implementation starts from PR #97 at `6488761`, based on `825f7b3`.
-On 2026-10-17, the remote PR still pointed to that commit and reported conflicts against
-`main` at `2ead9f4`. No merge, rebase or remote write was performed for this test patch.
-The existing deterministic/Null tests remain in place. Rechecked on 2026-10-18, these remote references were unchanged. The following scenarios passed
-three consecutive local Linux virtual-device executions each: runtime 244/244 report checks and
-window 268/268 per execution, with no failures, exclusions or unexecuted checks. This qualification
-is limited to the exercised public paths; it does not qualify physical controllers or other OSes.
+The test implementation starts from PR #97 at `6488761`, based on `825f7b3`. On 2026-10-17, the
+remote PR still pointed to that commit and reported conflicts against `main` at `2ead9f4`. No merge,
+rebase or remote write was performed for this test patch. The existing deterministic/Null tests
+remain in place. Rechecked on 2026-10-18, these remote references were unchanged. The following
+scenarios passed three consecutive local Linux virtual-device executions each: runtime 244/244
+report checks and window 268/268 per execution, with no failures, exclusions or unexecuted checks.
+This qualification is limited to the exercised public paths; it does not qualify physical
+controllers or other OSes.
 
 | Scenario | Standalone public client, no window/Vulkan | Window public client, Vulkan/display | Observed Linux virtual-device evidence (2026-10-18) |
 | --- | --- | --- | --- |
@@ -82,52 +100,58 @@ is limited to the exercised public paths; it does not qualify physical controlle
 The runtime driver is in `tests/platform/tests/native_joystick.rs`; the window driver is in
 `tests/gpu/tests/native_joystick.rs`. Both reuse `tests/support/input_process.rs` and
 `input_report.rs` from #91, and the same Linux-only injection driver. The separate client in
-`tests/gpu/input_client` has only a direct `vmnl_graphics` dependency. No GLFW or native injection API
-is imported into that client. SDL mapping text is passed through the existing public API.
+`tests/gpu/input_client` has only a direct `vmnl_graphics` dependency. No GLFW or native injection
+API is imported into that client. SDL mapping text is passed through the existing public API.
 
-Local preflight on 2026-10-17: outside the sandbox, `/dev/uinput` existed with root-owned
-mode 0600 and opening it returned EACCES; existing event nodes were readable. Inside the
-sandbox the nodes were hidden. No permission, udev, module or host change was made.
-Linux virtual-device detection and both native scenarios were unqualified at that point.
-On 2026-10-18, the operator explicitly authorized a temporary UID-1000 uinput ACL. Six final
-executions passed with the X11 profile selected (three runtime and three window), including both
-hat_buttons settings and polling orders in fresh clients. The original root:root 0600 ACL was
-restored and verified afterwards. The JSON backend field records a request, not independent
-backend-selection proof. On 2026-10-19, native Wayland passed three repetitions per mode:
-runtime 248/248 and window 272/272 checks, with both hat_buttons settings and polling orders.
-The four added checks per command require protocol exchanges captured independently from each
-client's stderr with DISPLAY unset. The reports retain those backend observations separately
-from the requested profile. The original uinput ACL was restored and no owned device remained.
-Windows/macOS virtual fixtures and physical controllers on every OS remain unqualified.
-The physical-controller protocol now reuses the same transport/report and public client
-with operator-confirmed slot selection, independent raw/mapped expectations, axis tolerances,
-explicit exclusions and held disconnection. Runtime and window commands are opt-in; neither
-unit tests nor an absent-device failure qualify hardware. The operator reported no controller
-available on 2026-10-19. The launcher and driver are prepared for native `win32` and `cocoa`
-execution as well as Linux. No local Windows/macOS host was available for the operator's
-preparation; native compilation and portable unit/API/Null/driver coverage have since been
-observed on their CI runners. See the [scoped Windows/macOS evidence](../../testing.md#windows-and-macos-joystick-evidence).
-Each OS still needs an independent expectation profile and separate runtime/window hardware
-reports. Virtual injection on Windows/macOS remains absent and unqualified. See the
-[physical protocol](../../testing.md#physical-joystick-operator-protocol).
-Commands, report semantics and prerequisite limits are in
-[Testing](../../testing.md#virtual-joystickgamepad-scenarios-issue-94).
-`Validation: Linux` now schedules three repetitions per backend/mode automatically on each
-pull request and push to `main`, retaining native reports and rejecting incomplete evidence.
-Its Ubuntu Xvfb/nested-Weston/lavapipe workload-2 profiles are qualified by the inspected
-`joystick-linux-1` artifact from
-[CI run #39711518595](https://github.com/VMNL/vmnl-graphics/actions/runs/39711518595): three executions per
-backend/mode, X11 runtime/window 244/296 and Wayland runtime/window 248/300 checks per execution,
-3,264 PASS with no failures, exclusions or unexecuted checks. All 48 client profiles were present,
-including seven stick observations in each window profile and 24 independent Wayland protocol
-proofs. Archived uinput ACLs match before/after and the cleanup step succeeded.
-The source was clean CI merge `f3dc914` (PR head `6683cc4` with `main` at `e710938`), on Ubuntu
-24.04 image `20261018.339.1`, Weston 13/Pixman and Mesa 25.2.8 software Vulkan. See the
-[hosted evidence record](../../testing.md#hosted-linux-joystick-evidence-workload-2) for exact
-source IDs, environment and proof limits. Local runs, other OSes, hardware GPUs and physical
-controllers retain separate evidence requirements.
+Local preflight on 2026-10-17: outside the sandbox, `/dev/uinput` existed with root-owned mode 0600
+and opening it returned EACCES; existing event nodes were readable. Inside the sandbox the nodes
+were hidden. No permission, udev, module or host change was made. Linux virtual-device detection and
+both native scenarios were unqualified at that point. On 2026-10-18, the operator explicitly
+authorized a temporary UID-1000 uinput ACL. Six final executions passed with the X11 profile
+selected (three runtime and three window), including both hat_buttons settings and polling orders in
+fresh clients. The original root:root 0600 ACL was restored and verified afterwards. The JSON
+backend field records a request, not independent backend-selection proof. On 2026-10-19, native
+Wayland passed three repetitions per mode: runtime 248/248 and window 272/272 checks, with both
+hat_buttons settings and polling orders. The four added checks per command require protocol
+exchanges captured independently from each client's stderr with DISPLAY unset. The reports retain
+those backend observations separately from the requested profile. The original uinput ACL was
+restored and no owned device remained. Windows/macOS virtual fixtures and physical controllers on
+every OS remain unqualified. The physical-controller protocol now reuses the same transport/report
+and public client with operator-confirmed slot selection, independent raw/mapped expectations, axis
+tolerances, explicit exclusions and held disconnection. Runtime and window commands are opt-in;
+neither unit tests nor an absent-device failure qualify hardware. The operator reported no
+controller available on 2026-10-19. The launcher and driver are prepared for native `win32` and
+`cocoa` execution as well as Linux. No local Windows/macOS host was available for the operator's
+preparation; native compilation and portable unit/API/Null/driver coverage have since been observed
+on their CI runners. See the [scoped Windows/macOS
+evidence](../../testing.md#windows-and-macos-joystick-evidence). Each OS still needs an independent
+expectation profile and separate runtime/window hardware reports. Virtual injection on Windows/macOS
+remains absent and unqualified. See the [physical
+protocol](../../testing.md#physical-joystick-operator-protocol). Commands, report semantics and
+prerequisite limits are in [Testing](../../testing.md#virtual-joystickgamepad-scenarios-issue-94).
+`Validation: Linux` now schedules three repetitions per backend/mode automatically on each pull
+request and push to `main`, retaining native reports and rejecting incomplete evidence. Its Ubuntu
+Xvfb/nested-Weston/lavapipe workload-2 profiles are qualified by the inspected `joystick-linux-1`
+artifact from [CI run #39711518595](https://github.com/VMNL/vmnl-graphics/actions/runs/39711518595):
+three executions per backend/mode, X11 runtime/window 244/296 and Wayland runtime/window 248/300
+checks per execution, 3,264 PASS with no failures, exclusions or unexecuted checks. All 48 client
+profiles were present, including seven stick observations in each window profile and 24 independent
+Wayland protocol proofs. Archived uinput ACLs match before/after and the cleanup step succeeded. The
+source was clean CI merge `f3dc914` (PR head `6683cc4` with `main` at `e710938`), on Ubuntu 24.04
+image `20261018.339.1`, Weston 13/Pixman and Mesa 25.2.8 software Vulkan. See the [hosted evidence
+record](../../testing.md#hosted-linux-joystick-evidence-workload-2) for exact source IDs,
+environment and proof limits. Local runs, other OSes, hardware GPUs and physical controllers retain
+separate evidence requirements.
 
-- Unit/API tests prove pure conversion, validation, configuration, stick math, and queue semantics. `tests/platform` proves real GLFW behavior with `ClientApi::NoApi`; it must not create a Vulkan instance or surface.
-- Record Null/simulated, native backend, and physical-controller observations separately. A build or Null probe never counts as physical-controller validation. Windows and macOS native probes remain subject to the repository's platform qualification policy.
-- For every new GLFW call, update `tools/data/glfw_platform_inventory.toml`, link GLFW 3.4 primary documentation, record backend behavior and errors, and add a deterministic probe or a justification. Regenerate generated inventory pages; never edit them directly.
-- Public Rustdoc owns signatures and item-local guarantees. The API book owns navigation, concepts, workflows, and coverage. Update only the references, matrices, examples, and navigation affected by this contract.
+- Unit/API tests prove pure conversion, validation, configuration, stick math, and queue semantics.
+  `tests/platform` proves real GLFW behavior with `ClientApi::NoApi`; it must not create a Vulkan
+  instance or surface.
+- Record Null/simulated, native backend, and physical-controller observations separately. A build or
+  Null probe never counts as physical-controller validation. Windows and macOS native probes remain
+  subject to the repository's platform qualification policy.
+- For every new GLFW call, update `tools/data/glfw_platform_inventory.toml`, link GLFW 3.4 primary
+  documentation, record backend behavior and errors, and add a deterministic probe or a
+  justification. Regenerate generated inventory pages; never edit them directly.
+- Public Rustdoc owns signatures and item-local guarantees. The API book owns navigation, concepts,
+  workflows, and coverage. Update only the references, matrices, examples, and navigation affected
+  by this contract.

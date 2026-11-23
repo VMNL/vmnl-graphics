@@ -2,7 +2,8 @@
 
 ## Public path and maturity
 
-Import path: `vmnl_graphics::d2::TriangleBuilder`; created by `Shape::triangle` or `Shape::triangle_from_vertices`. Status: 0.1.0, operational.
+Import path: `vmnl_graphics::d2::TriangleBuilder`; created by `Shape::triangle` or
+`Shape::triangle_from_vertices`. Status: 0.1.0, operational.
 
 ## Purpose and use cases
 
@@ -10,17 +11,17 @@ Builds one non-indexed colored triangle.
 
 ## Public API
 
-`color(color)`, `vertex_colors(a, b, c)`, `buffer_memory_preference(preference)`, and `build(&Context)`. Later color calls replace earlier color configuration.
+`color(color)`, `vertex_colors(a, b, c)`, `buffer_memory_preference(preference)`, and
+`build(&Context)`. Later color calls replace earlier color configuration.
 
 ## Construction, defaults, and validation
 
-Position constructor defaults all colors to opaque white. The vertex constructor preserves
-supplied colors. Memory preference defaults to `Device`. Build requires pairwise-distinct
-positions, finite coordinates, and a non-zero signed double area. It converts coordinates to
-`f64` before subtraction and multiplication, so finite non-zero triangles at very large or
-small `f32` scales remain valid. Either winding is accepted. Duplicate-position errors take
-precedence; otherwise NaN positions are reported before infinities. Validation completes
-before vertex-buffer allocation.
+Position constructor defaults all colors to opaque white. The vertex constructor preserves supplied
+colors. Memory preference defaults to `Device`. Build requires pairwise-distinct positions, finite
+coordinates, and a non-zero signed double area. It converts coordinates to `f64` before subtraction
+and multiplication, so finite non-zero triangles at very large or small `f32` scales remain valid.
+Either winding is accepted. Duplicate-position errors take precedence; otherwise NaN positions are
+reported before infinities. Validation completes before vertex-buffer allocation.
 
 ## Units, coordinates, and valid ranges
 
@@ -28,7 +29,8 @@ Positions are 2D pixel-like `f32`; colors use `Rgba`.
 
 ## Ownership, lifecycle, and threading
 
-Owns three positions/colors and is consumed by build; resulting GPU resource belongs to the context/device.
+Owns three positions/colors and is consumed by build; resulting GPU resource belongs to the
+context/device.
 
 ## Errors, panics, and failure conditions
 

@@ -2,7 +2,8 @@
 
 ## Public path and maturity
 
-Import path: `vmnl_graphics::raw::BufferContents`. Status: 0.1.0 marker trait; Vulkano coupling remains explicitly unstable.
+Import path: `vmnl_graphics::raw::BufferContents`. Status: 0.1.0 marker trait; Vulkano coupling
+remains explicitly unstable.
 
 ## Purpose and use cases
 
@@ -10,11 +11,13 @@ Marks values that Vulkano can safely copy into typed raw vertex or uniform buffe
 
 ## Public API
 
-No methods. Supertrait: Vulkano's `BufferContents`. VMNL provides a blanket adapter for every type implementing that underlying trait; the blanket impl is omitted from inventory.
+No methods. Supertrait: Vulkano's `BufferContents`. VMNL provides a blanket adapter for every type
+implementing that underlying trait; the blanket impl is omitted from inventory.
 
 ## Construction, defaults, and validation
 
-Normally obtained through compatible derives such as `raw::Pod`/`raw::Zeroable` plus Vulkano contracts. There is no runtime validation.
+Normally obtained through compatible derives such as `raw::Pod`/`raw::Zeroable` plus Vulkano
+contracts. There is no runtime validation.
 
 ## Units, coordinates, and valid ranges
 
@@ -26,7 +29,8 @@ The marker adds no ownership. Buffer builders consume/move values into GPU alloc
 
 ## Errors, panics, and failure conditions
 
-An incorrect unsafe underlying implementation can violate memory-layout safety. VMNL cannot detect such a violation at runtime.
+An incorrect unsafe underlying implementation can violate memory-layout safety. VMNL cannot detect
+such a violation at runtime.
 
 ## Allocation, transfers, synchronization, and GPU cost
 
@@ -46,4 +50,5 @@ fn accepts<T: BufferContents>(_value: T) {}
 accepts([1.0_f32, 2.0]);
 ```
 
-Related: [`Pod`](pod.md), [`Vertex`](vertex.md), and [`UniformBuilder`](../uniforms/uniform_builder.md).
+Related: [`Pod`](pod.md), [`Vertex`](vertex.md), and
+[`UniformBuilder`](../uniforms/uniform_builder.md).

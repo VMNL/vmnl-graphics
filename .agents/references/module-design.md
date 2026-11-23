@@ -2,8 +2,8 @@
 
 ## Scope
 
-Use this reference when designing or reviewing a module interface, crate boundary, raw API,
-backend adapter, or FFI seam. It supplements the project direction in
+Use this reference when designing or reviewing a module interface, crate boundary, raw API, backend
+adapter, or FFI seam. It supplements the project direction in
 [`docs/architecture.md`](../../docs/architecture.md); it does not replace that contract or authorize
 an architecture change.
 
@@ -33,8 +33,8 @@ Before proposing an abstraction:
 2. Read the canonical contract and inspect the current implementation and tests at the affected
    boundary.
 3. State which complexity the module would own and which decisions callers must retain.
-4. Identify the dependencies, ownership transfers, unsafe or FFI operations, platform behavior,
-   and evidence needed to validate the boundary.
+4. Identify the dependencies, ownership transfers, unsafe or FFI operations, platform behavior, and
+   evidence needed to validate the boundary.
 5. Separate current facts, proposed policy, and unresolved decisions.
 
 Do not introduce a seam, adapter, trait, manager, or generic parameter for a hypothetical future
@@ -63,9 +63,10 @@ control decisions into opaque configuration solely to make an interface appear d
 
 For an API design or audit, inventory each affected observable policy: documented default, explicit
 client override, resolved-value inspection, invalid/unsupported request behavior, and any selectable
-fallback. Apply the [explicit client control contract](../../docs/architecture.md#explicit-client-control)
-and report missing controls as API gaps. Distinguish capabilities outside the supported surface from
-policies VMNL already chooses for the client; a working default does not make its override optional.
+fallback. Apply the [explicit client control
+contract](../../docs/architecture.md#explicit-client-control) and report missing controls as API
+gaps. Distinguish capabilities outside the supported surface from policies VMNL already chooses for
+the client; a working default does not make its override optional.
 
 ## Place Seams Deliberately
 

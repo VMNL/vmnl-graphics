@@ -1,7 +1,7 @@
 # Windowing
 
 | Page | Scope |
-|---|---|
+| --- | --- |
 | [`Window`](window.md) | Root window handle and method partition |
 | [`WindowBuilder`](window_builder.md) | Creation options and validation |
 | [`PresentMode`](present_mode.md) | Swapchain presentation selection |

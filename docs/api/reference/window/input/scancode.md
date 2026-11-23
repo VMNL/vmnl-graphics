@@ -39,9 +39,8 @@ No allocation, synchronization, transfer, or GPU work.
 
 ## Platform, Vulkan, and display constraints
 
-The same physical key may use different values across operating systems or window-system
-backends. Do not persist a scancode as a portable key binding without recording its platform
-context.
+The same physical key may use different values across operating systems or window-system backends.
+Do not persist a scancode as a portable key binding without recording its platform context.
 
 ## Example and related types
 

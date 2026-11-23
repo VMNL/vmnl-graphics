@@ -1,7 +1,7 @@
 # Deployment
 
-VMNL Graphics releases are manual. Automation must not create or push tags, GitHub releases, or crates.io
-publications.
+VMNL Graphics releases are manual. Automation must not create or push tags, GitHub releases, or
+crates.io publications.
 
 ## Version and compatibility policy
 
@@ -12,8 +12,8 @@ qualified. Registry availability and release prerequisites are tracked below.
 The minimum supported Rust version is 1.95. Changes to this minimum are documented and validated
 before release; no fixed schedule for increasing it is promised.
 
-The `0.1.0` baseline starts a compatibility commitment stronger than Cargo's default treatment
-of pre-1.0 versions:
+The `0.1.0` baseline starts a compatibility commitment stronger than Cargo's default treatment of
+pre-1.0 versions:
 
 - published Rust source APIs, documented behavior, defaults, and Cargo feature names remain
   compatible throughout `0.x`;
@@ -23,27 +23,28 @@ of pre-1.0 versions:
   guide;
 - undocumented implementation details and backend interoperability explicitly marked unstable are
   excluded from this commitment;
-- C ABI and asset formats become compatibility surfaces only when their own
-  documentation declares them stable.
+- C ABI and asset formats become compatibility surfaces only when their own documentation declares
+  them stable.
 
 Fixing behavior that violates a documented contract restores compatibility. Changing an existing
 documented contract, observable default, ownership rule, or error behavior requires compatibility
 analysis even when the Rust signature is unchanged.
 
-The approved exception for issue #129 changes circle-family width setters to preserve the
-selected fill mode. Call `.filled(false)` explicitly when an outline is intended after a
-previous `.filled(true)`. The `Shape::circle` default remains unfilled. This exception does
-not alter the compatibility policy for other behavior.
+The approved exception for issue #129 changes circle-family width setters to preserve the selected
+fill mode. Call `.filled(false)` explicitly when an outline is intended after a previous
+`.filled(true)`. The `Shape::circle` default remains unfilled. This exception does not alter the
+compatibility policy for other behavior.
 
 ## Release milestones
 
-`0.1.0` is the current window/input, 2D shapes, and minimal public raw graphics baseline.
-Its documented contracts define the initial compatibility surface. The
-[feature status](api/appendices/feature_status.md), [architecture limits](architecture.md#current-implementation-boundaries),
-and [platform qualification](platform_support.md) remain applicable.
-Release review must cover its public API, defaults, tests, examples, and documentation, including
-the [stable contract requirements](architecture.md#stable-contract-requirements). The version
-number alone does not satisfy these release requirements.
+`0.1.0` is the current window/input, 2D shapes, and minimal public raw graphics baseline. Its
+documented contracts define the initial compatibility surface. The [feature
+status](api/appendices/feature_status.md), [architecture
+limits](architecture.md#current-implementation-boundaries), and [platform
+qualification](platform_support.md) remain applicable. Release review must cover its public API,
+defaults, tests, examples, and documentation, including the [stable contract
+requirements](architecture.md#stable-contract-requirements). The version number alone does not
+satisfy these release requirements.
 
 `0.2.0` adds textures without breaking the published `0.1.0` contracts. Text and batching
 development may proceed in parallel after that baseline.
@@ -83,9 +84,9 @@ Rust import paths remain `vmnl_graphics` and `vmnl_macros`. A repository version
 publish a crate, tag, or GitHub release; each distribution step remains manual.
 
 The earlier registry names were `vmnl-graphics` and `vmnl-macros`. Changing a manifest does not
-rename a published crate. Before publication under the underscore names, the release operator
-must check registry eligibility, name availability, and any deletion cooldown. Registry deletion
-and republication are separate manual operations; merging this change performs neither.
+rename a published crate. Before publication under the underscore names, the release operator must
+check registry eligibility, name availability, and any deletion cooldown. Registry deletion and
+republication are separate manual operations; merging this change performs neither.
 
 The workspace now uses crates.io `glfw 0.63.0`, which includes the upstream fix for total error
 conversion. Platform qualification must be assessed for this dependency source and version;
@@ -93,9 +94,9 @@ historical fork results do not qualify it.
 
 The graphics crate depends on the internal `vmnl_macros` package. Clients depend only on
 `vmnl_graphics`; Cargo resolves the macros package as a dependency. The graphics manifest pins the
-matching macros version exactly because the derives generate code against the graphics crate.
-Before publishing graphics, publish the matching macros package and verify the registry distribution
-and required dry-runs in dependency order.
+matching macros version exactly because the derives generate code against the graphics crate. Before
+publishing graphics, publish the matching macros package and verify the registry distribution and
+required dry-runs in dependency order.
 
 A successful GitHub CI run does not establish registry availability or native platform
 qualification. Required archive inspections, dry-runs, and registry verification remain release
@@ -104,9 +105,9 @@ checks even though the GLFW Git dependency has been removed.
 ## Manual release protocol
 
 For `0.1.0`, the release operator verifies matching version metadata, reviews release notes and
-qualification limits, and runs the required dry-runs. Each crate is published manually, followed
-by registry verification; the tag and GitHub release identify the reviewed release commit.
-Credentials remain outside the repository.
+qualification limits, and runs the required dry-runs. Each crate is published manually, followed by
+registry verification; the tag and GitHub release identify the reviewed release commit. Credentials
+remain outside the repository.
 
 Use `cargo package --locked -p vmnl_macros -p vmnl_graphics` to verify both archives together.
 Inspect their normalized manifests, license files, and packaged resources before release. Publish

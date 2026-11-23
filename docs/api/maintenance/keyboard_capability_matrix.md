@@ -1,15 +1,13 @@
 # GLFW keyboard capability matrix
 
 This matrix tracks issue [#78](https://github.com/VMNL/vmnl-graphics/issues/78) against the bundled
-GLFW 3.4 keyboard surface. It complements the generated
-[GLFW platform inventory](glfw_platform_inventory.md): that inventory owns backend-specific
-behavior, while this page maps each keyboard capability to its VMNL contract and required
-evidence.
+GLFW 3.4 keyboard surface. It complements the generated [GLFW platform
+inventory](glfw_platform_inventory.md): that inventory owns backend-specific behavior, while this
+page maps each keyboard capability to its VMNL contract and required evidence.
 
 The initial baseline was `main` after PR #81; `Current status` evolves with the implementation at
 the same revision as this page. Deterministic evidence and native evidence are separate
-requirements; unavailable physical keys or layouts must be reported as untested rather than
-passed.
+requirements; unavailable physical keys or layouts must be reported as untested rather than passed.
 
 | Capability | GLFW surface | Current status | Target VMNL contract | Deterministic evidence | Native evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -57,16 +55,18 @@ EventKind::TextWithModifiers {
 ```
 
 Key names and scancodes are queried from `Context`, because their GLFW operations require an
-initialized platform context. Sticky modes and event-delivery configuration remain per-window.
-The deprecated GLFW character-with-modifiers source remains available for GLFW 3.4 completeness,
-but its Rustdoc must identify it as legacy and recommend `Text` plus key events for new code.
+initialized platform context. Sticky modes and event-delivery configuration remain per-window. The
+deprecated GLFW character-with-modifiers source remains available for GLFW 3.4 completeness, but its
+Rustdoc must identify it as legacy and recommend `Text` plus key events for new code.
 
 ## Implementation stages
 
 1. Complete `Key`, conversions, and exhaustive conversion tests.
 2. Complete: add `Scancode` and preserve key-event metadata, including unknown keys.
-3. Complete: translate legacy character-with-modifiers events and make keyboard delivery settings inspectable.
-4. Complete: add key-name/scancode queries and sticky-key mode with portability inventory entries and probes.
+3. Complete: translate legacy character-with-modifiers events and make keyboard delivery settings
+   inspectable.
+4. Complete: add key-name/scancode queries and sticky-key mode with portability inventory entries
+   and probes.
 5. Automatic portion complete: finish Rustdoc and API-book references, instrument the visual
    example, close the keyboard batch/wait/isolation gaps, and provide the native qualification
    probe. Operator-reported native results remain required.
@@ -80,10 +80,10 @@ The `keyboard-native-input` platform operation creates a visible GLFW `NoApi` wi
 focus, signals readiness to the test process, then requires an injected `A` press/release pair with
 matching scancodes before timeout. `keyboard-modifier-input` requires Shift press, A press/release
 with the Shift bit, then Shift release; both scancodes must match their corresponding release and
-both final key states must be released. `tests/platform/tests/backend_contract.rs` selects XTEST
-for X11 and nested Weston, `SendInput` for Win32, and `CGEventPost` for Cocoa. Its versioned JSON
-record contains the actual backend and injector. These cases do not qualify every key, modifier,
-layout, input method, physical keyboard, or standalone Wayland seat.
+both final key states must be released. `tests/platform/tests/backend_contract.rs` selects XTEST for
+X11 and nested Weston, `SendInput` for Win32, and `CGEventPost` for Cocoa. Its versioned JSON record
+contains the actual backend and injector. These cases do not qualify every key, modifier, layout,
+input method, physical keyboard, or standalone Wayland seat.
 
 Run the public VMNL workflow:
 
@@ -93,11 +93,11 @@ just run window_events_input
 
 1. Inspect the startup queries for `A`, `Semicolon`, `Kp0`, and `Escape`. On Wayland, `name` and
    `scancode_name` are expected to be `None` until the first keyboard event is processed by
-   `poll_events`; the scancode query can already succeed. After pressing an available key, check
-   its name and scancode name in the event output. `Escape` must have no printable name. Record
+   `poll_events`; the scancode query can already succeed. After pressing an available key, check its
+   name and scancode name in the event output. `Escape` must have no printable name. Record
    unavailable physical keys instead of treating them as passed.
-2. Press representative alphanumeric, punctuation, navigation, keypad, function, and modifier
-   keys. For named keys, verify `scancode_matches=true` between the event and queried scancode.
+2. Press representative alphanumeric, punctuation, navigation, keypad, function, and modifier keys.
+   For named keys, verify `scancode_matches=true` between the event and queried scancode.
 3. Hold a repeatable key and verify repeat events without repeated `is_pressed` transitions.
 4. Enter accented and composed text, then exercise Shift, Control, Alt, Super, Caps Lock, and Num
    Lock where available. Record unsupported legacy modified-text delivery explicitly.
@@ -108,14 +108,14 @@ just run window_events_input
 
 Qualify the underlying GLFW sticky latch separately because VMNL deliberately does not expose the
 consuming `glfwGetKey` read. Replace `wayland` with `x11` when testing that backend, focus the probe
-window within 15 seconds, then press and release the physical key at the US `A` position once
-within a separate 15 seconds (`Q` on French AZERTY). On Wayland,
-the probe attaches a test-only shm buffer so the GLFW `NoApi` window can appear:
+window within 15 seconds, then press and release the physical key at the US `A` position once within
+a separate 15 seconds (`Q` on French AZERTY). On Wayland, the probe attaches a test-only shm buffer
+so the GLFW `NoApi` window can appear:
 
 ```bash
 cargo run -p vmnl-platform-tests --bin platform_probe -- wayland sticky-keys-manual
 ```
 
 The probe qualifies the latch only when its JSON record reports `qualified: true`, a first read of
-`Press`, and a second read of `Release`. An error at `stage: mapping` or `stage: focus` does not test
-the sticky-key latch.
+`Press`, and a second read of `Release`. An error at `stage: mapping` or `stage: focus` does not
+test the sticky-key latch.

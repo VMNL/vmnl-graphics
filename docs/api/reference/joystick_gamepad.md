@@ -2,22 +2,24 @@
 
 ## Public path and maturity
 
-Import paths: `vmnl_graphics::{JoystickId, JoystickSample, JoystickButtonState, JoystickHatState,
+Import paths:
+`vmnl_graphics::{JoystickId, JoystickSample, JoystickButtonState, JoystickHatState,
 GamepadButton, GamepadAxis, GamepadState, JoystickState, JoystickStatus, StickConfig,
-StickAngleConvention, StickState}`. Status: 0.1.0 input API.
+StickAngleConvention, StickState}`.
+Status: 0.1.0 input API.
 
 ## Purpose and use cases
 
 Use [`InputRuntime::sample_joystick`](input_runtime.md) to read one GLFW slot without creating a
 Vulkan context or window. A sample owns its raw values, identity strings, and optional mapped
 gamepad state; it does not carry transition history. For transition-aware input, opt a window into
-tracking and read [`Input::joystick`](window/input/input.md) after that window's
-`poll_events()` call.
+tracking and read [`Input::joystick`](window/input/input.md) after that window's `poll_events()`
+call.
 
 ## Public API
 
 | Type | Contract |
-|---|---|
+| --- | --- |
 | `JoystickId` | One of GLFW's sixteen reusable slots. `from_index` accepts only zero-based indices `0..16`; `index` returns that index. |
 | `JoystickSample` | Owns the slot ID, optional raw name and GUID, raw axes, raw buttons, hats, and optional mapped state. |
 | `JoystickButtonState` | Preserves GLFW release/press values and any other raw byte. |
@@ -57,8 +59,8 @@ sample. No raw joystick axis pair is inferred as a stick.
 ## Units, coordinates, and valid ranges
 
 Raw axes are copied unchanged in GLFW order and its documented `[-1, 1]` range. Raw button values
-are in GLFW order; the configured `GLFW_JOYSTICK_HAT_BUTTONS` hint may append hat directions to
-that array. Separate hats preserve GLFW's four direction bits and diagonal combinations.
+are in GLFW order; the configured `GLFW_JOYSTICK_HAT_BUTTONS` hint may append hat directions to that
+array. Separate hats preserve GLFW's four direction bits and diagonal combinations.
 
 Mapped button selectors follow GLFW order: A, B, X, Y, left/right bumper, back, start, guide,
 left/right thumb, then D-pad up/right/down/left. Mapped axis selectors follow left X/Y, right X/Y,
@@ -72,9 +74,9 @@ coordinates. `Heading` uses `atan2(x, -y)`, with zero up and positive rotation t
 local movement plane; it is not world or camera yaw.
 
 `JoystickState::is_down` reflects the latest mapped sample. `is_pressed` and `is_released` are
-non-consuming transitions accumulated within that window's current poll batch. Disconnect or
-mapping loss releases previously held mapped buttons for that batch. A press and release wholly
-between samples cannot be observed.
+non-consuming transitions accumulated within that window's current poll batch. Disconnect or mapping
+loss releases previously held mapped buttons for that batch. A press and release wholly between
+samples cannot be observed.
 
 ## Ownership, lifecycle, and threading
 

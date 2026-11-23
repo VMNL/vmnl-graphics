@@ -6,7 +6,9 @@ Import path: `vmnl_graphics::raw::Uniform<TData>`. Status: 0.1.0, operational di
 
 ## Purpose and use cases
 
-Owns one typed uniform-buffer value later bound through `ResourcesBuilder`. Use it for stable data or explicit one-off updates. Use [`FrameUniform`](frame_uniform.md) for values that change every frame.
+Owns one typed uniform-buffer value later bound through `ResourcesBuilder`. Use it for stable data
+or explicit one-off updates. Use [`FrameUniform`](frame_uniform.md) for values that change every
+frame.
 
 ## Public API
 
@@ -25,19 +27,27 @@ Defined by GLSL block layout and application semantics.
 
 ## Ownership, lifecycle, and threading
 
-Owns a context-associated Vulkan subbuffer. Resources clone a byte-view handle to the same buffer rather than borrowing the `Uniform` after build. `write` updates that existing buffer, so already-built resources remain usable.
+Owns a context-associated Vulkan subbuffer. Resources clone a byte-view handle to the same buffer
+rather than borrowing the `Uniform` after build. `write` updates that existing buffer, so
+already-built resources remain usable.
 
 ## Errors, panics, and failure conditions
 
-Builder creation is infallible; buffer build/resource compatibility can fail. `write` returns `InvalidState` when active CPU or GPU access conflicts with the write, and a Vulkan validation error for other backend write failures.
+Builder creation is infallible; buffer build/resource compatibility can fail. `write` returns
+`InvalidState` when active CPU or GPU access conflicts with the write, and a Vulkan validation error
+for other backend write failures.
 
 ## Allocation, transfers, synchronization, and GPU cost
 
-Build allocates and writes one uniform buffer. `write` maps and writes the existing buffer; it does not recreate the buffer, rebuild descriptor sets, submit GPU work, or wait for in-flight GPU access. It can therefore fail if the same buffer is still in use by an in-flight frame. Exact cost is unspecified.
+Build allocates and writes one uniform buffer. `write` maps and writes the existing buffer; it does
+not recreate the buffer, rebuild descriptor sets, submit GPU work, or wait for in-flight GPU access.
+It can therefore fail if the same buffer is still in use by an in-flight frame. Exact cost is
+unspecified.
 
 ## Platform, Vulkan, and display constraints
 
-Size/alignment/layout must match shader and device requirements; current raw descriptors accept only single uniform buffers.
+Size/alignment/layout must match shader and device requirements; current raw descriptors accept only
+single uniform buffers.
 
 ## Example and related types
 
@@ -59,4 +69,5 @@ fn main() -> vmnl_graphics::VMNLResult<()> {
 }
 ```
 
-Related: [`UniformBuilder`](uniform_builder.md), [`FrameUniform`](frame_uniform.md), and [`ResourcesBuilder`](../resources/resources_builder.md).
+Related: [`UniformBuilder`](uniform_builder.md), [`FrameUniform`](frame_uniform.md), and
+[`ResourcesBuilder`](../resources/resources_builder.md).

@@ -6,12 +6,13 @@ Import path: `vmnl_graphics::WindowBuilder`; normally created by `Window::builde
 
 ## Purpose and use cases
 
-Configures a native window, default 2D shaders, clear color, event polling, size limits, and swapchain presentation before allocation.
+Configures a native window, default 2D shaders, clear color, event polling, size limits, and
+swapchain presentation before allocation.
 
 ## Public API
 
 | Method | Effect |
-|---|---|
+| --- | --- |
 | `title(&str)` | Set UTF-8 native title. |
 | `size(width, height)` | Set initial logical pixel size. |
 | `unset_configure_window_polling()` | Disable default event-source configuration. |
@@ -31,29 +32,45 @@ The type implements `Default`.
 
 ## Construction, defaults, and validation
 
-Defaults: title `VMNL Window`, size `800x600`, common public event delivery enabled, joystick event delivery and joystick state tracking disabled, default left/right `StickConfig`, no size limits, built-in 2D shaders, opaque black clear color, `PresentMode::Auto`, and color-only `RenderTargetConfig` with clear depth `1.0`. Both initial dimensions must be at least 64. Minimum limits cannot exceed corresponding maximum limits. Joystick event delivery and state tracking are independent. Stick configs affect processed `JoystickState` views; mapped `GamepadState` axes remain raw.
+Defaults: title `VMNL Window`, size `800x600`, common public event delivery enabled, joystick event
+delivery and joystick state tracking disabled, default left/right `StickConfig`, no size limits,
+built-in 2D shaders, opaque black clear color, `PresentMode::Auto`, and color-only
+`RenderTargetConfig` with clear depth `1.0`. Both initial dimensions must be at least 64. Minimum
+limits cannot exceed corresponding maximum limits. Joystick event delivery and state tracking are
+independent. Stick configs affect processed `JoystickState` views; mapped `GamepadState` axes remain
+raw.
 
 ## Units, coordinates, and valid ranges
 
-Sizes/limits are logical screen pixels. Colors use `Rgba` channels. Titles are UTF-8 strings passed to the platform backend.
+Sizes/limits are logical screen pixels. Colors use `Rgba` channels. Titles are UTF-8 strings passed
+to the platform backend.
 
 ## Ownership, lifecycle, and threading
 
-Setters consume/return the builder. Owned strings and shader sources move into window creation; `build` consumes the builder. Use on the window-creation thread.
+Setters consume/return the builder. Owned strings and shader sources move into window creation;
+`build` consumes the builder. Use on the window-creation thread.
 
 ## Errors, panics, and failure conditions
 
-`size_limit` returns `InvalidWindowSize` for inverted limits. `build` can return invalid-size, GLFW initialization/input, shader, surface, swapchain, render-pass, allocation, or unsupported-presentation errors. With joystick tracking enabled, the initial joystick query can return `GlfwInputOperationFailed`.
+`size_limit` returns `InvalidWindowSize` for inverted limits. `build` can return invalid-size, GLFW
+initialization/input, shader, surface, swapchain, render-pass, allocation, or
+unsupported-presentation errors. With joystick tracking enabled, the initial joystick query can
+return `GlfwInputOperationFailed`.
 
-Render-target numeric validation precedes native creation. Unsupported depth format/sample requests return `VulkanFormatNotSupported` before native creation; extent limits are checked before attachment allocation. No format fallback or GPU reselection occurs. See [`RenderTargetConfig`](render_target_config.md) for ranges and cost.
+Render-target numeric validation precedes native creation. Unsupported depth format/sample requests
+return `VulkanFormatNotSupported` before native creation; extent limits are checked before
+attachment allocation. No format fallback or GPU reselection occurs. See
+[`RenderTargetConfig`](render_target_config.md) for ranges and cost.
 
 ## Allocation, transfers, synchronization, and GPU cost
 
-Most setters only mutate owned CPU configuration. `title` allocates. `build` performs all native/Vulkan creation and shader compilation; exact cost is not specified.
+Most setters only mutate owned CPU configuration. `title` allocates. `build` performs all
+native/Vulkan creation and shader compilation; exact cost is not specified.
 
 ## Platform, Vulkan, and display constraints
 
-Supported present modes, surface formats, sizes, and shaders depend on the selected Vulkan device, window surface, driver, and display server.
+Supported present modes, surface formats, sizes, and shaders depend on the selected Vulkan device,
+window surface, driver, and display server.
 
 ## Example and related types
 
@@ -73,4 +90,5 @@ fn main() -> vmnl_graphics::VMNLResult<()> {
 }
 ```
 
-Related: [`Window`](window.md), [`PresentMode`](present_mode.md), and [`ShaderSource`](../common/shader_source.md).
+Related: [`Window`](window.md), [`PresentMode`](present_mode.md), and
+[`ShaderSource`](../common/shader_source.md).

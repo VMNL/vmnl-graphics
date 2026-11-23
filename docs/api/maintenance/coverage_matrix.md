@@ -1,9 +1,11 @@
 # Public API coverage matrix
 
-This matrix has one row per distinct public type, trait, alias, or derive macro reachable through `vmnl_graphics`. Reexport aliases of the same type, such as the three `ShaderSource` paths, share one row. Blanket implementations are the only public-surface entries intentionally omitted.
+This matrix has one row per distinct public type, trait, alias, or derive macro reachable through
+`vmnl_graphics`. Reexport aliases of the same type, such as the three `ShaderSource` paths, share
+one row. Blanket implementations are the only public-surface entries intentionally omitted.
 
 | Kind | Symbol | Canonical page | Rustdoc | Evidence |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | alias | `vmnl_graphics::VMNLResult` | [VMNLResult](../reference/errors/vmnl_result.md) | [Rustdoc](../../../target/doc/vmnl_graphics/type.VMNLResult.html) | [API errors](../../../tests/api/tests/errors.rs) |
 | enum | `vmnl_graphics::CursorMode` | [CursorMode](../reference/window/input/cursor_mode.md) | [Rustdoc](../../../target/doc/vmnl_graphics/enum.CursorMode.html) | [API input](../../../tests/api/tests/input.rs) |
 | enum | `vmnl_graphics::DepthFormat` | [DepthFormat](../reference/window/depth_format.md) | [Rustdoc](../../../target/doc/vmnl_graphics/enum.DepthFormat.html) | [API render target](../../../tests/api/tests/render_target.rs) |
@@ -101,12 +103,14 @@ This matrix has one row per distinct public type, trait, alias, or derive macro 
 | trait | `vmnl_graphics::raw::Vertex` | [Vertex trait](../reference/raw/traits/vertex.md) | [Rustdoc](../../../target/doc/vmnl_graphics/raw/trait.Vertex.html) | [API raw traits](../../../tests/api/tests/raw_traits.rs) |
 | trait | `vmnl_graphics::raw::Zeroable` | [Zeroable trait](../reference/raw/traits/zeroable.md) | [Rustdoc](../../../target/doc/vmnl_graphics/raw/trait.Zeroable.html) | [API raw traits](../../../tests/api/tests/raw_traits.rs) |
 
-`Shape::circle` returns `CircleBuilder` through private modules without a public type reexport.
-It therefore has no standalone item in the extracted public inventory or generated Rustdoc.
-Its callable builder methods are documented on the [circle builder page](../reference/d2/shapes/circle_builder.md)
-and in source Rustdoc; CPU geometry/validation tests are in
-[`circle.rs`](../../../crates/vmnl_graphics/src/2d/shape/circle.rs), and headless public getter and
-setter tests are in [`d2_shapes.rs`](../../../tests/api/tests/d2_shapes.rs). GPU submission of the
-circle family is covered in [`frame_renderer.rs`](../../../tests/gpu/tests/frame_renderer.rs).
+`Shape::circle` returns `CircleBuilder` through private modules without a public type reexport. It
+therefore has no standalone item in the extracted public inventory or generated Rustdoc. Its
+callable builder methods are documented on the [circle builder
+page](../reference/d2/shapes/circle_builder.md) and in source Rustdoc; CPU geometry/validation tests
+are in [`circle.rs`](../../../crates/vmnl_graphics/src/2d/shape/circle.rs), and headless public
+getter and setter tests are in [`d2_shapes.rs`](../../../tests/api/tests/d2_shapes.rs). GPU
+submission of the circle family is covered in
+[`frame_renderer.rs`](../../../tests/gpu/tests/frame_renderer.rs).
 
-Coverage is complete only when `tools/api_docs.py check` reports no missing, duplicate, stale, or unresolvable entry.
+Coverage is complete only when `tools/api_docs.py check` reports no missing, duplicate, stale, or
+unresolvable entry.

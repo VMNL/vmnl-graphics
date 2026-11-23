@@ -33,9 +33,9 @@ just run raw_d2_composition
 just build raw_pipeline
 ```
 
-`d2_circles` demonstrates circles, ellipses, rings, sectors, and an outlined elliptical arc
-with round caps. On the right, cyan filled circles and yellow outlined circles compare both
-orders of the fill and width setters. The [circle builder contract](api/reference/d2/shapes/circle_builder.md)
+`d2_circles` demonstrates circles, ellipses, rings, sectors, and an outlined elliptical arc with
+round caps. On the right, cyan filled circles and yellow outlined circles compare both orders of the
+fill and width setters. The [circle builder contract](api/reference/d2/shapes/circle_builder.md)
 defines fill and width configuration, angles, and the required sector/cap pair.
 
 Current limitation: `d2_shapes` configures a sector without `.cap(...)`, so its shape construction
@@ -55,8 +55,8 @@ workflow while that example is corrected.
 
 1. Create `examples/<name>/Cargo.toml`.
 2. Add it to workspace `members`.
-3. Depend on package `vmnl_graphics` through the relative path to `crates/vmnl_graphics`, and
-   import `vmnl_graphics`.
+3. Depend on package `vmnl_graphics` through the relative path to `crates/vmnl_graphics`, and import
+   `vmnl_graphics`.
 4. Add a row to `examples/README.md`.
 5. Keep the example runnable through `just run <name>`.
 

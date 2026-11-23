@@ -14,7 +14,7 @@ keyboard metadata queries.
 ## Public API
 
 | Member | Contract |
-|---|---|
+| --- | --- |
 | `Context::new()` | Initialize Vulkan state and return `VMNLResult<Context>`; adopt an active `InputRuntime` configuration or use GLFW defaults. |
 | `Context::builder()` | Prepare a default CPU-only `ContextBuilder`. |
 | `Context::line_width_limits()` | Copy the selected GPU's line-width range and granularity; this does not activate `WideLines`. |
@@ -34,15 +34,15 @@ required by VMNL. `Context::new()` is equivalent to `Context::builder().build()`
 optional device features. A `DeviceConfig` passed to `ContextBuilder::device` constrains candidates
 to GPUs supporting every required feature, then enables those features on the selected logical
 device. No requirement is silently dropped. Clients cannot currently select an explicit GPU or
-queue. When candidates have equal rank,
-selection follows backend enumeration order and is therefore not deterministic across equal-ranked
-devices. Keyboard queries are uncached and use the active layout at call time. `Key::Unknown`,
-non-printable values, invalid scancodes, and unsupported mappings return `None`. On Wayland, name
-queries also return `None` until `Window::poll_events` observes the first keyboard event; this
-avoids calling the bundled GLFW XKB path before its state is initialized. Scancode queries remain
-available immediately. After keyboard readiness, Wayland resolves a scancode against the 120
-named-key mappings before asking GLFW for its name. This avoids a spurious backend error for
-non-printable named keys; an unmapped scancode still uses GLFW's scancode query.
+queue. When candidates have equal rank, selection follows backend enumeration order and is therefore
+not deterministic across equal-ranked devices. Keyboard queries are uncached and use the active
+layout at call time. `Key::Unknown`, non-printable values, invalid scancodes, and unsupported
+mappings return `None`. On Wayland, name queries also return `None` until `Window::poll_events`
+observes the first keyboard event; this avoids calling the bundled GLFW XKB path before its state is
+initialized. Scancode queries remain available immediately. After keyboard readiness, Wayland
+resolves a scancode against the 120 named-key mappings before asking GLFW for its name. This avoids
+a spurious backend error for non-printable named keys; an unmapped scancode still uses GLFW's
+scancode query.
 
 Supported and enabled features are distinct: an unrequested optional feature can be supported but
 disabled. Feature activation is immutable for the device lifetime. The device name is diagnostic
@@ -50,19 +50,26 @@ metadata, not a unique or persistent identifier. Other devices' capabilities are
 
 ## Units, coordinates, and valid ranges
 
-Line widths use framebuffer units, independently of application geometry coordinates and window logical size. `line_width_limits()` exposes the physical GPU's reported range and granularity, including a possible zero minimum; VMNL pipeline requests must still be strictly positive. Values may be rounded by the driver. The snapshot is immutable for a context's lifetime and equal across its clones.
+Line widths use framebuffer units, independently of application geometry coordinates and window
+logical size. `line_width_limits()` exposes the physical GPU's reported range and granularity,
+including a possible zero minimum; VMNL pipeline requests must still be strictly positive. Values
+may be rounded by the driver. The snapshot is immutable for a context's lifetime and equal across
+its clones.
 
 ## Ownership, lifecycle, and threading
 
-The context owns internal state through `Rc`; clones share that state. Consequently `Context` is single-threaded (`!Send`/`!Sync`) and resources created from it belong to the same logical Vulkan device. Contexts, windows, cursors, and standalone `InputRuntime` handles share one GLFW runtime until the last owner drops.
+The context owns internal state through `Rc`; clones share that state. Consequently `Context` is
+single-threaded (`!Send`/`!Sync`) and resources created from it belong to the same logical Vulkan
+device. Contexts, windows, cursors, and standalone `InputRuntime` handles share one GLFW runtime
+until the last owner drops.
 
 ## Errors, panics, and failure conditions
 
 Initialization can fail for GLFW initialization or runtime thread ownership, Vulkan instance
 creation, physical-device/queue selection, logical-device creation, unsupported requirements, or
 allocator setup. Errors are returned as `VMNLResult`; no public panic contract is specified.
-Keyboard queries expose GLFW's null or unknown
-sentinel as `None`; backend failures are reported through the configured GLFW error callback.
+Keyboard queries expose GLFW's null or unknown sentinel as `None`; backend failures are reported
+through the configured GLFW error callback.
 
 Nonempty requirements with no compatible GPU produce `DeviceRequirementsNotMet` carrying the
 complete requested feature list. Empty defaults preserve `VulkanUnsupportedFeature` when no
@@ -74,9 +81,9 @@ creation; initialization objects are released on failure.
 `new` creates Vulkan instance/device/queue and allocator state. Exact allocation count,
 initialization latency, queue policy beyond current requirements, and synchronization cost are not
 specified. Successful name queries allocate one owned `String`; scancode queries do not allocate.
-`get_scancode_name` may query up to 120 key-to-scancode mappings on Wayland; the other backends
-keep the direct scancode lookup.
-No keyboard query performs GPU work, transfer, synchronization, or waiting.
+`get_scancode_name` may query up to 120 key-to-scancode mappings on Wayland; the other backends keep
+the direct scancode lookup. No keyboard query performs GPU work, transfer, synchronization, or
+waiting.
 
 The builder prepares CPU configuration without initializing GLFW/Vulkan. Device name and feature
 inspection borrow immutable backend metadata without allocation, GPU submission or waiting.
@@ -86,11 +93,11 @@ inspection borrow immutable backend metadata without allocation, GPU submission 
 A Vulkan loader and supported device are required. A display is not necessarily touched by
 `Context::new`, but later window creation requires GLFW and a usable display/session. Key names and
 scancodes depend on the active platform and keyboard layout, may change after a layout change, and
-must be queried on the context's platform thread. Several physical scancodes may map to the
-same named key: `get_key_scancode` selects one, while events preserve the scancode of the
-physical variant that generated them. Wayland key names require one processed keyboard
-event before the first successful query. Raw mouse motion is unavailable on Cocoa in bundled GLFW
-3.4 and requires XInput 2 on X11.
+must be queried on the context's platform thread. Several physical scancodes may map to the same
+named key: `get_key_scancode` selects one, while events preserve the scancode of the physical
+variant that generated them. Wayland key names require one processed keyboard event before the first
+successful query. Raw mouse motion is unavailable on Cocoa in bundled GLFW 3.4 and requires XInput 2
+on X11.
 
 ## Example and related types
 
@@ -107,4 +114,7 @@ fn main() -> vmnl_graphics::VMNLResult<()> {
 }
 ```
 
-Related: [`ContextBuilder`](context_builder.md), [`DeviceConfig`](device_config.md), [`DeviceFeature`](device_feature.md), [`WindowBuilder`](window/window_builder.md), [`BufferMemoryPreference`](common/buffer_memory_preference.md), and [`VMNLResult`](errors/vmnl_result.md).
+Related: [`ContextBuilder`](context_builder.md), [`DeviceConfig`](device_config.md),
+[`DeviceFeature`](device_feature.md), [`WindowBuilder`](window/window_builder.md),
+[`BufferMemoryPreference`](common/buffer_memory_preference.md), and
+[`VMNLResult`](errors/vmnl_result.md).

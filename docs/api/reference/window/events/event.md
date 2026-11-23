@@ -6,19 +6,20 @@ Import path: `vmnl_graphics::Event`. Status: 0.1.0, operational translated windo
 
 ## Purpose and use cases
 
-Carries one translated [`EventKind`](event_kind.md) and a timestamp in GLFW time. Window events
-are returned by `Window::poll_events`; joystick connection events are returned by that method when
-the window opts in, or by `InputRuntime::poll_events` for a standalone runtime handle. Derives
-`Debug`, `Clone`, and `PartialEq`.
+Carries one translated [`EventKind`](event_kind.md) and a timestamp in GLFW time. Window events are
+returned by `Window::poll_events`; joystick connection events are returned by that method when the
+window opts in, or by `InputRuntime::poll_events` for a standalone runtime handle. Derives `Debug`,
+`Clone`, and `PartialEq`.
 
 ## Public API
 
-`timestamp_seconds() -> f64` borrows the event timestamp. `kind() -> &EventKind` borrows the payload. `into_kind() -> EventKind` consumes the envelope.
+`timestamp_seconds() -> f64` borrows the event timestamp. `kind() -> &EventKind` borrows the
+payload. `into_kind() -> EventKind` consumes the envelope.
 
 ## Construction, defaults, and validation
 
-There is no default or public constructor. Clients receive values from event-polling methods.
-Native negative size events and native event kinds without a VMNL representation are omitted.
+There is no default or public constructor. Clients receive values from event-polling methods. Native
+negative size events and native event kinds without a VMNL representation are omitted.
 
 ## Units, coordinates, and valid ranges
 
@@ -28,20 +29,23 @@ can make later timestamps smaller; the value is not a monotonic sequence across 
 
 ## Ownership, lifecycle, and threading
 
-Events own their payload and do not borrow the window. They are snapshots and do not remain synchronized with later window state.
+Events own their payload and do not borrow the window. They are snapshots and do not remain
+synchronized with later window state.
 
 ## Errors, panics, and failure conditions
 
-Translation is not fallible through the public API; native event kinds without a VMNL
-representation may be omitted. Unknown physical keys remain observable as `Key::Unknown`.
+Translation is not fallible through the public API; native event kinds without a VMNL representation
+may be omitted. Unknown physical keys remain observable as `Key::Unknown`.
 
 ## Allocation, transfers, synchronization, and GPU cost
 
-No GPU work. Collecting events allocates the returned `Vec`; individual variants are allocation-free.
+No GPU work. Collecting events allocates the returned `Vec`; individual variants are
+allocation-free.
 
 ## Platform, Vulkan, and display constraints
 
-Delivery and available native events depend on GLFW/platform. Delivery settings are evaluated when `poll_events` drains pending events.
+Delivery and available native events depend on GLFW/platform. Delivery settings are evaluated when
+`poll_events` drains pending events.
 
 ## Example and related types
 

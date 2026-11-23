@@ -6,12 +6,13 @@ Import path: `vmnl_graphics::VMNLErrorKind`. Status: 0.1.0 and `#[non_exhaustive
 
 ## Purpose and use cases
 
-Classifies initialization, windowing, Vulkan, validation, and client-state failures. External matches require a wildcard arm.
+Classifies initialization, windowing, Vulkan, validation, and client-state failures. External
+matches require a wildcard arm.
 
 ## Public API
 
 | Group | Variants |
-|---|---|
+| --- | --- |
 | Vulkan creation | `VulkanInitFailed`, `VulkanSurfaceCreationFailed`, `VulkanSwapchainCreationFailed`, `VulkanShaderModuleCreationFailed`, `VulkanPipelineCreationFailed`, `VulkanVertexBufferCreationFailed`, `VulkanIndexBufferCreationFailed`, `VulkanFrameUboBufferCreationFailed`, `VulkanMemoryAllocationFailed`, `VulkanCommandBufferCreationFailed`, `VulkanDescriptorSetCreationFailed`, `VulkanSemaphoreCreationFailed`, `VulkanFenceCreationFailed`, `VulkanFramebufferCreationFailed`, `VulkanRenderPassCreationFailed`, `VulkanImageCreationFailed`, `VulkanImageViewCreationFailed`, `VulkanSamplerCreationFailed`, `VulkanDescriptorPoolCreationFailed`, `VulkanDescriptorSetLayoutCreationFailed`, `VulkanPipelineLayoutCreationFailed`, `VulkanShaderCompilationFailed` |
 | Vulkan runtime/status | `VulkanValidationFailed`, `VulkanUnsupportedFeature`, `VulkanOutOfMemory`, `VulkanOutOfDate`, `VulkanDeviceLost`, `VulkanSurfaceLost`, `VulkanExtensionNotPresent`, `VulkanLayerNotPresent`, `VulkanIncompatibleDriver`, `VulkanTooManyObjects`, `VulkanFormatNotSupported`, `VulkanFragmentation`, `VulkanUnknownError` |
 | GLFW | `GlfwInitFailed`, `GlfwInitializationConfigConflict { active_hat_buttons, requested_hat_buttons }`, `GlfwInputOperationFailed { operation, message }`, `GlfwWindowCreationFailed`, `GlfwContextCreationFailed`, `GlfwUnsupportedPlatform`, `GlfwVersionMismatch`, `GlfwPlatformError`, `GlfwUnknownError` |
@@ -19,7 +20,8 @@ Classifies initialization, windowing, Vulkan, validation, and client-state failu
 | Device requirements | `DeviceRequirementsNotMet { required_features: Vec<DeviceFeature> }` |
 | Pipeline rasterization | `DeviceFeatureNotEnabled { feature: DeviceFeature }`, `InvalidLineWidth { value: f32, min: f32, max: f32 }` |
 
-Only `Debug` is derived. Human-readable text is provided through `VMNLError`'s `Display` implementation.
+Only `Debug` is derived. Human-readable text is provided through `VMNLError`'s `Display`
+implementation.
 
 ## Construction, defaults, and validation
 
@@ -27,19 +29,24 @@ Variants are constructed directly. `GlfwInputOperationFailed` owns the operation
 `InvalidGamepadMapping` owns the rejected input reason; `InvalidState` owns application-specific
 detail. There is no default and no validator.
 
-`DeviceRequirementsNotMet` carries all requested features in first-request order when no baseline-compatible GPU supports their combination; individual features may still be supported separately on different devices.
+`DeviceRequirementsNotMet` carries all requested features in first-request order when no
+baseline-compatible GPU supports their combination; individual features may still be supported
+separately on different devices.
 
-`DeviceFeatureNotEnabled` identifies a feature not activated on the pipeline's device. `InvalidLineWidth` retains the requested value (including NaN/infinity) and the device range. These are build-time errors before shader compilation.
+`DeviceFeatureNotEnabled` identifies a feature not activated on the pipeline's device.
+`InvalidLineWidth` retains the requested value (including NaN/infinity) and the device range. These
+are build-time errors before shader compilation.
 
 ## Units, coordinates, and valid ranges
 
-Line widths and their range are in framebuffer units. Valid pipeline requests must be finite, strictly positive and within the inclusive reported range.
+Line widths and their range are in framebuffer units. Valid pipeline requests must be finite,
+strictly positive and within the inclusive reported range.
 
 ## Ownership, lifecycle, and threading
 
 Unit variants own no resources. Message-bearing variants own their strings; the initialization
-conflict carries two booleans and owns no heap data.
-`DeviceRequirementsNotMet` owns a feature vector.
+conflict carries two booleans and owns no heap data. `DeviceRequirementsNotMet` owns a feature
+vector.
 
 ## Errors, panics, and failure conditions
 
@@ -48,12 +55,13 @@ Constructing a variant is infallible. The enum represents failures rather than c
 ## Allocation, transfers, synchronization, and GPU cost
 
 Message-bearing variants may own heap allocations. The initialization conflict carries two booleans
-and owns no heap data. No GPU work occurs.
-`DeviceRequirementsNotMet` may allocate its feature vector.
+and owns no heap data. No GPU work occurs. `DeviceRequirementsNotMet` may allocate its feature
+vector.
 
 ## Platform, Vulkan, and display constraints
 
-Variant availability does not imply that every backend emits every category. Mapping of third-party errors is intentionally coarser than native Vulkan/GLFW error payloads.
+Variant availability does not imply that every backend emits every category. Mapping of third-party
+errors is intentionally coarser than native Vulkan/GLFW error payloads.
 
 ## Example and related types
 

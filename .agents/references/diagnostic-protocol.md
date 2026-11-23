@@ -10,9 +10,10 @@ Follow [`AGENTS.md`](../../AGENTS.md), the relevant canonical documentation, and
 classification in [`docs/testing.md`](../../docs/testing.md). Do not copy the completion sequence
 from [`CONTRIBUTING.md`](../../CONTRIBUTING.md); link to it when a later fix requires validation.
 
-A diagnosis request authorizes investigation, not a fix. Prefer read-only observations. Add temporary
-instrumentation or a diagnostic harness only when the user requested it or explicitly approved the
-repository change. Preserve unrelated work and remove only instrumentation introduced by the task.
+A diagnosis request authorizes investigation, not a fix. Prefer read-only observations. Add
+temporary instrumentation or a diagnostic harness only when the user requested it or explicitly
+approved the repository change. Preserve unrelated work and remove only instrumentation introduced
+by the task.
 
 ## Diagnostic Loop
 
@@ -65,16 +66,16 @@ assumptions required. Do not treat the first plausible explanation as the defaul
   source code.
 - Place instrumentation at boundaries that separate hypotheses, not everywhere along the path.
 - Give temporary probes a unique marker so their removal can be verified.
-- Redact credentials, tokens, personal data, addresses, and unrelated payload contents from commands,
-  logs, traces, and reports.
+- Redact credentials, tokens, personal data, addresses, and unrelated payload contents from
+  commands, logs, traces, and reports.
 
 For performance regressions, define the workload, baseline, metric, sampling method, and acceptable
 variance before attributing a cause. Use instrumentation whose overhead is bounded and relevant to
 the measured path.
 
-At FFI, unsafe, concurrent, or callback boundaries, verify inputs, outputs, error channels, ownership,
-lifetime, thread, ordering, and shutdown assumptions independently when they could distinguish the
-hypotheses.
+At FFI, unsafe, concurrent, or callback boundaries, verify inputs, outputs, error channels,
+ownership, lifetime, thread, ordering, and shutdown assumptions independently when they could
+distinguish the hypotheses.
 
 ### 5. Decide from discriminating evidence
 
@@ -93,17 +94,17 @@ broadening or repeating the investigation.
 ### 6. Define the fix boundary
 
 For a diagnosis-only request, describe the smallest coherent fix and the regression seam without
-implementing either. For an authorized fix, require a focused regression test or explain why the real
-defect cannot be reproduced at a deterministic test seam. Validate the eventual change through the
-applicable domain skill and [`CONTRIBUTING.md`](../../CONTRIBUTING.md#before-submission).
+implementing either. For an authorized fix, require a focused regression test or explain why the
+real defect cannot be reproduced at a deterministic test seam. Validate the eventual change through
+the applicable domain skill and [`CONTRIBUTING.md`](../../CONTRIBUTING.md#before-submission).
 
 ### 7. Clean up and report
 
-- Remove temporary instrumentation, harnesses, logs, and artifacts created by the task unless the user
-  explicitly asked to retain them.
+- Remove temporary instrumentation, harnesses, logs, and artifacts created by the task unless the
+  user explicitly asked to retain them.
 - Do not remove or overwrite pre-existing user changes.
-- Report the reproducer, commands executed, observed results, supported cause, remaining uncertainty,
-  proposed fix boundary, and unverified environments.
+- Report the reproducer, commands executed, observed results, supported cause, remaining
+  uncertainty, proposed fix boundary, and unverified environments.
 
 ## Evidence Boundaries
 

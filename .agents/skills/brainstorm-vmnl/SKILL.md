@@ -11,18 +11,19 @@ Produce a decision-ready analysis without implementing the decision. Distinguish
 applicable invariants, assumptions, options, trade-offs, unresolved decisions, and evidence still
 needed.
 
-Do not edit code, documentation, configuration, issues, pull requests, or other external state during
-the brainstorm. A later explicit implementation request starts a separate change workflow under the
-applicable repository and domain instructions.
+Do not edit code, documentation, configuration, issues, pull requests, or other external state
+during the brainstorm. A later explicit implementation request starts a separate change workflow
+under the applicable repository and domain instructions.
 
 ## Establish the Decision Context
 
 1. State the concrete decision being examined and what would change depending on the answer.
-2. Inspect the current worktree and only the repository sources needed to establish current behavior.
+2. Inspect the current worktree and only the repository sources needed to establish current
+   behavior.
 3. Follow [`AGENTS.md`](../../../AGENTS.md) and its domain routing. For a feature, public API,
    architecture, module, or roadmap decision, read
-   [`docs/architecture.md`](../../../docs/architecture.md).
-   For a module interface, crate boundary, raw API, backend adapter, or FFI seam, also read
+   [`docs/architecture.md`](../../../docs/architecture.md). For a module interface, crate boundary,
+   raw API, backend adapter, or FFI seam, also read
    [`module-design.md`](../../references/module-design.md).
 4. Treat canonical documentation as intended contract and tests or implementation as evidence of
    current behavior. Report contradictions and their owner instead of silently resolving them.

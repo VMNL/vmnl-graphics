@@ -1,7 +1,7 @@
 # Public reference
 
 | Area | Pages |
-|---|---|
+| --- | --- |
 | Graphics crate and context | [`vmnl_graphics`](graphics_crate.md), [`Context`](context.md), [`ContextBuilder`](context_builder.md), [`DeviceConfig`](device_config.md), [`DeviceFeature`](device_feature.md), [`LineWidthLimits`](line_width_limits.md), [`InputRuntime`](input_runtime.md) |
 | Input | [Joystick and gamepad samples](joystick_gamepad.md) |
 | Errors | [Errors](errors/README.md) |

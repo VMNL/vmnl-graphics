@@ -48,6 +48,7 @@
 - Do not allocate inside:
   - render loops
   - latency-sensitive callbacks
+
 ---
 
 ## Performance
@@ -59,7 +60,9 @@
 - Keep data layouts cache-friendly
 - Minimize unnecessary copies
 
-Do not infer a performance improvement from build or lint commands. Define a workload and metric, then measure before and after under the same build profile, machine, GPU/driver, and rendering configuration.
+Do not infer a performance improvement from build or lint commands. Define a workload and metric,
+then measure before and after under the same build profile, machine, GPU/driver, and rendering
+configuration.
 
 For non-mutating code validation:
 
@@ -87,6 +90,7 @@ unsafe {
 ```
 
 The comment must explain:
+
 - the invariant being relied on
 - why the operation is safe
 - what assumptions must remain true
@@ -126,6 +130,7 @@ pub
 when external access is not required
 
 Avoid:
+
 - circular dependencies
 - large files with unrelated responsibilities
 - leaking internal implementation details
@@ -149,7 +154,8 @@ just test-gpu-compile # GPU-facing changes
 just test-gpu         # when the environment supports it
 ```
 
-Keep this order for every applicable completion check. Document the technical reason for any required deviation.
+Keep this order for every applicable completion check. Document the technical reason for any
+required deviation.
 
 All warnings must be resolved
 
@@ -198,9 +204,11 @@ panic!()
 The use of **forbidden functions** is strictly limited to **unit tests only**.
 
 Please make sure to:
+
 - Use them only in the appropriate test files.
 - Avoid using them in production code or regular application logic.
-- Review your changes carefully before submitting to ensure no forbidden functions are introduced outside of unit tests.
+- Review your changes carefully before submitting to ensure no forbidden functions are introduced
+  outside of unit tests.
 
 ## Error Propagation
 

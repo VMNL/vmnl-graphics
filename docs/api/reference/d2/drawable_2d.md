@@ -2,7 +2,8 @@
 
 ## Public path and maturity
 
-Import path: `vmnl_graphics::d2::Drawable2D`. Status: 0.1.0 trait, operational for VMNL-provided implementations.
+Import path: `vmnl_graphics::d2::Drawable2D`. Status: 0.1.0 trait, operational for VMNL-provided
+implementations.
 
 ## Purpose and use cases
 
@@ -10,11 +11,13 @@ Converts a high-level 2D drawable into the opaque backend item consumed by `Fram
 
 ## Public API
 
-Required method: `render_item_2d(&self) -> RenderItem2D`. `Shape` implements the trait. The generic implementation contract is intentionally not a blanket impl.
+Required method: `render_item_2d(&self) -> RenderItem2D`. `Shape` implements the trait. The generic
+implementation contract is intentionally not a blanket impl.
 
 ## Construction, defaults, and validation
 
-No default. External implementations are practically constrained because `RenderItem2D` exposes no public constructor or fields; clients should currently use `Shape`.
+No default. External implementations are practically constrained because `RenderItem2D` exposes no
+public constructor or fields; clients should currently use `Shape`.
 
 ## Units, coordinates, and valid ranges
 
@@ -26,11 +29,13 @@ The method borrows the drawable and returns an owned descriptor holding shared G
 
 ## Errors, panics, and failure conditions
 
-The method is infallible by signature. Invalid GPU/context combinations can fail later at frame submission.
+The method is infallible by signature. Invalid GPU/context combinations can fail later at frame
+submission.
 
 ## Allocation, transfers, synchronization, and GPU cost
 
-VMNL's `Shape` implementation clones shared handles and does not upload new geometry. Exact custom-implementation cost is unspecified.
+VMNL's `Shape` implementation clones shared handles and does not upload new geometry. Exact
+custom-implementation cost is unspecified.
 
 ## Platform, Vulkan, and display constraints
 
@@ -55,4 +60,5 @@ fn main() -> vmnl_graphics::VMNLResult<()> {
 }
 ```
 
-Related: [`RenderItem2D`](render_item_2d.md), [`Shape`](shapes/shape.md), and [`FrameRenderer`](../window/rendering/frame_renderer.md).
+Related: [`RenderItem2D`](render_item_2d.md), [`Shape`](shapes/shape.md), and
+[`FrameRenderer`](../window/rendering/frame_renderer.md).

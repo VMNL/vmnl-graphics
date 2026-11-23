@@ -12,19 +12,18 @@ resource to be assigned to several windows.
 ## Public API
 
 | Member | Contract |
-|---|---|
+| --- | --- |
 | `Cursor::standard` | Configure a [`StandardCursorBuilder`](standard_cursor_builder.md). |
 | `Cursor::rgba8` | Configure a custom [`CursorBuilder`](cursor_builder.md) from packed RGBA8 bytes. |
 | `Clone`, `Eq`, `PartialEq`, `Debug` | Share a handle, compare resource identity, hide backend details. |
 
 ## Construction, defaults, and validation
 
-There is no default cursor resource; `Window::cursor() == None` selects the backend default.
-Cursor factories only configure builders. Their `build(&context)` method creates the native
-resource. `CursorBuilder` requires positive `c_int`-representable dimensions, exactly
-`width * height * 4` bytes, and a hotspot strictly inside the image. The hotspot defaults to
-`(0, 0)` and its diagnostic marker is disabled. VMNL checks multiplication overflow and every
-parameter before FFI.
+There is no default cursor resource; `Window::cursor() == None` selects the backend default. Cursor
+factories only configure builders. Their `build(&context)` method creates the native resource.
+`CursorBuilder` requires positive `c_int`-representable dimensions, exactly `width * height * 4`
+bytes, and a hotspot strictly inside the image. The hotspot defaults to `(0, 0)` and its diagnostic
+marker is disabled. VMNL checks multiplication overflow and every parameter before FFI.
 
 ## Units, coordinates, and valid ranges
 
@@ -35,14 +34,14 @@ hotspot X increases rightward and Y downward.
 ## Ownership, lifecycle, and threading
 
 Clones share the native handle through `Rc`. A window retains a clone while assigned, so dropping
-the client's clone cannot invalidate the window. The last owner destroys the native cursor; there
-is no explicit destroy method. A retained GLFW token keeps the library initialized until then.
-`Cursor` is neither `Send` nor `Sync` and must remain on the GLFW platform thread.
+the client's clone cannot invalidate the window. The last owner destroys the native cursor; there is
+no explicit destroy method. A retained GLFW token keeps the library initialized until then. `Cursor`
+is neither `Send` nor `Sync` and must remain on the GLFW platform thread.
 
 ## Errors, panics, and failure conditions
 
-Invalid custom-builder inputs return `InvalidState` from `build`. An unavailable standard shape returns
-`GlfwUnsupportedPlatform`. Other native failures use the corresponding VMNL GLFW category.
+Invalid custom-builder inputs return `InvalidState` from `build`. An unavailable standard shape
+returns `GlfwUnsupportedPlatform`. Other native failures use the corresponding VMNL GLFW category.
 Destruction errors are reported only through the configured GLFW callback because destruction runs
 during `Drop`. Valid inputs do not panic.
 

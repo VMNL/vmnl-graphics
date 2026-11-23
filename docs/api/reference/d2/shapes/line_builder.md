@@ -10,15 +10,19 @@ Generates indexed thick-line geometry with butt, square, or approximated round c
 
 ## Public API
 
-`width(width)`, `cap(LineCap)`, `color(color)`, `buffer_memory_preference(preference)`, and `build(&Context)`.
+`width(width)`, `cap(LineCap)`, `color(color)`, `buffer_memory_preference(preference)`, and
+`build(&Context)`.
 
 ## Construction, defaults, and validation
 
-Endpoints are required. Defaults: width `1.0`, `LineCap::Butt`, opaque white, and `Device` preference. Endpoints must be distinct, finite, and not NaN; width must be finite and strictly positive.
+Endpoints are required. Defaults: width `1.0`, `LineCap::Butt`, opaque white, and `Device`
+preference. Endpoints must be distinct, finite, and not NaN; width must be finite and strictly
+positive.
 
 ## Units, coordinates, and valid ranges
 
-Endpoints and width use 2D pixel-like units. Round caps use 12 fixed internal segments; this is current behavior, not a tessellation-quality guarantee.
+Endpoints and width use 2D pixel-like units. Round caps use 12 fixed internal segments; this is
+current behavior, not a tessellation-quality guarantee.
 
 ## Ownership, lifecycle, and threading
 
@@ -30,7 +34,8 @@ Invalid geometry returns `InvalidState`; count or buffer allocation/upload can f
 
 ## Allocation, transfers, synchronization, and GPU cost
 
-Build generates CPU vertices/indices then allocates/uploads two buffers. Round caps generate more geometry than butt/square caps; exact performance is unspecified.
+Build generates CPU vertices/indices then allocates/uploads two buffers. Round caps generate more
+geometry than butt/square caps; exact performance is unspecified.
 
 ## Platform, Vulkan, and display constraints
 

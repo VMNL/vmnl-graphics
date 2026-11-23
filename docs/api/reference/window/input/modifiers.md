@@ -11,15 +11,18 @@ Derives `Debug`, `Copy`, `Clone`, `Eq`, `PartialEq`, `Hash`, and `Default`.
 
 ## Public API
 
-Constants: `NONE`, `SHIFT`, `CONTROL`, `ALT`, `SUPER`, `CAPS_LOCK`, and `NUM_LOCK`. Methods: `is_empty`, `contains`, and `bits`. Bitwise `|`, `|=`, `&`, and `&=` combine or intersect flags.
+Constants: `NONE`, `SHIFT`, `CONTROL`, `ALT`, `SUPER`, `CAPS_LOCK`, and `NUM_LOCK`. Methods:
+`is_empty`, `contains`, and `bits`. Bitwise `|`, `|=`, `&`, and `&=` combine or intersect flags.
 
 ## Construction, defaults, and validation
 
-`Default` is `NONE`. Public values are built from constants and bitwise operations; VMNL does not expose construction from arbitrary bits.
+`Default` is `NONE`. Public values are built from constants and bitwise operations; VMNL does not
+expose construction from arbitrary bits.
 
 ## Units, coordinates, and valid ranges
 
-`bits()` returns the internal `u8` mask. Its numeric assignments are VMNL values, not a promised GLFW ABI conversion surface.
+`bits()` returns the internal `u8` mask. Its numeric assignments are VMNL values, not a promised
+GLFW ABI conversion surface.
 
 ## Ownership, lifecycle, and threading
 
@@ -49,5 +52,5 @@ assert!(modifiers.contains(Modifiers::SHIFT));
 assert!(!modifiers.contains(Modifiers::ALT));
 ```
 
-Related: [`EventKind`](../events/event_kind.md), [`MouseButton`](mouse_button.md), and
-[window input modes](modes.md).
+Related: [`EventKind`](../events/event_kind.md), [`MouseButton`](mouse_button.md), and [window input
+modes](modes.md).

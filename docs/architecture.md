@@ -18,25 +18,25 @@ documented defaults
         -> explicitly unstable backend interoperability when required
 ```
 
-Every observable policy must be documented, inspectable after resolution, and replaceable. A
-policy is observable when it affects output, errors, ownership, allocation, synchronization,
-threading, performance, or platform behavior. Internal mechanisms without a contractual effect
-remain implementation details.
+Every observable policy must be documented, inspectable after resolution, and replaceable. A policy
+is observable when it affects output, errors, ownership, allocation, synchronization, threading,
+performance, or platform behavior. Internal mechanisms without a contractual effect remain
+implementation details.
 
-VMNL does not require ownership of the application loop. Clients can drive each subsystem
-directly; an optional high-level runner may provide a simpler path without removing manual control.
+VMNL does not require ownership of the application loop. Clients can drive each subsystem directly;
+an optional high-level runner may provide a simpler path without removing manual control.
 
 ### Explicit Client Control
 
 For supported graphics operations, the public API must let clients select every observable policy
 explicitly, through high-level configuration and full VMNL raw control as appropriate. High-level
-defaults remain inspectable and replaceable without requiring `raw`. Defaults apply to choices
-left unspecified; an explicitly selected automatic policy follows its documented resolution rules.
+defaults remain inspectable and replaceable without requiring `raw`. Defaults apply to choices left
+unspecified; an explicitly selected automatic policy follows its documented resolution rules.
 
 An exact request must be honored or rejected with a structured error. VMNL must not silently drop
 requirements, rewrite independent settings, convert data, or substitute an execution strategy to
-make that request succeed. Hardware and platform restrictions constrain valid requests; they do
-not authorize a different choice on the client's behalf.
+make that request succeed. Hardware and platform restrictions constrain valid requests; they do not
+authorize a different choice on the client's behalf.
 
 Fallback behavior must belong to a named, documented, selectable policy. Expose its resolved result
 and whether a fallback was used; a fallback policy must never weaken an exact request. Keep the
@@ -48,15 +48,15 @@ does not satisfy the explicit-control requirement.
 
 ## Domain Scope
 
-This repository owns graphics only: Vulkan rendering, windows, events, input, monitors, 2D,
-and explicit raw graphics control. Windowing and input belong to this crate.
+This repository owns graphics only: Vulkan rendering, windows, events, input, monitors, 2D, and
+explicit raw graphics control. Windowing and input belong to this crate.
 
-Applications depend on the `vmnl_graphics` package and import `vmnl_graphics` directly. There is
-no aggregate facade or optional audio/network feature. Other VMNL domains are independent projects;
+Applications depend on the `vmnl_graphics` package and import `vmnl_graphics` directly. There is no
+aggregate facade or optional audio/network feature. Other VMNL domains are independent projects;
 using graphics neither owns their lifecycle nor changes their public contracts.
 
-The crate keeps backend modules private. `common`, `d2`, and `raw` expose public graphics
-concepts; `raw::__private` is reserved for derive macro expansion and is not client API.
+The crate keeps backend modules private. `common`, `d2`, and `raw` expose public graphics concepts;
+`raw::__private` is reserved for derive macro expansion and is not client API.
 
 ## Workspace
 
@@ -99,46 +99,57 @@ application
 ```
 
 The macros crate depends only on its parsing/code-generation dependencies. Its expansions resolve
-`vmnl_graphics`, including a dependency renamed by the client; clients do not depend on macros
-or Vulkano directly to use the public derives.
+`vmnl_graphics`, including a dependency renamed by the client; clients do not depend on macros or
+Vulkano directly to use the public derives.
 
 ## Stable Contract Requirements
 
-These requirements define the stable architecture target, not a claim that `0.1.0` already
-satisfies every requirement. In particular, automatic device/queue selection and the raw traits
-currently coupled to Vulkano must be made configurable or isolated before they enter the stable
-compatibility baseline; their present behavior remains documented in the API book. Choosing the
-`0.1.0` version does not waive these requirements.
+These requirements define the stable architecture target, not a claim that `0.1.0` already satisfies
+every requirement. In particular, automatic device/queue selection and the raw traits currently
+coupled to Vulkano must be made configurable or isolated before they enter the stable compatibility
+baseline; their present behavior remains documented in the API book. Choosing the `0.1.0` version
+does not waive these requirements.
 
-- Applications use `vmnl_graphics` directly; private macros and backend crates are not client dependencies.
+- Applications use `vmnl_graphics` directly; private macros and backend crates are not client
+  dependencies.
 - `vmnl_graphics` owns rendering, windowing, input, and GPU resource behavior.
 - `raw` exposes lower-level VMNL pipeline, geometry, and resource control.
 - Vulkan is the graphics backend; Vulkano remains an implementation detail of stable APIs.
 - Backend interoperability, when provided, is isolated and explicitly unstable.
 - Defaults never remove the corresponding explicit policy choice, and their resolved values remain
   inspectable.
-- Ownership, thread affinity, allocations, expensive operations, and synchronization are explicit
-  or documented at their public boundary.
+- Ownership, thread affinity, allocations, expensive operations, and synchronization are explicit or
+  documented at their public boundary.
 - `Context` and `InputRuntime` share one GLFW runtime. Its first active owner fixes initialization
-  settings; GLFW remains initialized until the last context, runtime handle, window, or native cursor
-  owner drops. `InputRuntime` can initialize GLFW without a Vulkan instance or window, but still
-  requires a usable GLFW platform backend.
+  settings; GLFW remains initialized until the last context, runtime handle, window, or native
+  cursor owner drops. `InputRuntime` can initialize GLFW without a Vulkan instance or window, but
+  still requires a usable GLFW platform backend.
 - VMNL creates no hidden worker runtime. Any managed execution mode is opt-in and documents its
   threads, lifecycle, and shutdown behavior.
 - Determinism is claimed only for inputs and environment decisions controlled by VMNL; backend or
   platform-dependent ordering is reported as such.
-- No public singleton owns application-visible state. A private backend synchronization primitive
-  is permitted only when its scope and invariant are documented.
+- No public singleton owns application-visible state. A private backend synchronization primitive is
+  permitted only when its scope and invariant are documented.
 
 ## Current Implementation Boundaries
 
 - `vmnl_graphics` is the public dependency and import boundary.
-- `ContextBuilder::device(DeviceConfig)` configures required device features and exposes support/activation inspection through `Context`; GPU identity, queue and allocator selection remain automatic.
+- `ContextBuilder::device(DeviceConfig)` configures required device features and exposes
+  support/activation inspection through `Context`; GPU identity, queue and allocator selection
+  remain automatic.
 - `vmnl_graphics` owns rendering, windowing, input, and GPU resource behavior.
 - `InputRuntime` and `Context` share the same GLFW owner; standalone input access does not create a
   Vulkan instance or window.
-- `raw` exposes lower-level VMNL pipeline, geometry, and resource control in `0.1.0`; backend-coupled traits remain explicitly unstable. Polygon rasterization and line width are fixed at pipeline creation and validated against enabled features and inspectable GPU limits.
-- `WindowBuilder::render_target(RenderTargetConfig)` optionally allocates depth-only attachments per swapchain image, recreated on resize. Defaults remain color-only. `RenderTargetInfo` exposes actual color format, samples and depth; raw target preflight retains the exact originating window's device/render-pass identity, including across resize. Matching descriptions do not allow cross-window pipeline sharing. Raw pipelines opt into immutable depth comparison/writes; high-level 2D always disables them. Submission waits for the acquired image's previous depth-use fence before reuse, without a device-wide wait.
+- `raw` exposes lower-level VMNL pipeline, geometry, and resource control in `0.1.0`;
+  backend-coupled traits remain explicitly unstable. Polygon rasterization and line width are fixed
+  at pipeline creation and validated against enabled features and inspectable GPU limits.
+- `WindowBuilder::render_target(RenderTargetConfig)` optionally allocates depth-only attachments per
+  swapchain image, recreated on resize. Defaults remain color-only. `RenderTargetInfo` exposes
+  actual color format, samples and depth; raw target preflight retains the exact originating
+  window's device/render-pass identity, including across resize. Matching descriptions do not allow
+  cross-window pipeline sharing. Raw pipelines opt into immutable depth comparison/writes;
+  high-level 2D always disables them. Submission waits for the acquired image's previous depth-use
+  fence before reuse, without a device-wide wait.
 - 2D rendering is available.
 - Internal backend details stay private unless they are deliberate public API.
 
@@ -149,12 +160,13 @@ compatibility and deprecation policy in [`deployment.md`](deployment.md). Featur
 backend independence, and native qualification remain separate from the version number.
 
 | Area | Maturity | Scope |
-|------|----------|-------|
+| --- | --- | --- |
 | `window` and input | Available | Window lifecycle, events, monitors, keyboard, and mouse. |
 | `d2` | Available | 2D shapes and rendering primitives. |
 | `raw` | Available within limits | Lower-level pipeline and geometry control; backend-coupled traits remain unstable. |
 
-Rustdoc defines the contract of a public item. This table only describes the current subsystem maturity.
+Rustdoc defines the contract of a public item. This table only describes the current subsystem
+maturity.
 
 ## Design Principles
 
@@ -178,7 +190,8 @@ workflow. Broader engine facilities require a concrete use case and remain optio
 
 ## Development Order
 
-1. Maintain the current `0.1.0` window/input, raw graphics, and 2D baseline, including its documented limits.
+1. Maintain the current `0.1.0` window/input, raw graphics, and 2D baseline, including its
+   documented limits.
 2. Add textures for `0.2.0` without breaking the published `0.1.0` contracts.
 3. Develop text and batching from the public graphics primitives.
 4. Add optional graphics composition helpers from existing public primitives.

@@ -10,11 +10,13 @@ Selects Vulkan input-assembly interpretation for raw geometry.
 
 ## Public API
 
-Variants: `PointList`, `LineList`, `LineStrip`, `TriangleList`, and `TriangleStrip`. Derives `Clone`, `Copy`, `Debug`, `PartialEq`, `Eq`.
+Variants: `PointList`, `LineList`, `LineStrip`, `TriangleList`, and `TriangleStrip`. Derives
+`Clone`, `Copy`, `Debug`, `PartialEq`, `Eq`.
 
 ## Construction, defaults, and validation
 
-`PipelineSpec` defaults to `TriangleList`. Geometry validation checks only non-empty/bounds/count representation, not topology-specific primitive completeness.
+`PipelineSpec` defaults to `TriangleList`. Geometry validation checks only non-empty/bounds/count
+representation, not topology-specific primitive completeness.
 
 ## Units, coordinates, and valid ranges
 
@@ -30,7 +32,8 @@ Selection is infallible; pipeline creation/device validation may fail later.
 
 ## Allocation, transfers, synchronization, and GPU cost
 
-No direct cost; topology changes assembly semantics and may affect performance, which is not specified.
+No direct cost; topology changes assembly semantics and may affect performance, which is not
+specified.
 
 ## Platform, Vulkan, and display constraints
 

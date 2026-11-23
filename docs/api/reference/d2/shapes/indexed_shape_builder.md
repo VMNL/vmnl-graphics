@@ -2,7 +2,8 @@
 
 ## Public path and maturity
 
-Import path: `vmnl_graphics::d2::IndexedShapeBuilder`; created by `Shape::indexed`. Status: 0.1.0, operational.
+Import path: `vmnl_graphics::d2::IndexedShapeBuilder`; created by `Shape::indexed`. Status: 0.1.0,
+operational.
 
 ## Purpose and use cases
 
@@ -10,37 +11,38 @@ Builds arbitrary 2D triangle-list geometry from public colored vertices and `u32
 
 ## Public API
 
-`Shape::indexed(vertices, indices)` returns this builder and is annotated `#[must_use]`;
-discarding the result triggers `unused_must_use`. Use `let _ = Shape::indexed(...)` for an
-intentional discard. Builder methods are `buffer_memory_preference(preference)` and
+`Shape::indexed(vertices, indices)` returns this builder and is annotated `#[must_use]`; discarding
+the result triggers `unused_must_use`. Use `let _ = Shape::indexed(...)` for an intentional discard.
+Builder methods are `buffer_memory_preference(preference)` and
 `build(&Context) -> VMNLResult<Shape>`.
 
 ## Construction, defaults, and validation
 
-Vertices and indices are required at `Shape::indexed`, which accepts inputs convertible to
-owned vectors. Memory preference defaults to `Device`. Build requires at least three vertices,
-a non-empty index count divisible by three, in-bounds indices, counts representable as `u32`,
-and finite X/Y positions for every supplied vertex, including unused vertices. Structural,
-count, and index errors take precedence over position errors; NaN positions take precedence
-over infinities.
+Vertices and indices are required at `Shape::indexed`, which accepts inputs convertible to owned
+vectors. Memory preference defaults to `Device`. Build requires at least three vertices, a non-empty
+index count divisible by three, in-bounds indices, counts representable as `u32`, and finite X/Y
+positions for every supplied vertex, including unused vertices. Structural, count, and index errors
+take precedence over position errors; NaN positions take precedence over infinities.
 
 This explicit triangle-list API permits repeated indices, duplicate positions, unused finite
-vertices, either winding, and zero-area/degenerate triangles. Its validation does not impose
-the stricter primitive-triangle area rule.
+vertices, either winding, and zero-area/degenerate triangles. Its validation does not impose the
+stricter primitive-triangle area rule.
 
 ## Units, coordinates, and valid ranges
 
-Positions follow 2D coordinates; indices reference the supplied vertex vector and are interpreted in groups of three.
+Positions follow 2D coordinates; indices reference the supplied vertex vector and are interpreted in
+groups of three.
 
 ## Ownership, lifecycle, and threading
 
-Builder owns CPU vectors and is consumed by `build`; the resulting shape owns context-associated GPU buffers.
+Builder owns CPU vectors and is consumed by `build`; the resulting shape owns context-associated GPU
+buffers.
 
 ## Errors, panics, and failure conditions
 
 Returns `VMNLErrorKind::InvalidState` for triangle-list structure, count, index-bound, or
-non-finite-position failures. Structural/count/index failures are reported before position
-failures. Vulkan vertex/index-buffer allocation and upload errors propagate from `build`.
+non-finite-position failures. Structural/count/index failures are reported before position failures.
+Vulkan vertex/index-buffer allocation and upload errors propagate from `build`.
 
 ## Allocation, transfers, synchronization, and GPU cost
 
@@ -73,4 +75,5 @@ fn main() -> vmnl_graphics::VMNLResult<()> {
 }
 ```
 
-Related: [`Vertex2D`](../vertex_2d.md) and [`BufferMemoryPreference`](../../common/buffer_memory_preference.md).
+Related: [`Vertex2D`](../vertex_2d.md) and
+[`BufferMemoryPreference`](../../common/buffer_memory_preference.md).

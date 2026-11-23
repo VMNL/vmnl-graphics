@@ -1,7 +1,7 @@
 # Defaults matrix
 
 | Surface | Default |
-|---|---|
+| --- | --- |
 | `BufferMemoryPreference` | `Device` |
 | `ContextBuilder` / `DeviceConfig` | automatic compatible GPU/graphics queue selection; no optional feature request |
 | `Rgba` | `(0, 0, 0, 0)`; named colors are opaque |

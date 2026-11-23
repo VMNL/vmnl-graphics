@@ -5,11 +5,12 @@
 3. Borrow `window.input()` and query current/transition state.
 4. Use `is_pressed`/`is_released` only as batch transitions; use `is_down` for held state.
 
-One `poll_events` call is one batch. A press and release in that call leave `is_down == false` and both transition queries true. Disabling event delivery does not disable keyboard/mouse-button tracking.
-Keyboard events retain the platform scancode and modifier flags; unknown physical keys are emitted
-as `Key::Unknown` but are not added to the keyboard snapshot.
-For text entry, use `EventKind::Text` together with key events. `TextWithModifiers` exists only for
-compatibility with GLFW's deprecated modified-character callback.
+One `poll_events` call is one batch. A press and release in that call leave `is_down == false` and
+both transition queries true. Disabling event delivery does not disable keyboard/mouse-button
+tracking. Keyboard events retain the platform scancode and modifier flags; unknown physical keys are
+emitted as `Key::Unknown` but are not added to the keyboard snapshot. For text entry, use
+`EventKind::Text` together with key events. `TextWithModifiers` exists only for compatibility with
+GLFW's deprecated modified-character callback.
 
 ```rust,no_run
 # extern crate vmnl_graphics;
@@ -34,8 +35,8 @@ fn main() -> vmnl_graphics::VMNLResult<()> {
 
 The complete usage remains in [`events_input`](../../../examples/window/events_input/src/main.rs).
 See [`KeyboardState`](../reference/window/input/keyboard_state.md),
-[`MouseState`](../reference/window/input/mouse_state.md), and
-[cursor controls](../reference/window/cursor.md).
+[`MouseState`](../reference/window/input/mouse_state.md), and [cursor
+controls](../reference/window/cursor.md).
 
 [Window input modes](../reference/window/input/modes.md) documents why sticky native reads do not
 change VMNL snapshot transitions.

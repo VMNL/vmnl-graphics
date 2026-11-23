@@ -1,7 +1,7 @@
 # Errors matrix
 
 | Operation | Principal failure contract | Typical decision |
-|---|---|---|
+| --- | --- | --- |
 | `InputRuntime::acquire` / builder | GLFW initialization failure; explicit active-config conflict; active runtime owned by another thread | Use the resolved active setting or acquire/drop handles on the GLFW thread |
 | `InputRuntime::sample_joystick` / mapping update | Backend callback/query failure (`GlfwInputOperationFailed`); rejected mapping bytes (`InvalidGamepadMapping`) | Check slot/backend state or correct the mapping text |
 | `Context::new` | Vulkan initialization/device/queue/allocator categories | Abort graphics initialization or retry after environment change |
@@ -23,4 +23,5 @@
 | Frame submit | device/render-pass/resource mismatch; out-of-date/zero-size; record/submit/present/device errors | Retry transient resize; rebuild/terminate on hard device failure |
 | GLFW callbacks/infallible setters | No typed result; routed through callback/default backend handling | Log/classify callback and reconcile observed state |
 
-`VMNLErrorKind` is non-exhaustive. This table groups public behavior; exact per-item variants remain in Rustdoc/reference pages.
+`VMNLErrorKind` is non-exhaustive. This table groups public behavior; exact per-item variants remain
+in Rustdoc/reference pages.

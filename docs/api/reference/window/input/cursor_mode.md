@@ -11,7 +11,7 @@ Selects native cursor visibility and confinement without exposing `glfw::CursorM
 ## Public API
 
 | Variant | Contract |
-|---|---|
+| --- | --- |
 | `Normal` | Visible, unrestricted system cursor. |
 | `Hidden` | Invisible over the content area and unrestricted, using VMNL's transparent cursor. |
 | `Disabled` | Hidden/grabbed cursor with virtual unbounded motion for camera controls. |
@@ -21,9 +21,9 @@ Derives `Clone`, `Copy`, `Debug`, `Default`, `Eq`, `Hash`, and `PartialEq`. The 
 
 ## Construction, defaults, and validation
 
-Use a variant directly or `CursorMode::default()`. `Window::set_cursor_mode` accepts every
-variant. VMNL implements `Hidden` with a transparent cursor while GLFW remains in normal mode;
-native availability for the other modes is backend-dependent.
+Use a variant directly or `CursorMode::default()`. `Window::set_cursor_mode` accepts every variant.
+VMNL implements `Hidden` with a transparent cursor while GLFW remains in normal mode; native
+availability for the other modes is backend-dependent.
 
 ## Units, coordinates, and valid ranges
 

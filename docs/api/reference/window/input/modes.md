@@ -12,7 +12,7 @@ modifier payloads without exposing backend selector constants.
 ## Public API
 
 | Mode | Getter | Setter |
-|---|---|---|
+| --- | --- | --- |
 | Sticky keys | `is_sticky_keys_enabled` | `set_sticky_keys` |
 | Sticky mouse buttons | `is_sticky_mouse_buttons_enabled` | `set_sticky_mouse_buttons` |
 | Lock-key modifier reporting | `is_lock_key_modifier_reporting_enabled` | `set_lock_key_modifier_reporting` |
@@ -74,5 +74,5 @@ fn main() -> vmnl_graphics::VMNLResult<()> {
 ```
 
 Related: [`MouseState`](mouse_state.md), [`Modifiers`](modifiers.md),
-[`EventKind`](../events/event_kind.md), and
-[event processing](../events/event_processing_and_timers.md).
+[`EventKind`](../events/event_kind.md), and [event
+processing](../events/event_processing_and_timers.md).

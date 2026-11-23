@@ -2,9 +2,8 @@
 
 ## Classify Evidence
 
-Apply the test-design and evidence rules in
-[`docs/testing.md`](../../../../docs/testing.md). Then use the lowest test level that proves the
-graphics behavior:
+Apply the test-design and evidence rules in [`docs/testing.md`](../../../../docs/testing.md). Then
+use the lowest test level that proves the graphics behavior:
 
 | Behavior | Evidence |
 | --- | --- |
@@ -17,12 +16,16 @@ graphics behavior:
 | User-facing visual workflow | Example plus a separate automated invariant |
 
 Keep API tests headless and smoke tests windowless. Platform tests must not create a Vulkan instance
-or surface. Never use an example as the only correctness oracle. `just test` combines unit, API,
-and smoke suites.
+or surface. Never use an example as the only correctness oracle. `just test` combines unit, API, and
+smoke suites.
 
-For a feature, test every new or changed observable behavior with a deterministic, maintainable oracle. If that is impossible, automate the nearest invariant and justify the remaining GPU or visual check.
+For a feature, test every new or changed observable behavior with a deterministic, maintainable
+oracle. If that is impossible, automate the nearest invariant and justify the remaining GPU or
+visual check.
 
-For a fix, reproduce with the smallest practical test or instrumentation. Prefer a test that fails before and passes after, and retain it when deterministic, focused, maintainable, and reasonably fast. If reproduction is impossible, report the attempt, blocker, evidence used, and uncertainty.
+For a fix, reproduce with the smallest practical test or instrumentation. Prefer a test that fails
+before and passes after, and retain it when deterministic, focused, maintainable, and reasonably
+fast. If reproduction is impossible, report the attempt, blocker, evidence used, and uncertainty.
 
 ## Preflight Just
 
@@ -31,20 +34,26 @@ Before invoking build, test, or run recipes:
 1. Read `docs/build.md`.
 2. Verify shaderc through non-mutating `pkg-config` checks.
 
-`just bootstrap` is the only recipe that invokes host mutation through `sudo`. If discovery is not proven, do not run it without authorization; report the missing prerequisite and the documented resolution.
+`just bootstrap` is the only recipe that invokes host mutation through `sudo`. If discovery is not
+proven, do not run it without authorization; report the missing prerequisite and the documented
+resolution.
 
 Treat these recipes as mutating:
 
 - `just lint` applies workspace-wide formatting and automatic fixes with dirty/staged files allowed;
 - `just bootstrap` installs system dependencies.
 
-Use them only when explicitly intended, preserve pre-existing changes, and inspect the resulting diff. `just check-clippy` is the strict Clippy check.
+Use them only when explicitly intended, preserve pre-existing changes, and inspect the resulting
+diff. `just check-clippy` is the strict Clippy check.
 
 ## Validate During Development
 
-Run the narrowest command that can disprove the current hypothesis. Do not repeat the full suite after every small edit.
+Run the narrowest command that can disprove the current hypothesis. Do not repeat the full suite
+after every small edit.
 
-For documentation-only work, run relevant structure, link, and consistency checks. Do not run the Rust suite merely to produce validation output. Run doctests or documentation builds when Rustdoc or embedded Rust examples change.
+For documentation-only work, run relevant structure, link, and consistency checks. Do not run the
+Rust suite merely to produce validation output. Run doctests or documentation builds when Rustdoc or
+embedded Rust examples change.
 
 ## Complete Graphics Changes
 
@@ -64,23 +73,32 @@ Add checks by impact:
 | Dependency | Full Rust suite, dependency-graph inspection, and `Cargo.lock` diff |
 | Performance | Comparable before/after measurement defined before editing |
 
-GPU-test compilation proves compilation only. Run GPU tests only with a compatible GPU, loader, driver, display server, and GLFW window creation. A successful example does not replace automated tests.
+GPU-test compilation proves compilation only. Run GPU tests only with a compatible GPU, loader,
+driver, display server, and GLFW window creation. A successful example does not replace automated
+tests.
 
 ## Require Human Manual Graphics Validation
 
-For every feature affecting rendering or observable graphics behavior, require explicit operator evidence for:
+For every feature affecting rendering or observable graphics behavior, require explicit operator
+evidence for:
 
 - a new manual graphical scenario specific to the feature;
 - relevant existing graphical examples or scenarios checked for visible regressions.
 
-For every fix affecting rendering or observable graphics behavior, require explicit operator evidence for:
+For every fix affecting rendering or observable graphics behavior, require explicit operator
+evidence for:
 
 - reproduction or manual checkup of the defective scenario;
 - verification that the defect is no longer observable;
 - relevant existing graphical examples or scenarios checked for visible regressions.
 
-Automated checks, GPU tests, Codex-run examples, screenshots, and planned procedures do not satisfy this requirement. Record a human manual validation only when the operator explicitly states it was performed. If evidence is missing during a PR-description request or checkup, report the missing validation and do not call the change fully validated.
+Automated checks, GPU tests, Codex-run examples, screenshots, and planned procedures do not satisfy
+this requirement. Record a human manual validation only when the operator explicitly states it was
+performed. If evidence is missing during a PR-description request or checkup, report the missing
+validation and do not call the change fully validated.
 
 ## Report Evidence
 
-In addition to the root report, identify which GPU/display/platform assumptions were exercised. Distinguish GPU-test compilation, GPU execution, Codex-observed example output, and operator-reported graphical validation; none is evidence for the others.
+In addition to the root report, identify which GPU/display/platform assumptions were exercised.
+Distinguish GPU-test compilation, GPU execution, Codex-observed example output, and
+operator-reported graphical validation; none is evidence for the others.

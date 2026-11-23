@@ -12,7 +12,7 @@ Selects one of the ten GLFW 3.4 system cursor shapes without exposing GLFW const
 ## Public API
 
 | Variant | Contract |
-|---|---|
+| --- | --- |
 | `Arrow` | Regular arrow. |
 | `IBeam` | Text input. |
 | `Crosshair` | Crosshair targeting. |
@@ -71,5 +71,5 @@ let text_cursor = Cursor::standard(StandardCursor::IBeam).build(&context)?;
 # }
 ```
 
-Related: [`Cursor`](cursor.md), [`StandardCursorBuilder`](standard_cursor_builder.md), and
-[cursor controls](../cursor.md).
+Related: [`Cursor`](cursor.md), [`StandardCursorBuilder`](standard_cursor_builder.md), and [cursor
+controls](../cursor.md).

@@ -2,10 +2,10 @@
 
 ## Public path and maturity
 
-Import paths: `vmnl_graphics::InputRuntime`, `vmnl_graphics::InputRuntimeBuilder`, and `vmnl_graphics::InputRuntimeConfig`.
-Status: 0.1.0; exposes shared GLFW lifecycle, initialization configuration, standalone
-joystick sampling, connection notifications, gamepad mapping updates, and GLFW joystick user
-pointers.
+Import paths: `vmnl_graphics::InputRuntime`, `vmnl_graphics::InputRuntimeBuilder`, and
+`vmnl_graphics::InputRuntimeConfig`. Status: 0.1.0; exposes shared GLFW lifecycle, initialization
+configuration, standalone joystick sampling, connection notifications, gamepad mapping updates, and
+GLFW joystick user pointers.
 
 ## Purpose and use cases
 
@@ -15,7 +15,7 @@ Vulkan instance or window. It owns global input configuration and standalone joy
 ## Public API
 
 | Member | Contract |
-|---|---|
+| --- | --- |
 | `InputRuntime::acquire()` | Reuse the active runtime/configuration or initialize GLFW with defaults. |
 | `InputRuntime::builder()` | Start an explicit first-initialization configuration. |
 | `InputRuntime::configuration()` | Inspect the settings resolved by the active runtime. |
@@ -48,12 +48,12 @@ handle's next `poll_events` call. If a callback panics, VMNL queues the event fo
 skips further user callbacks for the rest of that GLFW call, then resumes the panic after GLFW
 returns to Rust.
 
-A synchronous callback may remove or replace itself when another consumer processes events.
-The current invocation completes, and subsequent notifications use the updated callback. Removing
-the last subscription defers native unregistration until the enclosing GLFW call returns, before
-any captured panic resumes. A subscription created during that invocation reuses the installed
-native callback. A handle that has already polled keeps its independent event queue when its
-callback is removed; a callback-only handle unsubscribes and clears its queue.
+A synchronous callback may remove or replace itself when another consumer processes events. The
+current invocation completes, and subsequent notifications use the updated callback. Removing the
+last subscription defers native unregistration until the enclosing GLFW call returns, before any
+captured panic resumes. A subscription created during that invocation reuses the installed native
+callback. A handle that has already polled keeps its independent event queue when its callback is
+removed; a callback-only handle unsubscribes and clears its queue.
 
 ## Units, coordinates, and valid ranges
 
@@ -72,10 +72,10 @@ GLFW call returns to Rust. Queues still receive the event before the panic resum
 callbacks are skipped during that GLFW call. Recursive event processing from that callback is
 unsupported.
 
-User pointers are process-wide per-slot raw pointers. GLFW does not own or synchronize the pointed-to
-allocation and clears it when the slot disconnects. The synchronous callback receives the pointer
-while GLFW still exposes it, including during disconnect; deferred `Event` values do not retain it.
-Dereferencing or retaining the pointer still follows the raw-pointer safety contract.
+User pointers are process-wide per-slot raw pointers. GLFW does not own or synchronize the
+pointed-to allocation and clears it when the slot disconnects. The synchronous callback receives the
+pointer while GLFW still exposes it, including during disconnect; deferred `Event` values do not
+retain it. Dereferencing or retaining the pointer still follows the raw-pointer safety contract.
 
 ## Errors, panics, and failure conditions
 
@@ -97,9 +97,9 @@ queue. Runtime operations create no Vulkan resources and perform no GPU work.
 ## Platform, Vulkan, and display constraints
 
 This API does not initialize Vulkan or create a window, but GLFW still needs an available backend
-and its required system services. GLFW initialization, joystick sampling, event processing,
-callback registration, and mapping updates follow GLFW 3.4's thread rules. The hat-buttons hint
-applies only at the next GLFW initialization.
+and its required system services. GLFW initialization, joystick sampling, event processing, callback
+registration, and mapping updates follow GLFW 3.4's thread rules. The hat-buttons hint applies only
+at the next GLFW initialization.
 
 ## Example and related types
 
@@ -117,8 +117,8 @@ fn main() -> vmnl_graphics::VMNLResult<()> {
 }
 ```
 
-Related: [`Context`](context.md), [`VMNLErrorKind`](errors/vmnl_error_kind.md),
-the [joystick/gamepad data types](joystick_gamepad.md), and [joystick/gamepad capability
+Related: [`Context`](context.md), [`VMNLErrorKind`](errors/vmnl_error_kind.md), the
+[joystick/gamepad data types](joystick_gamepad.md), and [joystick/gamepad capability
 coverage](../maintenance/joystick_capability_matrix.md).
 
 The runnable [`joystick_runtime` example](../../../examples/input/joystick_runtime/src/main.rs)

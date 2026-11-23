@@ -27,9 +27,9 @@ that requires explicit authorization after the user approves the complete draft.
 5. Separate established decisions from unresolved choices. Do not disguise an unresolved product or
    architecture decision as an implementation issue.
 
-If the source contract is incomplete, report the exact missing decision. Create a decision issue only
-when the user wants that uncertainty tracked as its own deliverable; otherwise stop before drafting
-dependent implementation work.
+If the source contract is incomplete, report the exact missing decision. Create a decision issue
+only when the user wants that uncertainty tracked as its own deliverable; otherwise stop before
+drafting dependent implementation work.
 
 ## Slice the Work
 
@@ -46,21 +46,21 @@ uncommitted work from another issue.
   green vertical slice is impractical.
 - Do not create speculative prefactoring, abstraction, manager, or framework issues without a
   current use case.
-- Distinguish graphics work owned by this repository from work owned by another repository.
-  External dependency changes and issue mutations require their own authority.
+- Distinguish graphics work owned by this repository from work owned by another repository. External
+  dependency changes and issue mutations require their own authority.
 
 Size an issue as the smallest coherent change that can be implemented, validated, reviewed, and
 merged independently. Do not split solely by source layer, file, or implementation phase.
 
 ## Build the Dependency Graph
 
-For every issue, list only hard blockers: work whose delivered contract is required before this issue
-can start or be validated. A preferred order, shared topic, or opportunity for parallel coordination
-is not a blocking edge.
+For every issue, list only hard blockers: work whose delivered contract is required before this
+issue can start or be validated. A preferred order, shared topic, or opportunity for parallel
+coordination is not a blocking edge.
 
-The graph must be acyclic. Identify its initial frontier: every issue with no unresolved blocker. When
-two issues share a contract but remain independently deliverable, reference the common contract and
-coordinate them without inventing a dependency.
+The graph must be acyclic. Identify its initial frontier: every issue with no unresolved blocker.
+When two issues share a contract but remain independently deliverable, reference the common contract
+and coordinate them without inventing a dependency.
 
 For submodules and cross-repository work, distinguish:
 

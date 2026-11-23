@@ -18,5 +18,5 @@ just test
 
 See [docs/testing.md](../docs/testing.md) for the full policy.
 
-Standalone and renamed dependency consumers are checked by `just test-consumer`; see
-[the consumer contract](../docs/testing.md#standalone-graphics-consumers).
+Standalone and renamed dependency consumers are checked by `just test-consumer`; see [the consumer
+contract](../docs/testing.md#standalone-graphics-consumers).

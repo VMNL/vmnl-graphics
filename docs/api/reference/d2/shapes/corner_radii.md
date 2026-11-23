@@ -6,23 +6,23 @@ Import path: `vmnl_graphics::d2::CornerRadii`. Status: 0.1.0, operational.
 
 ## Purpose and use cases
 
-Describes the four circular corner radii of a rectangle built through `Shape::rect`, including
-sharp (`0.0`) corners. There is no separate rounded-rectangle shape type.
+Describes the four circular corner radii of a rectangle built through `Shape::rect`, including sharp
+(`0.0`) corners. There is no separate rounded-rectangle shape type.
 
 ## Public API
 
 Public fields `top_left`, `top_right`, `bottom_right`, and `bottom_left`. Constructors
 `CornerRadii::all(radius)` and `CornerRadii::new(top_left, top_right, bottom_right, bottom_left)`.
-Derives `Clone`, `Copy`, `Debug`, `Default`, and `PartialEq`; `Default` is four sharp corners.
-Field and constructor order is clockwise from the top-left corner.
+Derives `Clone`, `Copy`, `Debug`, `Default`, and `PartialEq`; `Default` is four sharp corners. Field
+and constructor order is clockwise from the top-left corner.
 
 ## Construction, defaults, and validation
 
 `all(radius)` applies one radius to every corner. A radius of `0.0` keeps the corner sharp.
-`RectBuilder::corner_radius(radius)` is equivalent to `corner_radii(CornerRadii::all(radius))`;
-the last call to either method replaces the previous corner configuration. Validation happens
-in `RectBuilder::build`: each radius must be finite and `>= 0`, the segment count must be at
-least one, and adjacent corner radii must satisfy `top_left + top_right <= width`,
+`RectBuilder::corner_radius(radius)` is equivalent to `corner_radii(CornerRadii::all(radius))`; the
+last call to either method replaces the previous corner configuration. Validation happens in
+`RectBuilder::build`: each radius must be finite and `>= 0`, the segment count must be at least one,
+and adjacent corner radii must satisfy `top_left + top_right <= width`,
 `bottom_left + bottom_right <= width`, `top_left + bottom_left <= height`, and
 `top_right + bottom_right <= height`. Overlaps are rejected, never clamped or rescaled.
 
@@ -36,8 +36,8 @@ Plain copied builder configuration consumed by `RectBuilder::corner_radii`.
 
 ## Errors, panics, and failure conditions
 
-None directly; invalid or overlapping values return `InvalidState` from `RectBuilder::build`
-before any GPU allocation.
+None directly; invalid or overlapping values return `InvalidState` from `RectBuilder::build` before
+any GPU allocation.
 
 ## Allocation, transfers, synchronization, and GPU cost
 

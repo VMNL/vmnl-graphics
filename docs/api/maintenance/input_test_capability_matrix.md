@@ -1,24 +1,22 @@
 # Cross-platform keyboard and mouse input test matrix
 
-Results recorded against the GLFW Git fork remain historical evidence for that source.
-Qualification of crates.io `glfw 0.63.0` starts separately; the Win32/Cocoa consecutive-run
-count restarts.
+Results recorded against the GLFW Git fork remain historical evidence for that source. Qualification
+of crates.io `glfw 0.63.0` starts separately; the Win32/Cocoa consecutive-run count restarts.
 
-Tracks issue [#91](https://github.com/VMNL/vmnl-graphics/issues/91) at baseline `4caa319`.
-The matrix records checked-in assertions separately from test execution and from evidence
-through a native GLFW backend or the public VMNL path. No test result is inferred from source
-presence or successful compilation.
+Tracks issue [#91](https://github.com/VMNL/vmnl-graphics/issues/91) at baseline `4caa319`. The
+matrix records checked-in assertions separately from test execution and from evidence through a
+native GLFW backend or the public VMNL path. No test result is inferred from source presence or
+successful compilation.
 
 ## Status and evidence levels
 
 - `not yet qualified`: the issue's complete contract has no recorded result at this baseline.
-- `not injectable`: the selected backend/injector cannot produce the input; record the reason
-  for that row.
+- `not injectable`: the selected backend/injector cannot produce the input; record the reason for
+  that row.
 - `unsupported`: the backend explicitly does not provide the capability.
 - `failure` and `qualified/pass`: reserved for retained probe results.
-- Deterministic unit/API evidence, native `NoApi` evidence, and public VMNL GPU/display evidence
-  are separate. A native GLFW-only result does not qualify `Window::poll_events()` →
-  `Event`/`Input`.
+- Deterministic unit/API evidence, native `NoApi` evidence, and public VMNL GPU/display evidence are
+  separate. A native GLFW-only result does not qualify `Window::poll_events()` → `Event`/`Input`.
 
 ## Native profiles and prerequisites
 
@@ -37,67 +35,74 @@ presence or successful compilation.
 All native cases must use a bounded deadline, verify readiness before injection, preserve the
 observed event order and identity, retain failure diagnostics, and release held inputs during
 cleanup. Mouse movement requires an inside-window target; enter/leave cases must cross the
-content-area boundary. Scroll directions and coordinate tolerances are backend-specific and must
-be recorded. Physical-device qualification, including extra mouse buttons, is separate from
-synthetic injection.
+content-area boundary. Scroll directions and coordinate tolerances are backend-specific and must be
+recorded. Physical-device qualification, including extra mouse buttons, is separate from synthetic
+injection.
 
 ## Progress in this branch
 
 - Headless unit assertions now compare every named `Key` and all eight `MouseButton` variants
   against fixed GLFW enum values in both conversion directions.
-- Event translation assertions cover press/repeat/release for all 120 named keys, including
-  scancode and modifier preservation, and press/release for all eight mouse buttons.
+- Event translation assertions cover press/repeat/release for all 120 named keys, including scancode
+  and modifier preservation, and press/release for all eight mouse buttons.
 - Modeled `EventQueue` batches cover a press and release for every key/button in one batch, then
   verify transition clearing in the next empty batch. These remain unit-level reducer checks; they
   do not execute `Window::poll_events()` or a native backend.
 - The native probes check focused and hovered mouse cases, ordered button and scroll events,
   released button state, pointer motion, and cursor-query agreement. They prove GLFW backend
   delivery only, not the public VMNL path.
-- A and Shift+A passed on X11 and nested Weston in [CI run #38109958980](https://github.com/VMNL/vmnl-graphics/actions/runs/38109958980), and on Win32/Cocoa in [CI run #38109958980](https://github.com/VMNL/vmnl-graphics/actions/runs/38109958980).
+- A and Shift+A passed on X11 and nested Weston in [CI run
+  #38109958980](https://github.com/VMNL/vmnl-graphics/actions/runs/38109958980), and on Win32/Cocoa
+  in [CI run #38109958980](https://github.com/VMNL/vmnl-graphics/actions/runs/38109958980).
 - The nested Weston boundary failure reproduced in run #38091799251 came from exiting the
   compositor's X11 output, where Weston 13.0.0 does not clear pointer focus. Crossing from the GLFW
-  content area to the default desktop shell's top panel inside the compositor fixed the probe:
-  [CI run #38109958980](https://github.com/VMNL/vmnl-graphics/actions/runs/38109958980) records exactly leave then enter on both Linux backends.
-- The Linux job in [CI run #38109958980](https://github.com/VMNL/vmnl-graphics/actions/runs/38109958980) passed 17 Wayland and 19 X11 operations, including pointer movement,
-  getter agreement, all four scroll directions, and ordered press/release for GLFW buttons 1–6.
-  `GetPointerMapping` reports 10 server buttons; GLFW buttons 7–8 are recorded as not injectable
-  because their server mappings 11/12 exceed this limit. Every tested button ends released.
+  content area to the default desktop shell's top panel inside the compositor fixed the probe: [CI
+  run #38109958980](https://github.com/VMNL/vmnl-graphics/actions/runs/38109958980) records exactly
+  leave then enter on both Linux backends.
+- The Linux job in [CI run
+  #38109958980](https://github.com/VMNL/vmnl-graphics/actions/runs/38109958980) passed 17 Wayland
+  and 19 X11 operations, including pointer movement, getter agreement, all four scroll directions,
+  and ordered press/release for GLFW buttons 1–6. `GetPointerMapping` reports 10 server buttons;
+  GLFW buttons 7–8 are recorded as not injectable because their server mappings 11/12 exceed this
+  limit. Every tested button ends released.
 - Linux results are blocking. Windows/macOS remain experimental until the documented ten-run
-  qualification threshold is met. Native records are retained as JSONL artifacts; direct GLFW
-  probes do not qualify the public VMNL Vulkan/display runtime.
+  qualification threshold is met. Native records are retained as JSONL artifacts; direct GLFW probes
+  do not qualify the public VMNL Vulkan/display runtime.
 - `just input-test <backend>` checks the selected host, display, compositor/window-manager, and
   available input-permission prerequisites before running one native contract. CI continues to
   invoke the same selected contracts directly through Cargo: Linux X11 and nested Weston block,
   while Win32 and Cocoa remain experimental.
-- `just input-test-vmnl x11` adds an opt-in Vulkan-backed public graphics path for all eligible named keys, pointer motion,
-  every mouse-button mapping supported by the active X11 server, and vertical/horizontal scroll
-  directions. It is excluded from `just test-gpu` because it injects input into the active desktop;
-  its representative runtime passed on the local Vulkan/Xwayland stack recorded below. On the hosted 10-button Xvfb, `Button7`/`Button8`
-  remain outside the injectable range.
+- `just input-test-vmnl x11` adds an opt-in Vulkan-backed public graphics path for all eligible
+  named keys, pointer motion, every mouse-button mapping supported by the active X11 server, and
+  vertical/horizontal scroll directions. It is excluded from `just test-gpu` because it injects
+  input into the active desktop; its representative runtime passed on the local Vulkan/Xwayland
+  stack recorded below. On the hosted 10-button Xvfb, `Button7`/`Button8` remain outside the
+  injectable range.
 
 ## Stage 3 native expansion
 
-The selected backend contract now enumerates every named key using fixed physical-key fixtures
-and emits a schema-2 `native-input-eligibility` manifest before running eligible cases. Each row
-records its native code, expected scancode, status and exclusion reason. XKB names/aliases resolve
-Linux physical keys independently of layout; nested Wayland selects an available parent code at the expected evdev code plus eight.
-No manifest entry or compilation result qualifies native delivery.
+The selected backend contract now enumerates every named key using fixed physical-key fixtures and
+emits a schema-2 `native-input-eligibility` manifest before running eligible cases. Each row records
+its native code, expected scancode, status and exclusion reason. XKB names/aliases resolve Linux
+physical keys independently of layout; nested Wayland selects an available parent code at the
+expected evdev code plus eight. No manifest entry or compilation result qualifies native delivery.
 
 The additional cases cover left-modifier subsets and right-side modifiers, modified mouse buttons,
 Caps/Num lock reporting on Linux/Win32, three representative text scalars, bounded Linux repeats,
-and held-key/button focus loss. See [extended native cases](../../testing.md#extended-native-cases-issue-91-stage-3)
-for the exact targets, timing, cleanup and profile limits. Win32 bare Win keys, absent backend key
-mappings, unavailable parent evdev transport codes, missing unmodified text scalars, event-poster hardware repeat,
-and Cocoa lock restoration remain explicit exclusions or unqualified entries. Alt/Super keyboard
-chords observe modifier key events; their flags are qualified by mouse callbacks, not by a target-key
-shortcut. Linux Alt/Super mouse chords use side Button4 because the configured window managers
-consume modified left clicks; those left-click exclusions are retained explicitly. Focus-loss
-observation finishes before physical cleanup can emit an extra Cocoa mouse-up. Physical hardware
-and public VMNL evidence remain separate.
+and held-key/button focus loss. See [extended native
+cases](../../testing.md#extended-native-cases-issue-91-stage-3) for the exact targets, timing,
+cleanup and profile limits. Win32 bare Win keys, absent backend key mappings, unavailable parent
+evdev transport codes, missing unmodified text scalars, event-poster hardware repeat, and Cocoa lock
+restoration remain explicit exclusions or unqualified entries. Alt/Super keyboard chords observe
+modifier key events; their flags are qualified by mouse callbacks, not by a target-key shortcut.
+Linux Alt/Super mouse chords use side Button4 because the configured window managers consume
+modified left clicks; those left-click exclusions are retained explicitly. Focus-loss observation
+finishes before physical cleanup can emit an extra Cocoa mouse-up. Physical hardware and public VMNL
+evidence remain separate.
 
-[CI run #38206068512](https://github.com/VMNL/vmnl-graphics/actions/runs/38206068512) at `32f8b3e` retained
-every eligible schema-2 case with `qualified: true`, no error record, and exact agreement between
-the eligibility manifest and the passed case names:
+[CI run #38206068512](https://github.com/VMNL/vmnl-graphics/actions/runs/38206068512) at `32f8b3e`
+retained every eligible schema-2 case with `qualified: true`, no error record, and exact agreement
+between the eligibility manifest and the passed case names:
 
 | Backend | Named keys | Modifier key cases | Modified button cases | Lock cases | Text cases | Repeat holds | Focus loss | Total passed |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -108,73 +113,73 @@ the eligibility manifest and the passed case names:
 
 Each manifest contains all 120 named keys. Missing mappings, intercepted inputs and unqualified
 lock/repeat sources retain their explicit reasons and are not counted as passes. X11's temporary
-Openbox profile removes the bare Print binding and is loaded by absolute path; PrintScreen passes
-on both Linux backends. Win32 Num Lock uses virtual-key injection so both toggle phases are
-observable. Win32/Cocoa remain experimental pending ten consecutive qualified runs of the current
-injector, schema, workload, and image. Existing schema-1 CI links above qualify only earlier cases.
+Openbox profile removes the bare Print binding and is loaded by absolute path; PrintScreen passes on
+both Linux backends. Win32 Num Lock uses virtual-key injection so both toggle phases are observable.
+Win32/Cocoa remain experimental pending ten consecutive qualified runs of the current injector,
+schema, workload, and image. Existing schema-1 CI links above qualify only earlier cases.
 
 ## Public VMNL runtime evidence (stage 5)
 
 On 2026-10-12, `just input-test-vmnl x11` passed `1/1` through the public graphics API on Fedora 44,
-Hyprland 0.56.2/Xwayland, Intel Iris Xe (ADL GT2), Mesa 26.2.3 and Vulkan loader 1.4.341.
-See the [retained execution record](../../testing.md#native-input-contract).
+Hyprland 0.56.2/Xwayland, Intel Iris Xe (ADL GT2), Mesa 26.2.3 and Vulkan loader 1.4.341. See the
+[retained execution record](../../testing.md#native-input-contract).
 
-The scenario presents a first frame before requiring focus, resolves physical A through XKB
-`AC01`, and requires the independently selected scancode. It covers A press/release and input
-snapshots, pointer motion/getter agreement, mouse buttons 1–6 and both scroll axes/directions.
-The local X11 pointer map reports ten server buttons, so VMNL buttons 7–8 remain non-injectable.
-The X11 Vulkan instance also enables Xlib when GLFW selects XCB, matching the raw handle used
-by Vulkano for surface creation.
+The scenario presents a first frame before requiring focus, resolves physical A through XKB `AC01`,
+and requires the independently selected scancode. It covers A press/release and input snapshots,
+pointer motion/getter agreement, mouse buttons 1–6 and both scroll axes/directions. The local X11
+pointer map reports ten server buttons, so VMNL buttons 7–8 remain non-injectable. The X11 Vulkan
+instance also enables Xlib when GLFW selects XCB, matching the raw handle used by Vulkano for
+surface creation.
 
-This is automatic GPU/display execution. Excluded named keys, text and repeat remain unqualified, as do
-enter/leave, focus loss or same-batch taps through VMNL, Windows/macOS VMNL runtime, a native
+This is automatic GPU/display execution. Excluded named keys, text and repeat remain unqualified, as
+do enter/leave, focus loss or same-batch taps through VMNL, Windows/macOS VMNL runtime, a native
 Xorg/Wayland seat, other drivers/hardware, or human manual graphical regression checks.
 
 The 2026-10-13 expansion passed all five public checks for 118 named keys: press delivery,
 independent scancode, press snapshot, release delivery/scancode and release snapshot with no key
-remaining down. The shared physical-key table instantiates independent GLFW and VMNL variants;
-no production conversion or GLFW runtime scancode lookup supplies the expected VMNL key.
-XKB aliases and canonical-before-fallback Right Alt resolution cover the active map. `World2`
-and `F25` are explicitly excluded for the reasons in the rows below. The 640-check terminal
-report contains 622 passes and 18 exclusions, including the existing mouse cases and verified
-restoration of the original XKB locked-modifier mask. See the
-[execution record](../../testing.md#native-input-contract) for the initial pointer timeout and
-successful diagnostic/final runs; this is not a cross-environment stability claim.
+remaining down. The shared physical-key table instantiates independent GLFW and VMNL variants; no
+production conversion or GLFW runtime scancode lookup supplies the expected VMNL key. XKB aliases
+and canonical-before-fallback Right Alt resolution cover the active map. `World2` and `F25` are
+explicitly excluded for the reasons in the rows below. The 640-check terminal report contains 622
+passes and 18 exclusions, including the existing mouse cases and verified restoration of the
+original XKB locked-modifier mask. See the [execution
+record](../../testing.md#native-input-contract) for the initial pointer timeout and successful
+diagnostic/final runs; this is not a cross-environment stability claim.
 
 ## Keyboard named-key rows
 
-The current public client uses protocol version 3: native injection codes remain in the X11
-driver, and `Scancode` requires `Context::get_key_scancode`, captured before injection, to
-match one actually observed physical variant. Each variant retains identical press/release
-scancodes and its own input-state checks. PrintScreen adds the distinct `I218` variant when
-the active XKB map assigns it Print; KpDecimal adds `I129` when it carries KP_Decimal.
-RightAlt additionally exercises distinct `LVL3` and `MDSW` fixtures carrying
-ISO_Level3_Shift and ISO_Level5_Shift. An unavailable alternate is explicitly excluded.
-Zero and negative opaque values are
-accepted. A missing mapping for an observed named key fails; it is not an input exclusion.
-The independent physical fixture still determines the expected `Key`. This public check
-qualifies metadata consistency rather than the independent native numeric encoding recorded
-by the earlier 2026-10-13 executions. Exact encoding checks remain in the backend suites.
+The current public client uses protocol version 3: native injection codes remain in the X11 driver,
+and `Scancode` requires `Context::get_key_scancode`, captured before injection, to match one
+actually observed physical variant. Each variant retains identical press/release scancodes and its
+own input-state checks. PrintScreen adds the distinct `I218` variant when the active XKB map assigns
+it Print; KpDecimal adds `I129` when it carries KP_Decimal. RightAlt additionally exercises distinct
+`LVL3` and `MDSW` fixtures carrying ISO_Level3_Shift and ISO_Level5_Shift. An unavailable alternate
+is explicitly excluded. Zero and negative opaque values are accepted. A missing mapping for an
+observed named key fails; it is not an input exclusion. The independent physical fixture still
+determines the expected `Key`. This public check qualifies metadata consistency rather than the
+independent native numeric encoding recorded by the earlier 2026-10-13 executions. Exact encoding
+checks remain in the backend suites.
 
-On 2026-10-14, three consecutive local protocol-2 executions passed 657 checks with 639 passes,
-18 exclusions and no failures or unexecuted checks. All four alternate physical fixtures above
-passed; the exclusions still cover World2, F25 and mouse buttons 7–8. See the
-[execution record](../../testing.md#native-input-contract) for the preceding failed attempts
-and the exact evidence boundary.
+On 2026-10-14, three consecutive local protocol-2 executions passed 657 checks with 639 passes, 18
+exclusions and no failures or unexecuted checks. All four alternate physical fixtures above passed;
+the exclusions still cover World2, F25 and mouse buttons 7–8. See the [execution
+record](../../testing.md#native-input-contract) for the preceding failed attempts and the exact
+evidence boundary.
 
-For each row, required result K1 is: press emits `KeyPressed { key: Key::<name>, scancode,
-modifiers, repeat: false }`; release emits `KeyReleased` with the same scancode and expected
-modifiers. The press sets `is_down`/`is_pressed`; release clears `is_down`. A press and release in
-one `Window::poll_events()` batch retain both transition flags with `is_down == false`; the next
-empty batch clears both flags. The `GLFW_KEY_*` token is the independent mapping oracle to assert
-for that named VMNL variant. Deterministic level: unit/API. Native level: profile K; end-to-end
-level: profile V.
+For each row, required result K1 is: press emits
+`KeyPressed { key: Key::<name>, scancode,
+modifiers, repeat: false }`; release emits `KeyReleased`
+with the same scancode and expected modifiers. The press sets `is_down`/`is_pressed`; release clears
+`is_down`. A press and release in one `Window::poll_events()` batch retain both transition flags
+with `is_down == false`; the next empty batch clears both flags. The `GLFW_KEY_*` token is the
+independent mapping oracle to assert for that named VMNL variant. Deterministic level: unit/API.
+Native level: profile K; end-to-end level: profile V.
 
-At baseline, `keyboard.rs` has an exhaustive 120-key conversion round-trip assertion and count,
-but that round-trip does not prove each fixed mapping independently. `event.rs` translates A press,
-A repeat, F25 release, and an unknown key; batch state is exercised with A. The native probe tests
-A directly through GLFW, not through VMNL. Every row therefore remains `not yet qualified` for
-the full #91 event/state and VMNL-path contract.
+At baseline, `keyboard.rs` has an exhaustive 120-key conversion round-trip assertion and count, but
+that round-trip does not prove each fixed mapping independently. `event.rs` translates A press, A
+repeat, F25 release, and an unknown key; batch state is exercised with A. The native probe tests A
+directly through GLFW, not through VMNL. Every row therefore remains `not yet qualified` for the
+full #91 event/state and VMNL-path contract.
 
 The native column below records the schema-2 per-key press/release, scancode and released-getter
 results from run #38206068512. `pass` refers only to the direct GLFW case; `not injectable` and
@@ -304,27 +309,28 @@ historical snapshot; the new exhaustive modeled assertions are listed in branch 
 | `Key::RightSuper` | `GLFW_KEY_RIGHT_SUPER` | K1 | Round-trip assertion only; per-key event/state oracle missing | X11: pass; Wayland: pass; Win32: not injectable; Cocoa: pass; public VMNL X11 press/release, scancode and snapshots: local pass (2026-10-13) |
 | `Key::Menu` | `GLFW_KEY_MENU` | K1 | Round-trip assertion only; per-key event/state oracle missing | X11: pass; Wayland: pass; Win32: pass; Cocoa: pass; public VMNL X11 press/release, scancode and snapshots: local pass (2026-10-13) |
 
-`Key::Unknown` is not a named-key row: unknown physical keys must preserve `Scancode` and
-modifiers in `KeyPressed`/`KeyReleased` events while remaining absent from `KeyboardState`.
-The checked-in reducer test covers one unknown press; native availability is best-effort and must
-be marked `not injectable` with the device/layout reason when no unknown key can be produced.
+`Key::Unknown` is not a named-key row: unknown physical keys must preserve `Scancode` and modifiers
+in `KeyPressed`/`KeyReleased` events while remaining absent from `KeyboardState`. The checked-in
+reducer test covers one unknown press; native availability is best-effort and must be marked
+`not injectable` with the device/layout reason when no unknown key can be produced.
 
 ## Mouse-button rows
 
 For each row, required result M1 is: press/release emits the corresponding
-`MouseButtonPressed`/`MouseButtonReleased` with modifiers and updates `MouseState`. A same-batch
-tap retains both transition flags with `is_down == false`; the next empty batch clears them.
-The fixed `GLFW_MOUSE_BUTTON_N` token is the independent mapping oracle. Deterministic level:
-unit/API. Native level: profile M; public VMNL end-to-end level: profile V.
+`MouseButtonPressed`/`MouseButtonReleased` with modifiers and updates `MouseState`. A same-batch tap
+retains both transition flags with `is_down == false`; the next empty batch clears them. The fixed
+`GLFW_MOUSE_BUTTON_N` token is the independent mapping oracle. Deterministic level: unit/API. Native
+level: profile M; public VMNL end-to-end level: profile V.
 
 All eight variants have checked-in conversion, event-translation, and batch-state assertions. The
-native XTEST cases test every GLFW mapping present in the active X11 server and record mappings
-that exceed its button limit. The Win32 probe injects its five GLFW mappings through SendInput;
-the Cocoa probe injects all eight through CGEventPost. Hosted CI's 10-button Xvfb cannot inject
-server buttons 11/12, so GLFW `Button7`/`Button8` remain unqualified there. Win32 eligible buttons
-passed in [CI run #38079003041](https://github.com/VMNL/vmnl-graphics/actions/runs/38079003041), and all
-Cocoa buttons passed in [CI run #38077590550](https://github.com/VMNL/vmnl-graphics/actions/runs/38077590550);
-the local public Vulkan/Xwayland scenario qualifies buttons 1–6 only.
+native XTEST cases test every GLFW mapping present in the active X11 server and record mappings that
+exceed its button limit. The Win32 probe injects its five GLFW mappings through SendInput; the Cocoa
+probe injects all eight through CGEventPost. Hosted CI's 10-button Xvfb cannot inject server buttons
+11/12, so GLFW `Button7`/`Button8` remain unqualified there. Win32 eligible buttons passed in [CI
+run #38079003041](https://github.com/VMNL/vmnl-graphics/actions/runs/38079003041), and all Cocoa
+buttons passed in [CI run
+#38077590550](https://github.com/VMNL/vmnl-graphics/actions/runs/38077590550); the local public
+Vulkan/Xwayland scenario qualifies buttons 1–6 only.
 
 | VMNL button | Independent GLFW 3.4 token | Required result | Deterministic evidence at baseline | Native evidence and current status |
 | --- | --- | --- | --- | --- |
@@ -365,50 +371,51 @@ ten-run threshold. Never count an unavailable mapping as a pass.
 
 The separate `vmnl-input-client` now contains checks for 19 standard modifier chords and their
 modified mouse callbacks, both lock-toggle phases, ordinary/legacy text payloads, bounded actual
-repeat, pointer leave/enter and hover, held-key/button focus transfer to a second owned VMNL window and restoration, and public
-poll/snapshot controls. Keyboard and mouse controls cover a real same-poll tap, non-consuming
-queries, the next empty poll, held state, explicit transition clearing and disabled/re-enabled
-event delivery. The numbered INJECTED barrier prevents polling before both native tap operations
-have completed. OS codes remain private to the X11 driver; no private VMNL queue is fabricated.
+repeat, pointer leave/enter and hover, held-key/button focus transfer to a second owned VMNL window
+and restoration, and public poll/snapshot controls. Keyboard and mouse controls cover a real
+same-poll tap, non-consuming queries, the next empty poll, held state, explicit transition clearing
+and disabled/re-enabled event delivery. The numbered INJECTED barrier prevents polling before both
+native tap operations have completed. OS codes remain private to the X11 driver; no private VMNL
+queue is fabricated.
 
 The driver plans 848 checks, with explicit eligibility for missing physical modifiers/buttons,
-unavailable unmodified text symbols and disabled/slow native repeat. Headless oracles qualify
-their rejection behavior; source presence alone does not qualify native runtime cases.
+unavailable unmodified text symbols and disabled/slow native repeat. Headless oracles qualify their
+rejection behavior; source presence alone does not qualify native runtime cases.
 
-The public scroll oracle accepts one or more finite offsets with the requested axis and sign,
-then requires 100 ms without another scroll before completion. A five-second absolute deadline
-bounds initial delivery and settling. Headless regressions cover later invalid batches, interval
-resets and timeout precedence. On 2026-10-15, three consecutive local X11/Vulkan executions
-without instrumentation revalidated these changes: each passed all four scroll directions and
-the full eligible scenario (848 checks, 828 passes, 20 exclusions, no failures or unexecuted checks).
-The [revalidation record](../../testing.md#scroll-oracle-native-revalidation) identifies the client
+The public scroll oracle accepts one or more finite offsets with the requested axis and sign, then
+requires 100 ms without another scroll before completion. A five-second absolute deadline bounds
+initial delivery and settling. Headless regressions cover later invalid batches, interval resets and
+timeout precedence. On 2026-10-15, three consecutive local X11/Vulkan executions without
+instrumentation revalidated these changes: each passed all four scroll directions and the full
+eligible scenario (848 checks, 828 passes, 20 exclusions, no failures or unexecuted checks). The
+[revalidation record](../../testing.md#scroll-oracle-native-revalidation) identifies the client
 source, environment and preceding text-fixture failure; other environments remain unqualified.
 
-On 2026-10-14, three consecutive local public X11/Vulkan executions without instrumentation
-passed 848 checks: 828 passes, 20 exclusions, zero failures and zero unexecuted checks. All
-19 modifier cases, Caps/Num phases, ASCII a through both text callbacks, actual repeat, boundary
-hover and real key/mouse poll controls passed. Focus transferred to a prepared second owned
-VMNL window; strict release/scancode/snapshot checks preceded physical cleanup and restoration.
-World2/F25, buttons 7–8 and unmodified é/🦀 remain explicitly excluded. The public client has only
-vmnl as a direct dependency. This does not qualify non-ASCII native text, IME composition,
-other GPU/display stacks, native Wayland seats or physical devices. See the
-[execution record](../../testing.md#extended-public-client-execution-protocol-3) for the preceding
-failures, native timestamp pacing, focus alternatives and startup readiness measurement.
+On 2026-10-14, three consecutive local public X11/Vulkan executions without instrumentation passed
+848 checks: 828 passes, 20 exclusions, zero failures and zero unexecuted checks. All 19 modifier
+cases, Caps/Num phases, ASCII a through both text callbacks, actual repeat, boundary hover and real
+key/mouse poll controls passed. Focus transferred to a prepared second owned VMNL window; strict
+release/scancode/snapshot checks preceded physical cleanup and restoration. World2/F25, buttons 7–8
+and unmodified é/🦀 remain explicitly excluded. The public client has only vmnl as a direct
+dependency. This does not qualify non-ASCII native text, IME composition, other GPU/display stacks,
+native Wayland seats or physical devices. See the [execution
+record](../../testing.md#extended-public-client-execution-protocol-3) for the preceding failures,
+native timestamp pacing, focus alternatives and startup readiness measurement.
 
 ## Remaining gaps for issue #91
 
-- Reach ten consecutive passing Win32/Cocoa runs for the schema-2 workload. Cocoa lock restoration and
-  hardware-repeat sources on Win32/Cocoa remain unqualified. Linux non-ASCII text requires an
-  eligible controlled layout. Public VMNL focus-loss/batch-boundary runtime is qualified only on the recorded local X11 stack.
-  `Button7`/`Button8` require a different Linux pointer mapping; the hosted 10-button Xvfb cannot
-  inject them.
+- Reach ten consecutive passing Win32/Cocoa runs for the schema-2 workload. Cocoa lock restoration
+  and hardware-repeat sources on Win32/Cocoa remain unqualified. Linux non-ASCII text requires an
+  eligible controlled layout. Public VMNL focus-loss/batch-boundary runtime is qualified only on the
+  recorded local X11 stack. `Button7`/`Button8` require a different Linux pointer mapping; the
+  hosted 10-button Xvfb cannot inject them.
 - Extend public VMNL runtime qualification beyond the representative local Xwayland scenario when
   claiming those additional contracts or environments; keep direct GLFW, GPU execution and human
   manual graphics evidence separate.
 
-Existing references: [keyboard capability matrix](keyboard_capability_matrix.md),
-[GLFW portability inventory](glfw_platform_inventory.md), [platform probe contract](../../../docs/testing.md),
-[public input API tests](../../../tests/api/tests/input.rs),
-[event translation and reducer](../../../crates/vmnl_graphics/src/window/event.rs),
-[platform probe assertions](../../../tests/platform/tests/backend_contract.rs), and
-[GPU window runtime tests](../../../tests/gpu/tests/window_runtime.rs).
+Existing references: [keyboard capability matrix](keyboard_capability_matrix.md), [GLFW portability
+inventory](glfw_platform_inventory.md), [platform probe contract](../../../docs/testing.md), [public
+input API tests](../../../tests/api/tests/input.rs), [event translation and
+reducer](../../../crates/vmnl_graphics/src/window/event.rs), [platform probe
+assertions](../../../tests/platform/tests/backend_contract.rs), and [GPU window runtime
+tests](../../../tests/gpu/tests/window_runtime.rs).

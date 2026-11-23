@@ -7,8 +7,8 @@ Import path: `vmnl_graphics::Input`. Status: 0.1.0, operational.
 ## Purpose and use cases
 
 Groups the per-window keyboard, mouse-button, and joystick snapshots updated by window event
-processing. Joystick slots remain `NotTracked` until their owning window explicitly enables
-joystick tracking.
+processing. Joystick slots remain `NotTracked` until their owning window explicitly enables joystick
+tracking.
 
 ## Public API
 
@@ -26,11 +26,11 @@ Not applicable; cursor positions and scroll deltas are represented by `Event`, n
 
 ## Ownership, lifecycle, and threading
 
-Owned by `Window`; `Window::input()` returns a shared borrow. One batch is one
-`Window::poll_events` call. Keyboard and mouse state tracking remains active independently of
-public event delivery. Joystick state tracking is explicitly opt-in and independent of joystick
-connection-event delivery. Each window samples and owns its own joystick snapshots; standalone
-`Input::new` creates detached states that do not connect to GLFW.
+Owned by `Window`; `Window::input()` returns a shared borrow. One batch is one `Window::poll_events`
+call. Keyboard and mouse state tracking remains active independently of public event delivery.
+Joystick state tracking is explicitly opt-in and independent of joystick connection-event delivery.
+Each window samples and owns its own joystick snapshots; standalone `Input::new` creates detached
+states that do not connect to GLFW.
 
 ## Errors, panics, and failure conditions
 
@@ -61,4 +61,5 @@ assert_eq!(
 );
 ```
 
-Related: [`KeyboardState`](keyboard_state.md), [`MouseState`](mouse_state.md), and [`Window::input`](../events/event_processing_and_timers.md).
+Related: [`KeyboardState`](keyboard_state.md), [`MouseState`](mouse_state.md), and
+[`Window::input`](../events/event_processing_and_timers.md).

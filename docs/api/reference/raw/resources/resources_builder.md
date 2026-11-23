@@ -10,13 +10,20 @@ Binds typed `Uniform` and `FrameUniform` buffers to reflected descriptor set/bin
 
 ## Public API
 
-`uniform(set, binding, &Uniform<TData>)`, `frame_uniform(set, binding, &FrameUniform<TData>)`, and `build(&Context) -> VMNLResult<Resources>`.
+`uniform(set, binding, &Uniform<TData>)`, `frame_uniform(set, binding, &FrameUniform<TData>)`, and
+`build(&Context) -> VMNLResult<Resources>`.
 
 ## Construction, defaults, and validation
 
-Created for a required pipeline. Reusing the same set/binding is remembered as an error. Build requires the same context/device as the pipeline and every uniform; supplied/required sets and bindings must match. If frame uniforms are bound, their swapchain image counts must match. Only `UniformBuffer` with descriptor count one is supported; missing, extra, duplicate, array, unsupported-type, and push-constant contracts are rejected.
+Created for a required pipeline. Reusing the same set/binding is remembered as an error. Build
+requires the same context/device as the pipeline and every uniform; supplied/required sets and
+bindings must match. If frame uniforms are bound, their swapchain image counts must match. Only
+`UniformBuffer` with descriptor count one is supported; missing, extra, duplicate, array,
+unsupported-type, and push-constant contracts are rejected.
 
-Required bindings and every supplied buffer's device are validated during `build`, including when `Uniform` and `FrameUniform` bindings are mixed. Only frame-uniform descriptor set allocation is deferred until frame recording.
+Required bindings and every supplied buffer's device are validated during `build`, including when
+`Uniform` and `FrameUniform` bindings are mixed. Only frame-uniform descriptor set allocation is
+deferred until frame recording.
 
 ## Units, coordinates, and valid ranges
 
@@ -24,15 +31,21 @@ Set/binding numbers are shader-declared `u32` indices.
 
 ## Ownership, lifecycle, and threading
 
-Builder stores cloned buffer handles or shared frame-uniform slots and is consumed by build. `Resources` remains tied to pipeline layout/device but does not borrow the pipeline/uniform values.
+Builder stores cloned buffer handles or shared frame-uniform slots and is consumed by build.
+`Resources` remains tied to pipeline layout/device but does not borrow the pipeline/uniform values.
 
 ## Errors, panics, and failure conditions
 
-Returns `InvalidState` with set/binding detail for contract mismatches, `VulkanValidationFailed` for conversion/internal validation, or `VulkanDescriptorSetCreationFailed` for static descriptor set allocation. `FrameUniform` descriptor set allocation happens later during frame recording.
+Returns `InvalidState` with set/binding detail for contract mismatches, `VulkanValidationFailed` for
+conversion/internal validation, or `VulkanDescriptorSetCreationFailed` for static descriptor set
+allocation. `FrameUniform` descriptor set allocation happens later during frame recording.
 
 ## Allocation, transfers, synchronization, and GPU cost
 
-Binding updates ordered CPU maps. Static uniform resources allocate Vulkan descriptor sets at build. `FrameUniform` bindings allocate descriptor sets during frame recording so the descriptor points at the current slot for the acquired swapchain image. No quantitative performance/synchronization guarantee is specified.
+Binding updates ordered CPU maps. Static uniform resources allocate Vulkan descriptor sets at build.
+`FrameUniform` bindings allocate descriptor sets during frame recording so the descriptor points at
+the current slot for the acquired swapchain image. No quantitative performance/synchronization
+guarantee is specified.
 
 ## Platform, Vulkan, and display constraints
 
@@ -66,4 +79,5 @@ let resources = Resources::builder(&pipeline)
 # }
 ```
 
-Related: [`Resources`](resources.md), [`Uniform`](../uniforms/uniform.md), [`FrameUniform`](../uniforms/frame_uniform.md), and [`Pipeline`](../pipeline/pipeline.md).
+Related: [`Resources`](resources.md), [`Uniform`](../uniforms/uniform.md),
+[`FrameUniform`](../uniforms/frame_uniform.md), and [`Pipeline`](../pipeline/pipeline.md).

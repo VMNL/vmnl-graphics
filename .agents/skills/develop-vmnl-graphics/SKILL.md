@@ -10,8 +10,10 @@ description: Develop, fix, review, document, and validate VMNL graphics work acr
 1. Follow the root `AGENTS.md`; classify the task and its impacts before editing.
 2. Read only the canonical documentation and agent references routed below.
 3. Inspect the affected contract, tests, and minimal implementation path.
-4. Implement the smallest coherent patch while preserving the progressive control model, predictable costs, scoped determinism, ownership, and layer separation in `docs/architecture.md`.
-5. Run a targeted check during development, then the applicable completion and graphics-specific checks.
+4. Implement the smallest coherent patch while preserving the progressive control model, predictable
+   costs, scoped determinism, ownership, and layer separation in `docs/architecture.md`.
+5. Run a targeted check during development, then the applicable completion and graphics-specific
+   checks.
 6. Report only directly observed automatic evidence and operator-reported manual evidence.
 
 ## Route Canonical Documentation
@@ -25,7 +27,8 @@ description: Develop, fix, review, document, and validate VMNL graphics work acr
 | Platform-sensitive behavior | [`docs/platform_support.md`](../../../docs/platform_support.md) |
 | Contribution or pull request | [`CONTRIBUTING.md`](../../../CONTRIBUTING.md) |
 
-Treat `docs/` as the canonical home for stable architecture, contracts, and procedures. This skill contains operational guidance only; do not copy canonical documentation into it.
+Treat `docs/` as the canonical home for stable architecture, contracts, and procedures. This skill
+contains operational guidance only; do not copy canonical documentation into it.
 
 ## Route Agent References
 
@@ -33,17 +36,26 @@ Treat `docs/` as the canonical home for stable architecture, contracts, and proc
   interface, crate boundary, raw API, backend adapter, or FFI seam decision.
 - Read [`../../references/diagnostic-protocol.md`](../../references/diagnostic-protocol.md) for a
   bug, regression, incorrect result, crash, hang, or performance diagnosis.
-- Read [`references/current-limitations.md`](references/current-limitations.md) before changing context/device selection, GLFW initialization or GPU test routing.
-- Read [`references/graphics-correctness.md`](references/graphics-correctness.md) for Vulkan, synchronization, swapchain, window, resource, shader, pipeline, unsafe, platform, or performance work.
-- Read [`references/validation.md`](references/validation.md) for every feature, fix, Rust source change, test/example change, tooling change, dependency change, or validation claim.
+- Read [`references/current-limitations.md`](references/current-limitations.md) before changing
+  context/device selection, GLFW initialization or GPU test routing.
+- Read [`references/graphics-correctness.md`](references/graphics-correctness.md) for Vulkan,
+  synchronization, swapchain, window, resource, shader, pipeline, unsafe, platform, or performance
+  work.
+- Read [`references/validation.md`](references/validation.md) for every feature, fix, Rust source
+  change, test/example change, tooling change, dependency change, or validation claim.
 
 ## Preserve Graphics Contracts
 
-- For API design and audits, apply the [explicit client control contract](../../../docs/architecture.md#explicit-client-control)
-  and the policy inventory in [module design](../../references/module-design.md#evaluate-the-interface)
-  before accepting the proposed surface as complete.
+- For API design and audits, apply the [explicit client control
+  contract](../../../docs/architecture.md#explicit-client-control) and the policy inventory in
+  [module design](../../references/module-design.md#evaluate-the-interface) before accepting the
+  proposed surface as complete.
 - Keep explicit low-level pipeline and geometry control in `raw`.
-- Keep every observable high-level default inspectable and replaceable without requiring the raw API.
+- Keep every observable high-level default inspectable and replaceable without requiring the raw
+  API.
 - Do not expose backend types as stable public contracts without an explicit raw-API decision.
-- For a public graphics change, decide public crate exposure and document applicable units, coordinates, defaults, valid ranges, ownership, lifecycle, costs, synchronization, errors, panic/safety conditions, and platform/GPU requirements.
-- Verify claims such as allocation-free, zero-copy, asynchronous, non-blocking, deterministic, or constant-time before documenting them.
+- For a public graphics change, decide public crate exposure and document applicable units,
+  coordinates, defaults, valid ranges, ownership, lifecycle, costs, synchronization, errors,
+  panic/safety conditions, and platform/GPU requirements.
+- Verify claims such as allocation-free, zero-copy, asynchronous, non-blocking, deterministic, or
+  constant-time before documenting them.

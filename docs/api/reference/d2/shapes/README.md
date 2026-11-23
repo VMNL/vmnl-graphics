@@ -1,7 +1,7 @@
 # 2D shapes
 
 | Item | Role |
-|---|---|
+| --- | --- |
 | [`Shape`](shape.md) | GPU-backed drawable and builder entry points |
 | [`CircleBuilder`](circle_builder.md) | Filled/outlined circles, ellipses, rings, sectors, and arcs through `Shape::circle` |
 | [`IndexedShapeBuilder`](indexed_shape_builder.md) | Arbitrary triangle-indexed geometry |
