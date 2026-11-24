@@ -85,4 +85,8 @@ Do not change the order of applicable completion checks without an explicit tech
 
 Report the changed behavior or documentation, relevant files, commands actually executed and observed results, failed or blocked checks, unverified behavior, and remaining uncertainty. Make no claim about compilation, tests, rendering, portability, correctness, publication, or performance without current-task evidence. Report unrelated observations separately without expanding the patch.
 
-Prepare a PR description only when explicitly requested. Use the exact structure and evidence rules in [`CONTRIBUTING.md`](CONTRIBUTING.md#pull-request-descriptions). Never invent human manual graphical validation; if required evidence is missing, leave `Validation` empty and state outside the draft that validation is incomplete.
+Prepare a PR description only when explicitly requested. Follow the
+[PR drafting workflow](.agents/skills/develop-vmnl-graphics/SKILL.md#draft-pull-request-descriptions)
+and the exact structure and evidence rules in [`CONTRIBUTING.md`](CONTRIBUTING.md#pull-request-descriptions).
+Leave `Validation` empty when required human graphical evidence is missing and report the gap outside
+the draft.

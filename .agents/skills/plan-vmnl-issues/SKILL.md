@@ -69,16 +69,29 @@ For submodules and cross-repository work, distinguish:
 
 ## Draft Each Issue
 
-Use this information, omitting fields that do not apply:
+Before drafting, read the [shared writing guide](../../references/github-writing.md).
+
+Give each issue a title that names the symptom or deliverable. In `Objective`, explain the problem
+or need, its impact, and the result to deliver. Include relevant constraints and behavior to
+preserve in `Contract`. In a bug report, put the steps, relevant inputs or environment, and
+observed and expected behavior in `Reproduction`. Call out missing details that affect the
+investigation.
+
+Use the sections that fit the issue. Make each acceptance criterion verifiable. Add
+`Validation` when there is a distinct method, environment, or source of evidence to specify.
 
 ```markdown
 ## Objective
 
-<observable capability, fix, decision, or qualification delivered>
+<current problem or need, why it matters, and the observable result to deliver>
+
+## Reproduction
+
+<setup, steps, and observed versus expected behavior for a bug>
 
 ## Contract
 
-- <behavior, ownership, error, lifecycle, or compatibility requirement>
+- <scope, invariant, or behavior to preserve>
 
 ## Acceptance criteria
 
@@ -90,7 +103,7 @@ Use this information, omitting fields that do not apply:
 
 ## Blocked by
 
-- <issue reference or None>
+- <hard blocker reference>
 ```
 
 For the planning summary, also propose:
@@ -104,9 +117,9 @@ Native Issue Types are the source of truth for issue nature. Do not duplicate th
 labels. Inspect current Issue Types, labels, existing issues, and repository permissions immediately
 before any publication because that state can change.
 
-Avoid implementation prescriptions that are not part of the approved contract. Mention a concrete
-path, symbol, or type only when it owns the relevant current behavior or makes an acceptance
-criterion materially less ambiguous.
+Keep implementation requirements within the approved contract. Label any useful unapproved
+approach as a proposal. Mention a concrete path, symbol, or type when it owns the relevant behavior
+or makes an acceptance criterion less ambiguous.
 
 ## Obtain Approval
 
