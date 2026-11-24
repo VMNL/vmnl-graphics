@@ -45,9 +45,10 @@ when VMNL has no named constant for them.
 ## Ownership, lifecycle, and threading
 
 The window stores the original policy and resolved pair. Normal resize keeps the pair and existing
-render pass and pipelines. Inventory queries use the current window thread. The types are CPU
-values, and a cloned snapshot can outlive the window. Attachment information and raw pipeline
-target identity still follow [`RenderTargetInfo`](render_target_info.md).
+render pass and pipelines. It resolves the extent, minimum image count, surface transform and
+composite alpha from fresh surface capabilities. Queries use the current window thread. The
+types are CPU values, and a cloned snapshot can outlive the window. Attachment information and
+raw pipeline target identity still follow [`RenderTargetInfo`](render_target_info.md).
 
 ## Errors, panics, and failure conditions
 

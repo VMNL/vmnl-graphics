@@ -21,6 +21,7 @@ Notable user-facing changes are recorded here.
 
 ### Fixed
 
+- Swapchain recreation refreshes automatic surface parameters when window capabilities change.
 - Frame submission returns `VulkanOutOfDate` for an out-of-date presentation instead of
   logging the condition and reporting success.
 - Frame submission returns `VulkanDeviceLost` when presentation or its follow-up fence

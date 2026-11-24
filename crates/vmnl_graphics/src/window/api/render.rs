@@ -253,8 +253,9 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     /// is valid and still clears/presents the swapchain image.
     ///
     /// After a logical or framebuffer resize, `submit` recreates the
-    /// swapchain images and framebuffers before recording the next frame. A
-    /// zero-sized framebuffer, for example while minimized, returns
+    /// swapchain images and framebuffers before recording the next frame. It resolves the
+    /// extent, minimum image count, surface transform and composite alpha from fresh
+    /// capabilities. A zero-sized framebuffer or surface, for example while minimized, returns
     /// `VMNLErrorKind::VulkanOutOfDate` until it has a renderable extent again.
     ///
     /// Returns `Ok(())` when command recording, queue submission, presentation,

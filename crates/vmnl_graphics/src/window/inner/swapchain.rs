@@ -114,48 +114,25 @@ impl VMNLWindow {
         })?;
         let image_format = selection.pair().format().0;
         let image_color_space = selection.pair().color_space().0;
-        let mut min_image_count: u32 = surface_capabilities.min_image_count.max(2);
-        if let Some(max_image_count) = surface_capabilities.max_image_count {
-            min_image_count = min_image_count.min(max_image_count);
-        }
-        let image_extent: [u32; 2] =
-            if let Some(current_extent) = surface_capabilities.current_extent {
-                current_extent
-            } else {
-                [
-                    window_extent[0].clamp(
-                        surface_capabilities.min_image_extent[0],
-                        surface_capabilities.max_image_extent[0],
-                    ),
-                    window_extent[1].clamp(
-                        surface_capabilities.min_image_extent[1],
-                        surface_capabilities.max_image_extent[1],
-                    ),
-                ]
-            };
-
-        log::debug!(
-            "creating swapchain: extent={}x{}, images={}, surface_color={selection:?}, requested_present_mode={:?}, selected_present_mode={selected_present_mode:?}",
-            image_extent[0],
-            image_extent[1],
-            min_image_count,
-            options.present_mode,
-        );
-        let swapchain_create_info: SwapchainCreateInfo = SwapchainCreateInfo {
-            min_image_count,
+        let mut swapchain_create_info = SwapchainCreateInfo {
             image_format,
             image_color_space,
-            image_extent,
             image_usage: ImageUsage::COLOR_ATTACHMENT,
-            composite_alpha: surface_capabilities
-                .supported_composite_alpha
-                .into_iter()
-                .next()
-                .ok_or_else(|| VMNLError::new(VMNLErrorKind::VulkanUnsupportedFeature))?,
-            pre_transform: surface_capabilities.current_transform,
             present_mode: selected_present_mode,
             ..Default::default()
         };
+        update_surface_options(
+            &mut swapchain_create_info,
+            window_extent,
+            &surface_capabilities,
+        )?;
+        log::debug!(
+            "creating swapchain: extent={}x{}, images={}, surface_color={selection:?}, requested_present_mode={:?}, selected_present_mode={selected_present_mode:?}",
+            swapchain_create_info.image_extent[0],
+            swapchain_create_info.image_extent[1],
+            swapchain_create_info.min_image_count,
+            options.present_mode,
+        );
         let images = Swapchain::new(device.clone(), surface.clone(), swapchain_create_info)
             .map_err(|error| surface_error(&error, VMNLErrorKind::VulkanSwapchainCreationFailed))?;
         Ok((images, selection))
@@ -243,13 +220,23 @@ impl VMNLWindow {
             return Err(VMNLError::new(VMNLErrorKind::SurfaceColorPairLost { pair }));
         }
 
-        let extent = [width, height];
+        let swapchain = &self.handle.swapchain;
+        // Vulkano queries capabilities directly. Only its typed format inventory is cached.
+        let capabilities = self
+            .handle
+            .vmnl_instance
+            .physical_device
+            .surface_capabilities(swapchain.surface(), SurfaceInfo::default())
+            .map_err(|error| surface_error(&error, VMNLErrorKind::VulkanSwapchainCreationFailed))?;
+        let mut create_info = swapchain.create_info();
+        let surface_options_changed =
+            update_surface_options(&mut create_info, [width, height], &capabilities)?;
         if !matches!(
             self.handle.swapchain_replacement,
             SwapchainReplacement::PendingFramebuffers(_)
-        ) || self.handle.swapchain.image_extent() != extent
+        ) || surface_options_changed
         {
-            self.replace_swapchain_images(extent)?;
+            self.replace_swapchain_images(create_info)?;
         }
 
         let SwapchainReplacement::PendingFramebuffers(images) = &self.handle.swapchain_replacement
@@ -265,11 +252,7 @@ impl VMNLWindow {
         Ok(())
     }
 
-    fn replace_swapchain_images(&mut self, extent: [u32; 2]) -> VMNLResult<()> {
-        let create_info = SwapchainCreateInfo {
-            image_extent: extent,
-            ..self.handle.swapchain.create_info()
-        };
+    fn replace_swapchain_images(&mut self, create_info: SwapchainCreateInfo) -> VMNLResult<()> {
         match self.handle.swapchain.recreate(create_info) {
             Ok((swapchain, images)) => {
                 self.handle.swapchain = swapchain;
@@ -304,6 +287,49 @@ impl VMNLWindow {
             self.config.render_target,
         )
     }
+}
+
+/// Resolves automatic parameters against the current surface, leaving explicit choices intact.
+/// Returns whether a pending replacement would need a different swapchain.
+fn update_surface_options(
+    info: &mut SwapchainCreateInfo,
+    window_extent: [u32; 2],
+    capabilities: &SurfaceCapabilities,
+) -> VMNLResult<bool> {
+    if window_extent.contains(&0) || capabilities.max_image_extent.contains(&0) {
+        return Err(VMNLError::new(VMNLErrorKind::VulkanOutOfDate));
+    }
+    let extent = capabilities.current_extent.unwrap_or_else(|| {
+        std::array::from_fn(|axis| {
+            window_extent[axis].clamp(
+                capabilities.min_image_extent[axis],
+                capabilities.max_image_extent[axis],
+            )
+        })
+    });
+    if extent.contains(&0) {
+        return Err(VMNLError::new(VMNLErrorKind::VulkanOutOfDate));
+    }
+    let image_count = capabilities
+        .min_image_count
+        .max(2)
+        .min(capabilities.max_image_count.unwrap_or(u32::MAX));
+    let composite_alpha = capabilities
+        .supported_composite_alpha
+        .into_iter()
+        .next()
+        .ok_or_else(|| VMNLError::new(VMNLErrorKind::VulkanUnsupportedFeature))?;
+    let transform = capabilities.current_transform;
+
+    let changed = info.image_extent != extent
+        || info.min_image_count != image_count
+        || info.composite_alpha != composite_alpha
+        || info.pre_transform != transform;
+    info.image_extent = extent;
+    info.min_image_count = image_count;
+    info.composite_alpha = composite_alpha;
+    info.pre_transform = transform;
+    Ok(changed)
 }
 
 fn surface_color_space_enabled(device: &Device, space: ColorSpace) -> bool {
@@ -344,6 +370,70 @@ fn surface_error(error: &Validated<VulkanError>, fallback: VMNLErrorKind) -> VMN
 mod tests {
     use super::*;
     use crate::{Context, Window};
+    use vulkano::swapchain::{CompositeAlpha, CompositeAlphas, SurfaceTransform};
+
+    #[test]
+    #[ignore = "Requires Vulkan + GLFW display to obtain surface capabilities."]
+    fn recreation_adapts_to_changed_surface_limits_and_preserves_color_pair() -> VMNLResult<()> {
+        let _guard = crate::test_support::gpu_test_guard();
+        let context = Context::new()?;
+        let window = Window::builder().size(640, 480).build(&context)?;
+        let swapchain = &window.inner.handle.swapchain;
+        let mut capabilities = window
+            .device()
+            .physical_device()
+            .surface_capabilities(swapchain.surface(), SurfaceInfo::default())
+            .map_err(|error| surface_error(&error, VMNLErrorKind::VulkanSwapchainCreationFailed))?;
+        let mut info = swapchain.create_info();
+        let color_pair = (info.image_format, info.image_color_space);
+        let present_mode = info.present_mode;
+        info.min_image_count = 2;
+        info.image_extent = [640, 480];
+        capabilities.min_image_count = 3;
+        capabilities.max_image_count = Some(4);
+        capabilities.current_extent = Some([640, 480]);
+
+        assert!(update_surface_options(
+            &mut info,
+            [640, 480],
+            &capabilities
+        )?);
+        assert_eq!(info.min_image_count, 3);
+        assert_eq!((info.image_format, info.image_color_space), color_pair);
+        assert_eq!(info.present_mode, present_mode);
+        assert!(!update_surface_options(
+            &mut info,
+            [640, 480],
+            &capabilities
+        )?);
+
+        capabilities.min_image_count = 1;
+        capabilities.max_image_count = Some(1);
+        capabilities.current_extent = None;
+        capabilities.min_image_extent = [320, 240];
+        capabilities.max_image_extent = [800, 600];
+        capabilities.current_transform = SurfaceTransform::Rotate90;
+        capabilities.supported_composite_alpha = CompositeAlphas::PRE_MULTIPLIED;
+        assert!(update_surface_options(
+            &mut info,
+            [200, 900],
+            &capabilities
+        )?);
+        assert_eq!(info.image_extent, [320, 600]);
+        assert_eq!(info.min_image_count, 1);
+        assert_eq!(info.pre_transform, SurfaceTransform::Rotate90);
+        assert_eq!(info.composite_alpha, CompositeAlpha::PreMultiplied);
+        assert_eq!((info.image_format, info.image_color_space), color_pair);
+        assert_eq!(info.present_mode, present_mode);
+
+        capabilities.current_extent = Some([0, 480]);
+        assert!(matches!(
+            update_surface_options(&mut info, [640, 480], &capabilities),
+            Err(error) if matches!(error.kind(), VMNLErrorKind::VulkanOutOfDate)
+        ));
+        assert_eq!(info.image_extent, [320, 600]);
+        Ok(())
+    }
 
     #[test]
     #[ignore = "Requires Vulkan + GLFW display."]
