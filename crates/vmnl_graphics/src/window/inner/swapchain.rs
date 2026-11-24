@@ -103,18 +103,17 @@ impl VMNLWindow {
             .surface_present_modes(surface, SurfaceInfo::default())
             .map_err(|error| surface_error(&error, VMNLErrorKind::VulkanSurfaceCreationFailed))?;
         let selected_present_mode = options.present_mode.select_vk(&supported_present_modes)?;
-        let selection = options.surface_color.select(&surface_pairs)?;
+        // Every window creates both 2D variants, including the alpha-blended pipeline.
+        let selection = options.surface_color.select(&surface_pairs, |format| {
+            let features = device
+                .physical_device()
+                .format_properties(format.0)
+                .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanValidationFailed))?
+                .optimal_tiling_features;
+            Ok(features.contains(FormatFeatures::COLOR_ATTACHMENT_BLEND))
+        })?;
         let image_format = selection.pair().format().0;
         let image_color_space = selection.pair().color_space().0;
-        let format_features = device
-            .physical_device()
-            .format_properties(image_format)
-            .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanValidationFailed))?
-            .optimal_tiling_features;
-        // Every window creates both 2D variants, including the alpha-blended pipeline.
-        if !format_features.contains(FormatFeatures::COLOR_ATTACHMENT_BLEND) {
-            return Err(VMNLError::new(VMNLErrorKind::VulkanFormatNotSupported));
-        }
         let mut min_image_count: u32 = surface_capabilities.min_image_count.max(2);
         if let Some(max_image_count) = surface_capabilities.max_image_count {
             min_image_count = min_image_count.min(max_image_count);

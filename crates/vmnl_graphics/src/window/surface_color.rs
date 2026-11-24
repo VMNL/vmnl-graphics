@@ -84,7 +84,7 @@ pub enum SurfaceColorFallback {
     /// Returns an error when no preference matches.
     #[default]
     Reject,
-    /// Selects the first pair representable by VMNL in the order reported by the backend.
+    /// Selects the first reported pair that supports the window's alpha-blended 2D pipeline.
     FirstReported,
 }
 
@@ -146,7 +146,8 @@ impl SurfaceColorConfig {
         )))
     }
 
-    /// Requests the first available pair in caller order, with no fallback.
+    /// Requests the first reported pair in caller order whose format supports 2D blending,
+    /// with no fallback.
     ///
     /// # Errors
     ///
@@ -159,7 +160,8 @@ impl SurfaceColorConfig {
         Self::prefer_with_fallback(pairs, SurfaceColorFallback::Reject)
     }
 
-    /// Requests ordered preferences with an explicit fallback.
+    /// Requests ordered preferences with an explicit fallback. Both skip reported pairs whose
+    /// format does not support the window's alpha-blended 2D pipeline.
     ///
     /// # Errors
     ///
@@ -241,7 +243,11 @@ impl SurfaceColorConfig {
         }
     }
 
-    pub(crate) fn select(&self, reported: &[SurfaceColorPair]) -> VMNLResult<SurfaceColorInfo> {
+    pub(crate) fn select(
+        &self,
+        reported: &[SurfaceColorPair],
+        supports_blending: impl Fn(ColorFormat) -> VMNLResult<bool>,
+    ) -> VMNLResult<SurfaceColorInfo> {
         let first_reported = || {
             reported
                 .first()
@@ -262,22 +268,40 @@ impl SurfaceColorConfig {
             SurfaceColorRequest::Exact(pair) => reported
                 .contains(pair)
                 .then_some((*pair, SurfaceColorSelection::Exact)),
-            SurfaceColorRequest::Prefer { pairs, fallback } => pairs
-                .iter()
-                .copied()
-                .enumerate()
-                .find(|(_, pair)| reported.contains(pair))
-                .map(|(index, pair)| (pair, SurfaceColorSelection::Preference { index }))
-                .or_else(|| match fallback {
-                    SurfaceColorFallback::Reject => None,
-                    SurfaceColorFallback::FirstReported => first_reported(),
-                }),
+            SurfaceColorRequest::Prefer { pairs, fallback } => {
+                let preferred = pairs
+                    .iter()
+                    .copied()
+                    .enumerate()
+                    .filter(|(_, pair)| reported.contains(pair))
+                    .map(|(index, pair)| (pair, SurfaceColorSelection::Preference { index }));
+                let fallback_pairs = reported
+                    .iter()
+                    .copied()
+                    .filter(|pair| {
+                        *fallback == SurfaceColorFallback::FirstReported && !pairs.contains(pair)
+                    })
+                    .map(|pair| (pair, SurfaceColorSelection::FirstReported));
+
+                let mut selected = None;
+                for (pair, selection) in preferred.chain(fallback_pairs) {
+                    if supports_blending(pair.format())? {
+                        selected = Some((pair, selection));
+                        break;
+                    }
+                }
+                selected
+            }
         };
         let (pair, selection) = selected.ok_or_else(|| {
             VMNLError::new(VMNLErrorKind::SurfaceColorUnavailable {
                 requested: self.clone(),
             })
         })?;
+        // Exact and legacy automatic policies still validate the single pair they selected.
+        if self.preferences().is_none() && !supports_blending(pair.format())? {
+            return Err(VMNLError::new(VMNLErrorKind::VulkanFormatNotSupported));
+        }
         Ok(SurfaceColorInfo {
             requested: self.clone(),
             pair,
@@ -299,7 +323,7 @@ pub enum SurfaceColorSelection {
     },
     /// The historical BGRA8 sRGB preference was available.
     LegacyPreferred,
-    /// The policy fell back to the first reported pair.
+    /// The policy fell back to the first reported pair eligible under that policy.
     FirstReported,
 }
 
@@ -344,7 +368,7 @@ impl SurfaceColorInfo {
         self.selection
     }
 
-    /// Returns whether the policy fell back to the first reported pair.
+    /// Returns whether the policy fell back in backend report order.
     ///
     /// # Example
     ///
@@ -376,10 +400,10 @@ mod tests {
     fn exact_matches_both_components_and_keeps_the_request() -> VMNLResult<()> {
         let config = SurfaceColorConfig::exact(LEGACY.format(), LEGACY.color_space());
         assert!(matches!(
-            config.select(&[OTHER_SPACE, OTHER_FORMAT]),
+            config.select(&[OTHER_SPACE, OTHER_FORMAT], |_| Ok(true)),
             Err(error) if matches!(error.kind(), VMNLErrorKind::SurfaceColorUnavailable { requested } if *requested == config)
         ));
-        let selected = config.select(&[OTHER_SPACE, LEGACY])?;
+        let selected = config.select(&[OTHER_SPACE, LEGACY], |_| Ok(true))?;
         assert_eq!(selected.pair(), LEGACY);
         assert_eq!(selected.requested(), &config);
         assert_eq!(selected.selection(), SurfaceColorSelection::Exact);
@@ -390,27 +414,93 @@ mod tests {
     #[test]
     fn preferences_follow_caller_order_and_expose_the_selected_index() -> VMNLResult<()> {
         let config = SurfaceColorConfig::prefer([OTHER_SPACE, OTHER_FORMAT, LEGACY])?;
-        let selected = config.select(&[LEGACY, OTHER_FORMAT])?;
+        let selected = config.select(&[LEGACY, OTHER_FORMAT], |_| Ok(true))?;
         assert_eq!(selected.pair(), OTHER_FORMAT);
         assert_eq!(
             selected.selection(),
             SurfaceColorSelection::Preference { index: 1 }
         );
         assert!(!selected.used_fallback());
-        assert!(config.select(&[]).is_err());
+        assert!(config.select(&[], |_| Ok(true)).is_err());
         assert!(config
-            .select(&[SurfaceColorPair::new(
-                ColorFormat::B8G8R8A8_UNORM,
-                SurfaceColorSpace::SRGB_NON_LINEAR,
-            )])
+            .select(
+                &[SurfaceColorPair::new(
+                    ColorFormat::B8G8R8A8_UNORM,
+                    SurfaceColorSpace::SRGB_NON_LINEAR,
+                )],
+                |_| Ok(true)
+            )
             .is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn preferences_skip_a_reported_format_without_blending() -> VMNLResult<()> {
+        let config = SurfaceColorConfig::prefer([LEGACY, OTHER_FORMAT])?;
+        let selected = config.select(&[LEGACY, OTHER_FORMAT], |format| {
+            Ok(format == OTHER_FORMAT.format())
+        })?;
+        assert_eq!(selected.pair(), OTHER_FORMAT);
+        assert_eq!(
+            selected.selection(),
+            SurfaceColorSelection::Preference { index: 1 }
+        );
+        assert!(!selected.used_fallback());
+        Ok(())
+    }
+
+    #[test]
+    fn fallback_skips_ineligible_pairs_and_reject_does_not_fall_back() -> VMNLResult<()> {
+        let reported = [LEGACY, OTHER_FORMAT];
+        let supports_blending = |format| Ok(format == OTHER_FORMAT.format());
+        let reject = SurfaceColorConfig::prefer([LEGACY])?;
+        assert!(matches!(
+            reject.select(&reported, supports_blending),
+            Err(error) if matches!(error.kind(), VMNLErrorKind::SurfaceColorUnavailable { .. })
+        ));
+        let fallback = SurfaceColorConfig::prefer_with_fallback(
+            [OTHER_SPACE],
+            SurfaceColorFallback::FirstReported,
+        )?;
+        let selected = fallback.select(&reported, supports_blending)?;
+        assert_eq!(selected.pair(), OTHER_FORMAT);
+        assert!(selected.used_fallback());
+        assert!(matches!(
+            fallback.select(&reported, |_| Ok(false)),
+            Err(error) if matches!(error.kind(), VMNLErrorKind::SurfaceColorUnavailable { .. })
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn selection_propagates_property_errors_and_preserves_strict_rejections() -> VMNLResult<()> {
+        let reported = [LEGACY, OTHER_FORMAT];
+        let preferences = SurfaceColorConfig::prefer([LEGACY, OTHER_FORMAT])?;
+        assert!(matches!(
+            preferences.select(&reported, |format| {
+                if format == LEGACY.format() {
+                    return Err(VMNLError::new(VMNLErrorKind::VulkanValidationFailed));
+                }
+                Ok(true)
+            }),
+            Err(error) if matches!(error.kind(), VMNLErrorKind::VulkanValidationFailed)
+        ));
+        for config in [
+            SurfaceColorConfig::exact(LEGACY.format(), LEGACY.color_space()),
+            SurfaceColorConfig::legacy_auto(),
+        ] {
+            assert!(matches!(
+                config.select(&reported, |format| Ok(format == OTHER_FORMAT.format())),
+                Err(error) if matches!(error.kind(), VMNLErrorKind::VulkanFormatNotSupported)
+            ));
+        }
         Ok(())
     }
 
     #[test]
     fn legacy_and_explicit_fallback_keep_report_order() -> VMNLResult<()> {
         let legacy = SurfaceColorConfig::default();
-        let selected = legacy.select(&[OTHER_SPACE, LEGACY])?;
+        let selected = legacy.select(&[OTHER_SPACE, LEGACY], |_| Ok(true))?;
         assert_eq!(selected.pair(), LEGACY);
         assert_eq!(selected.selection(), SurfaceColorSelection::LegacyPreferred);
         assert!(!selected.used_fallback());
@@ -419,11 +509,11 @@ mod tests {
             SurfaceColorFallback::FirstReported,
         )?;
         for config in [legacy, preference] {
-            let selected = config.select(&[OTHER_SPACE, OTHER_FORMAT])?;
+            let selected = config.select(&[OTHER_SPACE, OTHER_FORMAT], |_| Ok(true))?;
             assert_eq!(selected.pair(), OTHER_SPACE);
             assert_eq!(selected.selection(), SurfaceColorSelection::FirstReported);
             assert!(selected.used_fallback());
-            assert!(config.select(&[]).is_err());
+            assert!(config.select(&[], |_| Ok(true)).is_err());
         }
         Ok(())
     }

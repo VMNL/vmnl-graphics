@@ -30,9 +30,11 @@ queries the current inventory of the existing surface on its context's physical 
 
 The policy belongs to the window. The default prefers `B8G8R8A8_SRGB / SRGB_NON_LINEAR`, then
 the first representable pair in backend order. `exact` requires both requested components in the
-same reported pair. `prefer` checks pairs in caller order, rejects an empty list or duplicates,
-and uses `Reject`. `prefer_with_fallback` accepts an explicit alternative. Fallback occurs only
-when selecting a pair. A selected format must also support the window's alpha-blended 2D pipeline.
+same reported pair. `prefer` checks pairs in caller order, skips formats that cannot support the
+window's alpha-blended 2D pipeline, rejects an empty list or duplicates, and uses `Reject`.
+`prefer_with_fallback` accepts `FirstReported` to select the first blend-capable pair in backend
+order when none of the preferences qualifies. Errors querying format properties or creating GPU
+resources propagate directly.
 
 ## Units, coordinates, and valid ranges
 
@@ -50,8 +52,9 @@ target identity still follow [`RenderTargetInfo`](render_target_info.md).
 ## Errors, panics, and failure conditions
 
 Invalid preferences return `InvalidState` before surface creation. An unmatched request returns
-`SurfaceColorUnavailable` before swapchain creation. `VulkanFormatNotSupported` means the selected
-format cannot support the window's alpha-blended 2D pipeline. Inventory queries may return
+`SurfaceColorUnavailable` before swapchain creation. `VulkanFormatNotSupported` means an exact or
+historical automatic selection cannot support the window's alpha-blended 2D pipeline.
+Inventory queries may return
 `VulkanSurfaceColorQueryFailed`, `VulkanSurfaceLost` or `VulkanOutOfMemory`.
 
 During recreation, `SurfaceColorPairLost` keeps the selection fixed. Retry when the pair returns
