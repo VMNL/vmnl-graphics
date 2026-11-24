@@ -1060,9 +1060,9 @@ dependencies = [
 
 [[package]]
 name = "vmnl_vulkano"
-version = "0.35.2-vmnl.1"
+version = "0.35.2-vmnl.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ecf03c91501099e648e3bb119536ee56d8514cce9fd56cc19ba069bf1f822cb"
+checksum = "26f5a7312f4124391af43dd7e4ff6b2fdf7787c5651a1e78c34ea7b129b8f8a8"
 dependencies = [
  "ash",
  "bytemuck",
