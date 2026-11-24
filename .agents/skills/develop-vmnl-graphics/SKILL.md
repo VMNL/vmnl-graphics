@@ -1,6 +1,6 @@
 ---
 name: develop-vmnl-graphics
-description: Develop, fix, review, document, and validate VMNL graphics work across the public vmnl_graphics API, related macros, Vulkan, windowing, input, rendering, GPU resources, tests, examples, and graphics tooling. Use for any VMNL task affecting graphics architecture, public API, GPU behavior, graphics correctness, tests, examples, or performance; do not use for unrelated audio or networking work.
+description: Develop, fix, review, document, and validate VMNL graphics work across the public vmnl_graphics API, related macros, Vulkan, windowing, input, rendering, GPU resources, tests, examples, and graphics tooling. Use for any task affecting VMNL graphics architecture, public API, GPU behavior, graphics correctness, tests, examples, or performance, and when asked to draft a VMNL Graphics pull request description. Excludes unrelated audio and networking work.
 ---
 
 # Develop VMNL Graphics
@@ -27,6 +27,23 @@ description: Develop, fix, review, document, and validate VMNL graphics work acr
 | Contribution or pull request | [`CONTRIBUTING.md`](../../../CONTRIBUTING.md) |
 
 Treat `docs/` as the canonical home for stable architecture, contracts, and procedures. This skill contains operational guidance only; do not copy canonical documentation into it.
+
+## Draft Pull Request Descriptions
+
+When the user requests a PR description, read the
+[shared writing guide](../../references/github-writing.md) and follow the exact format and
+evidence rules in [CONTRIBUTING.md](../../../CONTRIBUTING.md#pull-request-descriptions).
+
+Confirm the base and head or the requested worktree scope. Read the diff and the relevant files or
+contracts. In `Context`, explain the problem and the intended result. In `Changes`, group related
+edits by what they accomplish. Explain important decisions and their consequences for callers,
+architecture, performance, or compatibility where relevant. Include material risks or limitations
+that remain. Summarize what the changed tests and documentation cover. Name files when they help
+the reviewer find an important change.
+
+Check which revision and scenario each reported result covers. Automated results belong in the PR
+checks or CI. Follow the operator evidence rule for `Validation` and flag missing required evidence
+outside the draft.
 
 ## Route Agent References
 
