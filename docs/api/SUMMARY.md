@@ -44,6 +44,7 @@
     - [RenderTargetConfig](reference/window/render_target_config.md)
     - [RenderTargetInfo](reference/window/render_target_info.md)
     - [ColorFormat](reference/window/color_format.md)
+    - [Surface color selection](reference/window/surface_color.md)
     - [DepthFormat](reference/window/depth_format.md)
     - [Configuration](reference/window/configuration.md)
     - [Cursor controls](reference/window/cursor.md)

@@ -12,14 +12,13 @@ mod render_target;
 mod render_target_info;
 mod runtime;
 mod shaders;
+mod surface_color;
 use std::sync::Arc;
 
 use crate::window::inner::VMNLWindow;
 use crate::{Context, VMNLResult};
 pub use api::{FrameRenderer, RenderMode};
-pub(crate) use builder::{
-    validate_size_limits, validate_window_size, PresentModeSelection, WindowOptions,
-};
+pub(crate) use builder::{validate_size_limits, validate_window_size, WindowOptions};
 pub use builder::{PresentMode, WindowBuilder};
 pub use event::{Event, EventKind};
 pub(crate) use input::CursorImage;
@@ -32,6 +31,10 @@ pub use input::{
 pub use monitors::{MonitorInfo, Monitors, VideoMode};
 pub use render_target::{DepthFormat, RenderTargetConfig};
 pub use render_target_info::{ColorFormat, RenderTargetInfo};
+pub use surface_color::{
+    SurfaceColorConfig, SurfaceColorFallback, SurfaceColorInfo, SurfaceColorPair,
+    SurfaceColorSelection, SurfaceColorSpace,
+};
 use vulkano::{
     device::Device, memory::allocator::StandardMemoryAllocator, render_pass::RenderPass,
 };
@@ -170,6 +173,65 @@ impl Window {
     #[must_use]
     pub const fn render_target_info(&self) -> RenderTargetInfo {
         self.inner.config.render_target_info
+    }
+
+    /// Borrows the surface color request and resolved pair captured at window creation.
+    ///
+    /// Normal swapchain recreation preserves this pair. This borrows the snapshot without
+    /// allocating, querying the surface or synchronizing with the GPU.
+    ///
+    /// <a id="example-window-surface-color"></a>
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use vmnl_graphics::{ColorFormat, Context, SurfaceColorConfig, SurfaceColorSelection,
+    ///     SurfaceColorSpace, Window};
+    /// # fn main() -> vmnl_graphics::VMNLResult<()> {
+    /// let context = Context::new()?;
+    /// let window = Window::builder()
+    ///     .surface_color(SurfaceColorConfig::exact(
+    ///         ColorFormat::B8G8R8A8_SRGB, SurfaceColorSpace::SRGB_NON_LINEAR,
+    ///     ))
+    ///     .build(&context)?;
+    /// let info = window.surface_color_info();
+    /// assert_eq!(info.pair().format(), ColorFormat::B8G8R8A8_SRGB);
+    /// assert_eq!(info.requested().exact_pair(), Some(info.pair()));
+    /// assert_eq!(info.selection(), SurfaceColorSelection::Exact);
+    /// assert!(!info.used_fallback());
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[must_use]
+    pub const fn surface_color_info(&self) -> &SurfaceColorInfo {
+        &self.inner.config.surface_color_info
+    }
+
+    /// Queries the current format and color-space pairs on this window's surface.
+    ///
+    /// Call on the window thread. This performs a native query and allocates a vector, preserving
+    /// the report order of pairs representable by the backend with an enabled presentation color
+    /// space. A new window must
+    /// validate its own surface at construction. A reported pair can still fail render-resource
+    /// creation. The presentation pair is independent of source color conversion and blending.
+    ///
+    /// # Errors
+    ///
+    /// Returns `VulkanSurfaceColorQueryFailed` if the format query fails, or `VulkanSurfaceLost`
+    /// or `VulkanOutOfMemory` when reported by Vulkan.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # fn inspect(window: &vmnl_graphics::Window) -> vmnl_graphics::VMNLResult<()> {
+    /// for pair in window.surface_color_pairs()? {
+    ///     println!("{} / {}", pair.format(), pair.color_space());
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn surface_color_pairs(&self) -> VMNLResult<Vec<SurfaceColorPair>> {
+        self.inner.surface_color_pairs()
     }
 
     pub(crate) fn device(&self) -> Arc<Device> {

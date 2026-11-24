@@ -12,6 +12,7 @@ mod pipeline;
 mod render_target;
 mod surface;
 mod swapchain;
+pub(in crate::window) use swapchain::SwapchainReplacement;
 
 use super::WindowOptions;
 use crate::exception::{VMNLError, VMNLErrorKind};
@@ -25,9 +26,9 @@ use crate::VMNLResult;
 use std::rc::Rc;
 use std::sync::Arc;
 use vulkano::{
-    image::{view::ImageView, Image},
+    image::view::ImageView,
     render_pass::{Framebuffer, RenderPass},
-    swapchain::{Surface, Swapchain},
+    swapchain::Surface,
     sync::{self, GpuFuture},
 };
 
@@ -95,12 +96,8 @@ impl VMNLWindow {
             u32::try_from(frame_buffer_height)
                 .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanSwapchainCreationFailed))?,
         ];
-        let (swapchain, images): (Arc<Swapchain>, Vec<Arc<Image>>) = Self::create_swapchain(
-            &vmnl_instance.device,
-            &surface,
-            framebuffer_extent,
-            options.present_mode,
-        )?;
+        let ((swapchain, images), surface_color_info) =
+            Self::create_swapchain(&vmnl_instance.device, &surface, framebuffer_extent, options)?;
         let image_views: Vec<Arc<ImageView>> = Self::create_image_views(&images)?;
         let render_pass: Arc<RenderPass> =
             Self::create_render_pass(&vmnl_instance.device, &swapchain, options.render_target)?;
@@ -140,6 +137,7 @@ impl VMNLWindow {
                 #[cfg(test)]
                 skip_frame_cleanup: false,
                 swapchain,
+                swapchain_replacement: SwapchainReplacement::default(),
                 input,
                 joystick_events: Rc::default(),
                 joystick_event_subscription: None,
@@ -159,6 +157,7 @@ impl VMNLWindow {
                 monitor,
                 render_target: options.render_target,
                 render_target_info,
+                surface_color_info,
             },
         };
 

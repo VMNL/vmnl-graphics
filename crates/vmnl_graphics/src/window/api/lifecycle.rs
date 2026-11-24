@@ -219,6 +219,9 @@ impl Window {
 
     /// Returns whether the window is fully initialized and ready for use.
     ///
+    /// This becomes false if native swapchain replacement fails after retirement and the window
+    /// needs to be rebuilt. It does not check the current framebuffer extent.
+    ///
     /// # Example
     ///
     /// ```rust,no_run

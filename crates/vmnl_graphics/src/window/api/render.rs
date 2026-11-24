@@ -253,8 +253,9 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     /// is valid and still clears/presents the swapchain image.
     ///
     /// After a logical or framebuffer resize, `submit` recreates the
-    /// swapchain images and framebuffers before recording the next frame. A
-    /// zero-sized framebuffer, for example while minimized, returns
+    /// swapchain images and framebuffers before recording the next frame. It resolves the
+    /// extent, minimum image count, surface transform and composite alpha from fresh
+    /// capabilities. A zero-sized framebuffer or surface, for example while minimized, returns
     /// `VMNLErrorKind::VulkanOutOfDate` until it has a renderable extent again.
     ///
     /// Returns `Ok(())` when command recording, queue submission, presentation,
@@ -277,6 +278,11 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     /// mean that no work was submitted or that its resources are idle. VMNL preserves
     /// the required synchronization and requests swapchain recreation, so the same
     /// window can be used again after its framebuffer is renderable.
+    /// Recreation preserves the window's color pair. `SurfaceColorPairLost` means the surface
+    /// no longer reports it. Retry if the pair returns, or build a new window with a different
+    /// policy. A failed framebuffer allocation can be retried with the replacement swapchain.
+    /// `SwapchainRecreationRequiresNewWindow` means a previous native replacement failed after
+    /// retiring the old swapchain and the window must be rebuilt.
     /// Returns `VMNLErrorKind::VulkanDeviceLost` if presentation or the subsequent fence
     /// submission reports device loss. Error cleanup can block the calling thread while
     /// the queue retires submitted resources.

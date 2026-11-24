@@ -16,9 +16,9 @@ use vulkano::{
 /// without a named constant here. Compare values for exact format equality;
 /// [`fmt::Display`] prints the Vulkan format name without the `VK_FORMAT_` prefix.
 /// The constants are common formats, not an exhaustive list or a support guarantee.
-/// This type is inspection-only; color format selection remains automatic.
+/// Use a value in [`crate::SurfaceColorPair`] to request a window attachment format.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct ColorFormat(Format);
+pub struct ColorFormat(pub(crate) Format);
 
 impl ColorFormat {
     /// Blue, green, red, alpha in 8-bit components; sRGB color encoding.

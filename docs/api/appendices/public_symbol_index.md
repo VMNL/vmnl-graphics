@@ -46,6 +46,12 @@
 | enum | `vmnl_graphics::StickAngleConvention` | [Joystick and gamepad samples](../reference/joystick_gamepad.md) | [Rustdoc](../../../target/doc/vmnl_graphics/enum.StickAngleConvention.html) |
 | struct | `vmnl_graphics::StickConfig` | [Joystick and gamepad samples](../reference/joystick_gamepad.md) | [Rustdoc](../../../target/doc/vmnl_graphics/struct.StickConfig.html) |
 | struct | `vmnl_graphics::StickState` | [Joystick and gamepad samples](../reference/joystick_gamepad.md) | [Rustdoc](../../../target/doc/vmnl_graphics/struct.StickState.html) |
+| struct | `vmnl_graphics::SurfaceColorConfig` | [Surface color](../reference/window/surface_color.md) | [Rustdoc](../../../target/doc/vmnl_graphics/struct.SurfaceColorConfig.html) |
+| enum | `vmnl_graphics::SurfaceColorFallback` | [Surface color](../reference/window/surface_color.md) | [Rustdoc](../../../target/doc/vmnl_graphics/enum.SurfaceColorFallback.html) |
+| struct | `vmnl_graphics::SurfaceColorInfo` | [Surface color](../reference/window/surface_color.md) | [Rustdoc](../../../target/doc/vmnl_graphics/struct.SurfaceColorInfo.html) |
+| struct | `vmnl_graphics::SurfaceColorPair` | [Surface color](../reference/window/surface_color.md) | [Rustdoc](../../../target/doc/vmnl_graphics/struct.SurfaceColorPair.html) |
+| enum | `vmnl_graphics::SurfaceColorSelection` | [Surface color](../reference/window/surface_color.md) | [Rustdoc](../../../target/doc/vmnl_graphics/enum.SurfaceColorSelection.html) |
+| struct | `vmnl_graphics::SurfaceColorSpace` | [Surface color](../reference/window/surface_color.md) | [Rustdoc](../../../target/doc/vmnl_graphics/struct.SurfaceColorSpace.html) |
 | struct | `vmnl_graphics::VMNLError` | [VMNLError](../reference/errors/vmnl_error.md) | [Rustdoc](../../../target/doc/vmnl_graphics/struct.VMNLError.html) |
 | enum | `vmnl_graphics::VMNLErrorKind` | [VMNLErrorKind](../reference/errors/vmnl_error_kind.md) | [Rustdoc](../../../target/doc/vmnl_graphics/enum.VMNLErrorKind.html) |
 | struct | `vmnl_graphics::VMNLErrorLocation` | [VMNLErrorLocation](../reference/errors/vmnl_error_location.md) | [Rustdoc](../../../target/doc/vmnl_graphics/struct.VMNLErrorLocation.html) |

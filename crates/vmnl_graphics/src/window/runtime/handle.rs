@@ -52,6 +52,8 @@ pub(crate) struct WindowHandle {
     pub(crate) depth_frame_completions: Vec<Option<FrameCompletion>>,
     /// Vulkan surface representing the OS window for presentation.
     pub(crate) swapchain: Arc<Swapchain>,
+    /// Pending replacement framebuffers or a retirement that requires rebuilding the window.
+    pub(crate) swapchain_replacement: crate::window::inner::SwapchainReplacement,
     /// GLFW context responsible for managing windowing and event polling.
     pub(crate) instance: glfw::Glfw,
     /// Handle to the actual OS window (GLFW window).

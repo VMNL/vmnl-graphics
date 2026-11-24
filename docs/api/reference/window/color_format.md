@@ -14,7 +14,9 @@ Constants: `B8G8R8A8_SRGB`, `B8G8R8A8_UNORM`, `R8G8B8A8_SRGB`, `R8G8B8A8_UNORM`.
 
 ## Construction, defaults, and validation
 
-Obtain the actual format from `RenderTargetInfo::color_format`. Constants support exact comparisons with common formats; they are not an exhaustive list or a support guarantee. This is an inspection API: format selection remains automatic, preferring `B8G8R8A8_SRGB` with sRGB nonlinear color space, then the first available surface format. No new format-selection policy is introduced.
+Obtain the attachment format from `RenderTargetInfo::color_format`, or query pairs with
+`Window::surface_color_pairs`. Use these values or the named constants in a
+[surface color request](surface_color.md). Availability depends on the actual surface and device.
 
 ## Units, coordinates, and valid ranges
 

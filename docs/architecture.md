@@ -121,6 +121,9 @@ compatibility baseline; their present behavior remains documented in the API boo
 
 ## Current Implementation Boundaries
 
+- `WindowBuilder::surface_color` selects a surface's format and presentation color space together.
+  The window exposes the request and resolved pair and keeps the pair across swapchain recreation.
+
 - `vmnl_graphics` is the public dependency and import boundary.
 - `ContextBuilder::device(DeviceConfig)` configures required device features and exposes support/activation inspection through `Context`; GPU identity, queue and allocator selection remain automatic.
 - `vmnl_graphics` owns rendering, windowing, input, and GPU resource behavior.

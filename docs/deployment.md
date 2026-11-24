@@ -93,10 +93,11 @@ The workspace now uses crates.io `glfw 0.63.0`, which includes the upstream fix 
 conversion. Platform qualification must be assessed for this dependency source and version;
 historical fork results do not qualify it.
 
-The graphics crate uses [`vmnl_vulkano 0.35.2-vmnl.1`](https://crates.io/crates/vmnl_vulkano/0.35.2-vmnl.1),
-a registry release of the Vulkano 0.35.2 device-loss backport. Cargo resolves it as a transitive
-dependency of `vmnl_graphics`. VMNL provides its own derives. Clients using unstable
-backend-specific traits must use the same backend package as VMNL.
+The graphics crate uses [`vmnl_vulkano 0.35.2-vmnl.2`](https://crates.io/crates/vmnl_vulkano/0.35.2-vmnl.2),
+a registry release of Vulkano 0.35.2 with backports for device loss and swapchain cleanup on
+image enumeration failure. Cargo resolves it as a transitive dependency of `vmnl_graphics`.
+VMNL provides its own derives. Clients using unstable backend-specific traits must use the
+same backend package as VMNL.
 
 The graphics crate depends on the internal `vmnl_macros` package. Clients depend only on
 `vmnl_graphics`; Cargo resolves the macros package as a dependency. The graphics manifest pins the

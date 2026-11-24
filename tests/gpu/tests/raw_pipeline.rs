@@ -137,6 +137,10 @@ fn depth_attachments_submit_raw_resources_and_d2_across_resize() -> VMNLResult<(
         .position(20.0, 20.0)
         .build(&context)?;
     let mut supported = 0;
+    let discovery = Window::builder().size(640, 480).build(&context)?;
+    let pair = discovery.surface_color_info().pair();
+    assert!(discovery.surface_color_pairs()?.contains(&pair));
+    drop(discovery);
     for format in [
         vmnl_graphics::DepthFormat::D16Unorm,
         vmnl_graphics::DepthFormat::D32Sfloat,
@@ -147,6 +151,10 @@ fn depth_attachments_submit_raw_resources_and_d2_across_resize() -> VMNLResult<(
         let result = Window::builder()
             .size(640, 480)
             .render_target(config)
+            .surface_color(vmnl_graphics::SurfaceColorConfig::exact(
+                pair.format(),
+                pair.color_space(),
+            ))
             .build(&context);
         let mut window = match result {
             Err(error) if matches!(error.kind(), VMNLErrorKind::VulkanFormatNotSupported) => {
@@ -159,6 +167,13 @@ fn depth_attachments_submit_raw_resources_and_d2_across_resize() -> VMNLResult<(
         assert_eq!(window.render_target_config(), config);
         let pipeline = uniform_pipeline(&window)?;
         let info = window.render_target_info();
+        let surface_color = window.surface_color_info().clone();
+        assert_eq!(
+            surface_color.selection(),
+            vmnl_graphics::SurfaceColorSelection::Exact
+        );
+        assert_eq!(surface_color.pair(), pair);
+        assert_eq!(info.color_format(), pair.format());
         assert_eq!(info.depth_format(), Some(format));
         assert_eq!(info.sample_count(), 1);
         assert_eq!(pipeline.render_target_info(), info);
@@ -179,6 +194,7 @@ fn depth_attachments_submit_raw_resources_and_d2_across_resize() -> VMNLResult<(
             }
             assert_eq!(window.render_target_config(), config);
             assert_eq!(window.render_target_info(), info);
+            assert_eq!(window.surface_color_info(), &surface_color);
             assert_eq!(pipeline.render_target_info(), info);
             pipeline.validate_target(&window)?;
         }

@@ -11,6 +11,8 @@ Notable user-facing changes are recorded here.
 
 ### Added
 
+- Windows can request and inspect exact or ordered swapchain format and color-space pairs.
+  Ordered preferences skip formats without blending support. Resize preserves the resolved pair.
 - Circle builder getters expose the selected fill mode and stored inner/outer offsets.
 - `vmnl_graphics::time::{Clock, Duration}`: an owned elapsed-time `Clock` for independent
   measurements such as frame deltas, with explicit `pause`/`resume`/`restart`, backed by
@@ -19,6 +21,7 @@ Notable user-facing changes are recorded here.
 
 ### Fixed
 
+- Swapchain recreation refreshes automatic surface parameters when window capabilities change.
 - Frame submission returns `VulkanOutOfDate` for an out-of-date presentation instead of
   logging the condition and reporting success.
 - Frame submission returns `VulkanDeviceLost` when presentation or its follow-up fence
