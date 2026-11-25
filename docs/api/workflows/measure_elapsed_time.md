@@ -77,3 +77,72 @@ Related: [`Clock` reference](../reference/time/clock.md) and the
 [event loop](window_event_loop.md) workflow. GLFW's global timer
 ([event processing and timers](../reference/window/events/event_processing_and_timers.md)) is a
 separate source; use `Clock` for independent measurements.
+
+## Advance timers with a caller-supplied delta
+
+A `Timer` never reads a clock; it accumulates the delta you pass to `advance` and returns the
+number of period boundaries crossed by that call.
+
+```rust
+# extern crate vmnl_graphics;
+use vmnl_graphics::time::{Duration, Timer, TimerMode};
+
+# fn main() -> vmnl_graphics::VMNLResult<()> {
+// One-shot cooldown:
+let mut cooldown = Timer::new(Duration::from_millis(250), TimerMode::Once)?;
+assert_eq!(cooldown.advance(Duration::from_millis(100)), 0);
+assert_eq!(cooldown.advance(Duration::from_millis(200)), 1);
+assert!(cooldown.is_finished());
+assert_eq!(cooldown.advance(Duration::from_secs(1)), 0);
+
+// Repeating animation period; overshoot is preserved as remainder:
+let mut animation = Timer::new(Duration::from_millis(100), TimerMode::Repeating)?;
+assert_eq!(animation.advance(Duration::from_millis(350)), 3);
+assert_eq!(animation.elapsed(), Duration::from_millis(50));
+assert_eq!(animation.advance(Duration::from_millis(50)), 1);
+assert_eq!(animation.elapsed(), Duration::ZERO);
+
+// Zero duration is rejected through the existing error model:
+assert!(Timer::new(Duration::ZERO, TimerMode::Once).is_err());
+# Ok(())
+# }
+```
+
+Pause ignores supplied deltas instead of queueing them; restart rearms from any state:
+
+```rust
+# extern crate vmnl_graphics;
+use vmnl_graphics::time::{Duration, Timer, TimerMode};
+
+# fn main() -> vmnl_graphics::VMNLResult<()> {
+let mut timer = Timer::new(Duration::from_millis(100), TimerMode::Repeating)?;
+assert_eq!(timer.advance(Duration::from_millis(40)), 0);
+timer.pause();
+assert_eq!(timer.advance(Duration::from_secs(5)), 0);
+assert_eq!(timer.elapsed(), Duration::from_millis(40));
+timer.resume();
+assert_eq!(timer.advance(Duration::from_millis(60)), 1);
+# Ok(())
+# }
+```
+
+Compose with `Clock` by sharing one measured delta per update:
+
+```rust
+# extern crate vmnl_graphics;
+use vmnl_graphics::time::{Clock, Duration, Timer, TimerMode};
+
+# fn main() -> vmnl_graphics::VMNLResult<()> {
+let mut frame_clock = Clock::new();
+let mut animation = Timer::new(Duration::from_millis(120), TimerMode::Repeating)?;
+let mut cooldown = Timer::new(Duration::from_secs(2), TimerMode::Once)?;
+
+let dt = frame_clock.restart();
+let animation_crossings = animation.advance(dt);
+let cooldown_crossings = cooldown.advance(dt);
+let _observations = (animation_crossings, cooldown_crossings);
+# Ok(())
+# }
+```
+
+Related: [`Timer` reference](../reference/time/timer.md) and [`TimerMode`](../reference/time/timer_mode.md).

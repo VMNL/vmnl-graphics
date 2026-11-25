@@ -16,6 +16,9 @@ Notable user-facing changes are recorded here.
   measurements such as frame deltas, with explicit `pause`/`resume`/`restart`, backed by
   `std::time::Instant` and re-exporting the standard `Duration` unchanged. It runs without
   a `Context`, window, GLFW initialization, or GPU.
+- `vmnl_graphics::time::{Timer, TimerMode}`: one-shot (`Once`) and repeating timers advanced
+  explicitly by a caller-supplied `Duration` via `advance`, which returns the exact number of
+  period boundaries crossed. Timers read no clock and run without a `Context`, window, or GPU.
 
 ### Fixed
 

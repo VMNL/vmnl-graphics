@@ -885,3 +885,17 @@
 | `vmnl_graphics::time::Clock` | `pause` | [Clock](../reference/time/clock.md) | [`pause`](../../../target/doc/vmnl_graphics/time/struct.Clock.html#method.pause) |
 | `vmnl_graphics::time::Clock` | `restart` | [Clock](../reference/time/clock.md) | [`restart`](../../../target/doc/vmnl_graphics/time/struct.Clock.html#method.restart) |
 | `vmnl_graphics::time::Clock` | `resume` | [Clock](../reference/time/clock.md) | [`resume`](../../../target/doc/vmnl_graphics/time/struct.Clock.html#method.resume) |
+| `vmnl_graphics::time::Timer` | `advance` | [Timer](../reference/time/timer.md) | [`advance`](../../../target/doc/vmnl_graphics/time/struct.Timer.html#method.advance) |
+| `vmnl_graphics::time::Timer` | `duration` | [Timer](../reference/time/timer.md) | [`duration`](../../../target/doc/vmnl_graphics/time/struct.Timer.html#method.duration) |
+| `vmnl_graphics::time::Timer` | `elapsed` | [Timer](../reference/time/timer.md) | [`elapsed`](../../../target/doc/vmnl_graphics/time/struct.Timer.html#method.elapsed) |
+| `vmnl_graphics::time::Timer` | `is_finished` | [Timer](../reference/time/timer.md) | [`is_finished`](../../../target/doc/vmnl_graphics/time/struct.Timer.html#method.is_finished) |
+| `vmnl_graphics::time::Timer` | `is_paused` | [Timer](../reference/time/timer.md) | [`is_paused`](../../../target/doc/vmnl_graphics/time/struct.Timer.html#method.is_paused) |
+| `vmnl_graphics::time::Timer` | `mode` | [Timer](../reference/time/timer.md) | [`mode`](../../../target/doc/vmnl_graphics/time/struct.Timer.html#method.mode) |
+| `vmnl_graphics::time::Timer` | `new` | [Timer](../reference/time/timer.md) | [`new`](../../../target/doc/vmnl_graphics/time/struct.Timer.html#method.new) |
+| `vmnl_graphics::time::Timer` | `pause` | [Timer](../reference/time/timer.md) | [`pause`](../../../target/doc/vmnl_graphics/time/struct.Timer.html#method.pause) |
+| `vmnl_graphics::time::Timer` | `remaining` | [Timer](../reference/time/timer.md) | [`remaining`](../../../target/doc/vmnl_graphics/time/struct.Timer.html#method.remaining) |
+| `vmnl_graphics::time::Timer` | `restart` | [Timer](../reference/time/timer.md) | [`restart`](../../../target/doc/vmnl_graphics/time/struct.Timer.html#method.restart) |
+| `vmnl_graphics::time::Timer` | `resume` | [Timer](../reference/time/timer.md) | [`resume`](../../../target/doc/vmnl_graphics/time/struct.Timer.html#method.resume) |
+| `vmnl_graphics::time::TimerMode` | `clone` | [TimerMode](../reference/time/timer_mode.md) | [`clone`](../../../target/doc/vmnl_graphics/time/enum.TimerMode.html#method.clone) |
+| `vmnl_graphics::time::TimerMode` | `eq` | [TimerMode](../reference/time/timer_mode.md) | [`eq`](../../../target/doc/vmnl_graphics/time/enum.TimerMode.html#method.eq) |
+| `vmnl_graphics::time::TimerMode` | `fmt` | [TimerMode](../reference/time/timer_mode.md) | [`fmt`](../../../target/doc/vmnl_graphics/time/enum.TimerMode.html#method.fmt) |
