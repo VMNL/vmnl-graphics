@@ -16,12 +16,12 @@ categories = ["graphics", "rendering", "game-development"]
 name = "vmnl_graphics"
 
 [dependencies]
-vulkano         = { package = "vmnl_vulkano", version = "=0.35.2-vmnl.1" }
+vulkano         = { package = "vmnl_vulkano", version = "=0.35.2-vmnl.3" }
 glfw            = { workspace = true }
-bytemuck        = "1.25.0"
-log             = "0.4.30"
+bytemuck        = "1.25.2"
+log             = "0.4.35"
 shaderc         = "0.10.1"
-smallvec        = "1.15.1"
+smallvec        = "1.16.6"
 png             = { version = "0.18.1", default-features = false }
 vmnl_macros     = { path = "../vmnl_macros", version = "=0.1.0" }
 
