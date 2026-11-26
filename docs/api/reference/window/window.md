@@ -25,8 +25,9 @@ responsibility: [configuration](configuration.md), [cursor controls](cursor.md),
 `render_target_info() -> RenderTargetInfo` copies the actual render-pass color format, sample count and optional depth format. It performs no allocation, GPU query or synchronization. Resize preserves these properties. Equal descriptions do not imply pipeline compatibility across windows; use `Pipeline::validate_target`. See [`RenderTargetInfo`](render_target_info.md).
 
 `surface_color_info()` borrows the immutable request and resolved pair. `surface_color_pairs()`
-performs a fresh, fallible native inventory query on this window's surface. See
-[surface color selection](surface_color.md).
+returns the full native inventory on this window's surface. `is_surface_color_pair_selectable()`
+checks a candidate against the current inventory, enabled extensions and format support. See
+[surface color selection](surface_color.md) for query costs and errors.
 
 ## Units, coordinates, and valid ranges
 

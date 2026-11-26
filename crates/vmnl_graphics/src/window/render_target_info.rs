@@ -4,6 +4,7 @@
 //! Resolved attachment properties, separate from render-pass identity.
 
 use crate::{DepthFormat, VMNLError, VMNLErrorKind, VMNLResult};
+use ash::vk;
 use std::fmt;
 use vulkano::{
     format::Format,
@@ -12,23 +13,23 @@ use vulkano::{
 
 /// Resolved color attachment format, without exposing a backend type.
 ///
-/// All formats selected by the window backend are preserved, including those
-/// without a named constant here. Compare values for exact format equality;
-/// [`fmt::Display`] prints the Vulkan format name without the `VK_FORMAT_` prefix.
+/// Surface reports preserve each format, including formats unknown to the backend.
+/// Compare values for exact format equality. [`fmt::Display`] prints the Vulkan
+/// format name without the `VK_FORMAT_` prefix, or its numeric identifier if unknown.
 /// The constants are common formats, not an exhaustive list or a support guarantee.
 /// Use a value in [`crate::SurfaceColorPair`] to request a window attachment format.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct ColorFormat(pub(crate) Format);
+pub struct ColorFormat(pub(crate) vk::Format);
 
 impl ColorFormat {
     /// Blue, green, red, alpha in 8-bit components; sRGB color encoding.
-    pub const B8G8R8A8_SRGB: Self = Self(Format::B8G8R8A8_SRGB);
+    pub const B8G8R8A8_SRGB: Self = Self(vk::Format::B8G8R8A8_SRGB);
     /// Blue, green, red, alpha in 8-bit unsigned normalized components.
-    pub const B8G8R8A8_UNORM: Self = Self(Format::B8G8R8A8_UNORM);
+    pub const B8G8R8A8_UNORM: Self = Self(vk::Format::B8G8R8A8_UNORM);
     /// Red, green, blue, alpha in 8-bit components; sRGB color encoding.
-    pub const R8G8B8A8_SRGB: Self = Self(Format::R8G8B8A8_SRGB);
+    pub const R8G8B8A8_SRGB: Self = Self(vk::Format::R8G8B8A8_SRGB);
     /// Red, green, blue, alpha in 8-bit unsigned normalized components.
-    pub const R8G8B8A8_UNORM: Self = Self(Format::R8G8B8A8_UNORM);
+    pub const R8G8B8A8_UNORM: Self = Self(vk::Format::R8G8B8A8_UNORM);
 }
 
 impl fmt::Display for ColorFormat {
@@ -112,7 +113,7 @@ impl RenderTargetInfo {
             None => None,
         };
         Ok(Self {
-            color_format: ColorFormat(color.format),
+            color_format: ColorFormat(color.format.into()),
             sample_count: color.samples.into(),
             depth_format,
         })

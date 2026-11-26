@@ -24,12 +24,15 @@ application order. Texture encoding and blending are separate contracts.
 
 `WindowBuilder::surface_color` sets the policy and `surface_color_value` borrows it.
 `Window::surface_color_info` borrows the resolved snapshot. `Window::surface_color_pairs`
-queries the current inventory of the existing surface on its context's physical device.
+queries the full inventory in Vulkan report order. `Window::is_surface_color_pair_selectable`
+checks a candidate on the existing surface and context.
 
 ## Construction, defaults, and validation
 
 The policy belongs to the window. The default prefers `B8G8R8A8_SRGB / SRGB_NON_LINEAR`, then
-the first representable pair in backend order. `exact` requires both requested components in the
+the first backend-eligible pair with `SRGB_NON_LINEAR`, then the first backend-eligible pair in
+report order. The default still requires blending support for the selected format.
+`exact` requires both requested components in the
 same reported pair. `prefer` checks pairs in caller order, skips formats that cannot support the
 window's alpha-blended 2D pipeline, rejects an empty list or duplicates, and uses `Reject`.
 `prefer_with_fallback` accepts `FirstReported` to select the first blend-capable pair in backend
@@ -39,16 +42,17 @@ resources propagate directly.
 ## Units, coordinates, and valid ranges
 
 Pairs compare by exact format and color-space identity. Preference indices are zero-based in
-caller order. Inspection preserves distinct spaces understood by the pinned Vulkan backend, even
-when VMNL has no named constant for them.
+caller order. Inspection preserves formats and spaces unknown to the backend. Their `Display`
+implementations show numeric identifiers when a name is unavailable.
 
 ## Ownership, lifecycle, and threading
 
 The window stores the original policy and resolved pair. Normal resize keeps the pair and existing
-render pass and pipelines. It resolves the extent, minimum image count, surface transform and
-composite alpha from fresh surface capabilities. Queries use the current window thread. The
-types are CPU values, and a cloned snapshot can outlive the window. Attachment information and
-raw pipeline target identity still follow [`RenderTargetInfo`](render_target_info.md).
+render pass and pipelines. It resolves the extent, surface transform and composite alpha from fresh
+surface capabilities. It keeps the requested minimum image count when it remains within the new
+bounds. Queries use the current window thread. The types are CPU values, and a cloned snapshot can
+outlive the window. Attachment information and raw pipeline target identity still follow
+[`RenderTargetInfo`](render_target_info.md).
 
 ## Errors, panics, and failure conditions
 
@@ -57,6 +61,8 @@ Invalid preferences return `InvalidState` before surface creation. An unmatched 
 historical automatic selection cannot support the window's alpha-blended 2D pipeline.
 Inventory queries may return
 `VulkanSurfaceColorQueryFailed`, `VulkanSurfaceLost` or `VulkanOutOfMemory`.
+The selectability check can also return `VulkanValidationFailed` if the backend rejects the
+format properties query.
 
 During recreation, `SurfaceColorPairLost` keeps the selection fixed. Retry when the pair returns
 or build a new window with a different policy. A framebuffer creation error can be retried with
@@ -66,18 +72,20 @@ submissions return `SwapchainRecreationRequiresNewWindow`.
 ## Allocation, transfers, synchronization, and GPU cost
 
 Preferences own an allocation. Snapshot getters do not allocate, query Vulkan or synchronize.
-An inventory query performs a fresh native enumeration and returns an owned vector. Normal
+An inventory query performs a fresh native enumeration and returns an owned vector. Checking a
+candidate can enumerate again and query format properties. Normal
 recreation rechecks the pair and rebuilds its swapchain images and framebuffers. Color selection
 adds no per-draw conversion, transfer or attachment.
 
 ## Platform, Vulkan, and display constraints
 
 Reported pairs depend on the actual surface, physical device and active Vulkan extensions.
-VMNL excludes color spaces that require an inactive extension from the inventory and selection.
-Revalidate copied pairs when creating another window. The format controls attachment encoding,
-including conversion of clear and fragment output. The presentation color space controls the
-interpretation of those pixels by the presentation engine. Window alpha composition belongs to
-the platform's presentation path, independent of blend equations inside the attachment.
+VMNL enables `VK_EXT_swapchain_colorspace` when available. Selection requires a pair recognized
+by the backend, the necessary enabled color-space extension, and a format that supports blending.
+The existing surface is a probe. Each new window revalidates its own inventory. The format
+controls attachment encoding, including conversion of clear and fragment output. The presentation
+color space controls how the presentation engine interprets those pixels. Window alpha composition
+belongs to the platform's presentation path, independent of blend equations inside the attachment.
 
 ## Example and related types
 

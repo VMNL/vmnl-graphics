@@ -31,12 +31,13 @@ impl VMNLInstance {
             .iter()
             .map(String::as_str)
             .collect();
-        let required_instance_extensions =
-            surface_instance_extensions(required_instance_extensions);
+        let mut enabled_extensions = surface_instance_extensions(required_instance_extensions);
+        enabled_extensions.ext_swapchain_colorspace |=
+            library.supported_extensions().ext_swapchain_colorspace;
         let instance: Arc<Instance> = Instance::new(
             library,
             InstanceCreateInfo {
-                enabled_extensions: required_instance_extensions,
+                enabled_extensions,
                 flags: InstanceCreateFlags::ENUMERATE_PORTABILITY,
                 application_name: Some("VMNL Application".into()),
                 engine_name: Some("VMNL Engine".into()),

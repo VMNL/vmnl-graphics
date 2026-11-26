@@ -20,7 +20,7 @@ Obtain the attachment format from `RenderTargetInfo::color_format`, or query pai
 
 ## Units, coordinates, and valid ranges
 
-The four constants distinguish RGBA/BGRA component ordering and sRGB/unsigned-normalized color encoding. `Display` writes the Vulkan format name without `VK_FORMAT_`, such as `B8G8R8A8_SRGB`. Equality compares exact formats; it is not a render-pass compatibility test. Color space is a separate surface property and is not encoded in this value.
+The four constants distinguish RGBA/BGRA component ordering and sRGB/unsigned-normalized color encoding. `Display` writes the Vulkan format name without `VK_FORMAT_`, such as `B8G8R8A8_SRGB`, or the numeric identifier if the name is unknown. Equality compares exact formats; it is not a render-pass compatibility test. Color space is a separate surface property and is not encoded in this value.
 
 ## Ownership, lifecycle, and threading
 

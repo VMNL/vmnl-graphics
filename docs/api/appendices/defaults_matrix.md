@@ -11,7 +11,7 @@
 | `WindowBuilder` | title `VMNL Window`, `800x600`, common event delivery enabled, joystick event delivery/tracking disabled, zero-dead-zone `Math2D` left/right sticks, built-in 2D shaders, opaque black clear, no size limits, automatic present mode |
 | `PresentMode` | `Auto`: `Mailbox` → `Immediate` → `FifoRelaxed` → `Fifo` among supported modes |
 | Resolved window attachments | one color attachment, one sample per pixel; no MSAA selection |
-| `SurfaceColorConfig` | `legacy_auto`: prefer `B8G8R8A8_SRGB / SRGB_NON_LINEAR`, then the first representable reported pair. `prefer` skips formats without blending support and defaults to `Reject` if no pair qualifies |
+| `SurfaceColorConfig` | `legacy_auto`: prefer `B8G8R8A8_SRGB / SRGB_NON_LINEAR`, then the first recognized pair with `SRGB_NON_LINEAR`, then the first recognized pair with an enabled color space. `prefer` skips formats without blending support and defaults to `Reject` if no pair qualifies |
 | `RenderTargetConfig` / `WindowBuilder::render_target` | color only; no depth image; clear depth `1.0` |
 | `RenderMode` | `PerObject`; `Batched` currently falls back to it |
 | `Input`, `KeyboardState`, `MouseState` | Keyboard and mouse states inactive; each joystick slot is `NotTracked` |

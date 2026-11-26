@@ -38,7 +38,7 @@ fn main() -> VMNLResult<()> {
     window.set_title(&title);
     println!("Selected {title}");
     for pair in window.surface_color_pairs()? {
-        println!("Supported {} / {}", pair.format(), pair.color_space());
+        println!("Reported {} / {}", pair.format(), pair.color_space());
     }
 
     let shape = Shape::rect(240.0, 150.0)

@@ -31,6 +31,9 @@ Owns Vulkan subbuffers tied to the window/context device. `Resources` stores sha
 
 Builder creation is infallible. Build can fail if the window has no swapchain image, if an initial slot allocation fails, or if an initial slot write fails. Submission checks the swapchain image count for bound uniforms and queued writes before acquisition. Allocation, write, or binding of the selected slot can fail after acquisition.
 
+If swapchain recreation changes the actual image count, rebuild the affected `FrameUniform`
+values and the [`Resources`](../resources/resources.md) that bind them before submitting again.
+
 ## Allocation, transfers, synchronization, and GPU cost
 
 Build initializes one uniform slot per current swapchain image. `write_frame_uniform` allocates or reuses a fresh subbuffer for the acquired swapchain-image slot during submit, then frame-uniform descriptor sets are allocated during command recording so they point at the current slot. All queued frame-uniform writes happen before command recording, not between draw passes. It does not wait for GPU work or overwrite a buffer that may still be read by queued GPU work.

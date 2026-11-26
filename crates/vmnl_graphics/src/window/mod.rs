@@ -210,10 +210,8 @@ impl Window {
     /// Queries the current format and color-space pairs on this window's surface.
     ///
     /// Call on the window thread. This performs a native query and allocates a vector, preserving
-    /// the report order of pairs representable by the backend with an enabled presentation color
-    /// space. A new window must
-    /// validate its own surface at construction. A reported pair can still fail render-resource
-    /// creation. The presentation pair is independent of source color conversion and blending.
+    /// every pair in report order, including pairs that VMNL cannot select. Use
+    /// [`Self::is_surface_color_pair_selectable`] to check a candidate.
     ///
     /// # Errors
     ///
@@ -232,6 +230,34 @@ impl Window {
     /// ```
     pub fn surface_color_pairs(&self) -> VMNLResult<Vec<SurfaceColorPair>> {
         self.inner.surface_color_pairs()
+    }
+
+    /// Checks whether a reported pair meets this window's surface color selection requirements.
+    ///
+    /// Call on the window thread. This can query and allocate a fresh surface inventory and
+    /// query format properties. A selectable pair must be known to the backend, use an enabled
+    /// color space and support the window's alpha-blended 2D pipeline. A new window revalidates
+    /// the pair on its own surface. Resource creation can still fail and this check does not
+    /// qualify a color conversion or HDR workflow.
+    ///
+    /// # Errors
+    ///
+    /// Propagates [`Self::surface_color_pairs`] errors and returns `VulkanValidationFailed`
+    /// if the backend rejects the format properties query.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # fn inspect(window: &vmnl_graphics::Window) -> vmnl_graphics::VMNLResult<()> {
+    /// # use vmnl_graphics::{ColorFormat, SurfaceColorPair, SurfaceColorSpace};
+    /// let pair = SurfaceColorPair::new(ColorFormat::B8G8R8A8_UNORM, SurfaceColorSpace::SRGB_NON_LINEAR);
+    /// let selectable = window.is_surface_color_pair_selectable(pair)?;
+    /// println!("{selectable}");
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn is_surface_color_pair_selectable(&self, pair: SurfaceColorPair) -> VMNLResult<bool> {
+        self.inner.is_surface_color_pair_selectable(pair)
     }
 
     pub(crate) fn device(&self) -> Arc<Device> {

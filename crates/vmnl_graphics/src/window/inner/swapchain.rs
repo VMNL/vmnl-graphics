@@ -12,12 +12,13 @@ use crate::{
 use ash::vk;
 use std::sync::Arc;
 use vulkano::{
-    device::Device,
-    format::FormatFeatures,
+    device::{Device, DeviceExtensions},
+    format::{Format, FormatFeatures},
     image::{
         view::{ImageView, ImageViewCreateInfo, ImageViewType},
         Image, ImageUsage,
     },
+    instance::InstanceExtensions,
     render_pass::Framebuffer,
     swapchain::{
         ColorSpace, Surface, SurfaceCapabilities, SurfaceInfo, Swapchain, SwapchainCreateInfo,
@@ -93,9 +94,15 @@ impl VMNLWindow {
             .surface_formats(surface, SurfaceInfo::default())
             .map_err(|error| surface_error(&error, VMNLErrorKind::VulkanSurfaceColorQueryFailed))?
             .into_iter()
-            .filter(|&(_, space)| surface_color_space_enabled(device, space))
+            .filter(|&(_, space)| {
+                surface_color_space_enabled(
+                    space,
+                    device.instance().enabled_extensions(),
+                    device.enabled_extensions(),
+                )
+            })
             .map(|(format, space)| {
-                SurfaceColorPair::new(ColorFormat(format), SurfaceColorSpace(space))
+                SurfaceColorPair::new(ColorFormat(format.into()), SurfaceColorSpace(space.into()))
             })
             .collect::<Vec<_>>();
         let supported_present_modes = device
@@ -103,18 +110,23 @@ impl VMNLWindow {
             .surface_present_modes(surface, SurfaceInfo::default())
             .map_err(|error| surface_error(&error, VMNLErrorKind::VulkanSurfaceCreationFailed))?;
         let selected_present_mode = options.present_mode.select_vk(&supported_present_modes)?;
-        // Every window creates both 2D variants, including the alpha-blended pipeline.
         let selection = options.surface_color.select(&surface_pairs, |format| {
-            let features = device
-                .physical_device()
-                .format_properties(format.0)
-                .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanValidationFailed))?
-                .optimal_tiling_features;
-            Ok(features.contains(FormatFeatures::COLOR_ATTACHMENT_BLEND))
+            surface_format_supports_blending(device, format)
         })?;
-        let image_format = selection.pair().format().0;
-        let image_color_space = selection.pair().color_space().0;
+        let image_format = selection
+            .pair()
+            .format()
+            .0
+            .try_into()
+            .map_err(|()| VMNLError::new(VMNLErrorKind::VulkanFormatNotSupported))?;
+        let image_color_space = selection
+            .pair()
+            .color_space()
+            .0
+            .try_into()
+            .map_err(|()| VMNLError::new(VMNLErrorKind::VulkanValidationFailed))?;
         let mut swapchain_create_info = SwapchainCreateInfo {
+            min_image_count: 2,
             image_format,
             image_color_space,
             image_usage: ImageUsage::COLOR_ATTACHMENT,
@@ -141,7 +153,6 @@ impl VMNLWindow {
     /// Requeries surface color pairs. Vulkano caches its typed query for the surface lifetime.
     pub(crate) fn surface_color_pairs(&self) -> VMNLResult<Vec<SurfaceColorPair>> {
         let instance = &self.handle.vmnl_instance.instance;
-        let device = &self.handle.vmnl_instance.device;
         let physical_device = self.handle.vmnl_instance.physical_device.handle();
         let surface = self.handle.swapchain.surface().handle();
         let query = instance
@@ -169,24 +180,31 @@ impl VMNLWindow {
             match unsafe { query(physical_device, surface, &raw mut count, pairs.as_mut_ptr()) } {
                 vk::Result::SUCCESS => {
                     pairs.truncate(count as usize);
-                    return Ok(pairs
-                        .into_iter()
-                        .filter_map(|pair| {
-                            let format = pair.format.try_into().ok()?;
-                            let space = pair.color_space.try_into().ok()?;
-                            surface_color_space_enabled(device, space).then_some(
-                                SurfaceColorPair::new(
-                                    ColorFormat(format),
-                                    SurfaceColorSpace(space),
-                                ),
-                            )
-                        })
-                        .collect());
+                    return Ok(pairs.into_iter().map(SurfaceColorPair::from_vk).collect());
                 }
                 vk::Result::INCOMPLETE => (),
                 error => return Err(surface_color_query_error(error)),
             }
         }
+    }
+
+    pub(crate) fn is_surface_color_pair_selectable(
+        &self,
+        pair: SurfaceColorPair,
+    ) -> VMNLResult<bool> {
+        let device = &self.handle.vmnl_instance.device;
+        let Ok(space) = ColorSpace::try_from(pair.color_space().0) else {
+            return Ok(false);
+        };
+        if !surface_color_space_enabled(
+            space,
+            device.instance().enabled_extensions(),
+            device.enabled_extensions(),
+        ) || !self.surface_color_pairs()?.contains(&pair)
+        {
+            return Ok(false);
+        }
+        surface_format_supports_blending(device, pair.format())
     }
 
     /// Recreates the swapchain images and framebuffers for the current framebuffer extent.
@@ -310,9 +328,10 @@ fn update_surface_options(
     if extent.contains(&0) {
         return Err(VMNLError::new(VMNLErrorKind::VulkanOutOfDate));
     }
-    let image_count = capabilities
+    // Keep a valid minimum request because raw frame uniforms depend on the actual image count.
+    let image_count = info
         .min_image_count
-        .max(2)
+        .max(capabilities.min_image_count)
         .min(capabilities.max_image_count.unwrap_or(u32::MAX));
     let composite_alpha = capabilities
         .supported_composite_alpha
@@ -332,18 +351,30 @@ fn update_surface_options(
     Ok(changed)
 }
 
-fn surface_color_space_enabled(device: &Device, space: ColorSpace) -> bool {
+fn surface_format_supports_blending(device: &Device, format: ColorFormat) -> VMNLResult<bool> {
+    let Ok(format) = Format::try_from(format.0) else {
+        return Ok(false);
+    };
+    // Every window creates both 2D variants, including the alpha-blended pipeline.
+    let features = device
+        .physical_device()
+        .format_properties(format)
+        .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanValidationFailed))?
+        .optimal_tiling_features;
+    Ok(features.contains(FormatFeatures::COLOR_ATTACHMENT_BLEND))
+}
+
+fn surface_color_space_enabled(
+    space: ColorSpace,
+    instance_extensions: &InstanceExtensions,
+    device_extensions: &DeviceExtensions,
+) -> bool {
     // Drivers can report extended spaces even when their swapchain extension is inactive.
     // Mirror ColorSpace's requirements in the pinned Vulkano swapchain validation.
     match space {
         ColorSpace::SrgbNonLinear => true,
-        ColorSpace::DisplayNative => device.enabled_extensions().amd_display_native_hdr,
-        _ => {
-            device
-                .instance()
-                .enabled_extensions()
-                .ext_swapchain_colorspace
-        }
+        ColorSpace::DisplayNative => device_extensions.amd_display_native_hdr,
+        _ => instance_extensions.ext_swapchain_colorspace,
     }
 }
 
@@ -371,6 +402,30 @@ mod tests {
     use super::*;
     use crate::{Context, Window};
     use vulkano::swapchain::{CompositeAlpha, CompositeAlphas, SurfaceTransform};
+
+    #[test]
+    fn display_p3_remains_in_the_report_when_its_extension_is_disabled() {
+        let pair = SurfaceColorPair::from_vk(vk::SurfaceFormatKHR {
+            format: vk::Format::B8G8R8A8_SRGB,
+            color_space: vk::ColorSpaceKHR::DISPLAY_P3_NONLINEAR_EXT,
+        });
+        assert_eq!(pair.color_space().to_string(), "DisplayP3NonLinear");
+        let space = ColorSpace::DisplayP3NonLinear;
+        assert_eq!(ColorSpace::try_from(pair.color_space().0), Ok(space));
+        let mut instance_extensions = InstanceExtensions::empty();
+        let device_extensions = DeviceExtensions::empty();
+        assert!(!surface_color_space_enabled(
+            space,
+            &instance_extensions,
+            &device_extensions
+        ));
+        instance_extensions.ext_swapchain_colorspace = true;
+        assert!(surface_color_space_enabled(
+            space,
+            &instance_extensions,
+            &device_extensions
+        ));
+    }
 
     #[test]
     #[ignore = "Requires Vulkan + GLFW display to obtain surface capabilities."]
@@ -406,6 +461,15 @@ mod tests {
             [640, 480],
             &capabilities
         )?);
+
+        capabilities.min_image_count = 2;
+        capabilities.max_image_count = None;
+        assert!(!update_surface_options(
+            &mut info,
+            [640, 480],
+            &capabilities
+        )?);
+        assert_eq!(info.min_image_count, 3);
 
         capabilities.min_image_count = 1;
         capabilities.max_image_count = Some(1);
@@ -470,31 +534,30 @@ mod tests {
 
     #[test]
     #[ignore = "Requires Vulkan + GLFW display."]
-    fn inactive_extensions_cannot_make_an_advertised_space_selectable() -> VMNLResult<()> {
+    fn surface_color_inventory_support_matches_exact_selection_for_extended_spaces(
+    ) -> VMNLResult<()> {
         let _guard = crate::test_support::gpu_test_guard();
         let context = Context::new()?;
         let window = Window::builder().size(640, 480).build(&context)?;
-        let device = window.device();
-        if !device
-            .instance()
-            .enabled_extensions()
-            .ext_swapchain_colorspace
-        {
-            let space = SurfaceColorSpace(ColorSpace::DisplayP3NonLinear);
-            let pairs = window.surface_color_pairs()?;
-            assert!(pairs.iter().all(|pair| pair.color_space() != space));
-            let config = crate::SurfaceColorConfig::exact(
-                window.surface_color_info().pair().format(),
-                space,
-            );
-            let result = Window::builder()
+        for pair in window.surface_color_pairs()? {
+            if pair.color_space() == SurfaceColorSpace::SRGB_NON_LINEAR
+                || !window.is_surface_color_pair_selectable(pair)?
+            {
+                continue;
+            }
+            let mut exact = Window::builder()
                 .size(640, 480)
-                .surface_color(config.clone())
-                .build(&context);
-            assert!(
-                matches!(result, Err(error) if matches!(error.kind(), VMNLErrorKind::SurfaceColorUnavailable { requested } if *requested == config))
-            );
+                .surface_color(crate::SurfaceColorConfig::exact(
+                    pair.format(),
+                    pair.color_space(),
+                ))
+                .build(&context)?;
+            assert_eq!(exact.surface_color_info().pair(), pair);
+            exact.render().submit()?;
+            log::debug!("Selected {} / {}", pair.format(), pair.color_space());
+            return Ok(());
         }
+        log::debug!("No selectable extended color space reported on this surface");
         Ok(())
     }
 }

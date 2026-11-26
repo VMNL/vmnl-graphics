@@ -4,24 +4,29 @@
 //! Window surface color policy and its resolution against reported pairs.
 
 use crate::{ColorFormat, VMNLError, VMNLErrorKind, VMNLResult};
+use ash::vk;
 use std::fmt;
 use vulkano::swapchain::ColorSpace;
 
 /// Presentation color space, independent of the swapchain image format.
 ///
-/// Values reported by a window preserve their exact identity, including spaces without a named
-/// constant in VMNL. Availability depends on the surface, device and enabled extensions.
+/// Surface reports preserve the exact identity, including spaces unknown to the backend.
+/// `Display` shows a known space's name or its numeric identifier. Selection depends on the
+/// surface, device and enabled extensions.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct SurfaceColorSpace(pub(crate) ColorSpace);
+pub struct SurfaceColorSpace(pub(crate) vk::ColorSpaceKHR);
 
 impl SurfaceColorSpace {
     /// The presentation engine interprets pixels as nonlinear sRGB.
-    pub const SRGB_NON_LINEAR: Self = Self(ColorSpace::SrgbNonLinear);
+    pub const SRGB_NON_LINEAR: Self = Self(vk::ColorSpaceKHR::SRGB_NONLINEAR);
 }
 
 impl fmt::Display for SurfaceColorSpace {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(formatter, "{:?}", self.0)
+        match ColorSpace::try_from(self.0) {
+            Ok(space) => write!(formatter, "{space:?}"),
+            Err(()) => write!(formatter, "{}", self.0.as_raw()),
+        }
     }
 }
 
@@ -43,6 +48,13 @@ pub struct SurfaceColorPair {
 }
 
 impl SurfaceColorPair {
+    pub(crate) const fn from_vk(pair: vk::SurfaceFormatKHR) -> Self {
+        Self::new(
+            ColorFormat(pair.format),
+            SurfaceColorSpace(pair.color_space),
+        )
+    }
+
     /// Forms an exact pair without querying a surface or checking support.
     ///
     /// # Example
@@ -123,7 +135,9 @@ enum SurfaceColorRequest {
 pub struct SurfaceColorConfig(SurfaceColorRequest);
 
 impl SurfaceColorConfig {
-    /// Prefers BGRA8 sRGB with nonlinear sRGB presentation, then the first reported VMNL pair.
+    /// Prefers BGRA8 sRGB with nonlinear sRGB presentation, then the first backend-eligible pair
+    /// with nonlinear sRGB presentation. If neither is reported, uses the first backend-eligible
+    /// pair. The selected format must still support 2D blending.
     ///
     /// # Example
     ///
@@ -262,7 +276,12 @@ impl SurfaceColorConfig {
                 if reported.contains(&preferred) {
                     Some((preferred, SurfaceColorSelection::LegacyPreferred))
                 } else {
-                    first_reported()
+                    // Keep the historical sRGB-space fallback when those pairs are available.
+                    reported
+                        .iter()
+                        .find(|pair| pair.color_space() == SurfaceColorSpace::SRGB_NON_LINEAR)
+                        .map(|&pair| (pair, SurfaceColorSelection::FirstReported))
+                        .or_else(first_reported)
                 }
             }
             SurfaceColorRequest::Exact(pair) => reported
@@ -389,7 +408,7 @@ mod tests {
     );
     const OTHER_SPACE: SurfaceColorPair = SurfaceColorPair::new(
         ColorFormat::B8G8R8A8_SRGB,
-        SurfaceColorSpace(ColorSpace::DisplayP3NonLinear),
+        SurfaceColorSpace(vk::ColorSpaceKHR::DISPLAY_P3_NONLINEAR_EXT),
     );
     const OTHER_FORMAT: SurfaceColorPair = SurfaceColorPair::new(
         ColorFormat::R8G8B8A8_SRGB,
@@ -508,13 +527,35 @@ mod tests {
             [LEGACY],
             SurfaceColorFallback::FirstReported,
         )?;
-        for config in [legacy, preference] {
-            let selected = config.select(&[OTHER_SPACE, OTHER_FORMAT], |_| Ok(true))?;
-            assert_eq!(selected.pair(), OTHER_SPACE);
+        let reported = [OTHER_SPACE, OTHER_FORMAT];
+        for (config, expected) in [(legacy, OTHER_FORMAT), (preference, OTHER_SPACE)] {
+            let selected = config.select(&reported, |_| Ok(true))?;
+            assert_eq!(selected.pair(), expected);
             assert_eq!(selected.selection(), SurfaceColorSelection::FirstReported);
             assert!(selected.used_fallback());
             assert!(config.select(&[], |_| Ok(true)).is_err());
         }
         Ok(())
+    }
+
+    #[test]
+    fn surface_report_preserves_unknown_format_and_color_space_identifiers() {
+        let format = vk::Format::from_raw(1_999_999_991);
+        let color_space = vk::ColorSpaceKHR::from_raw(1_999_999_992);
+        let pair = SurfaceColorPair::from_vk(vk::SurfaceFormatKHR {
+            format,
+            color_space,
+        });
+        assert!(vulkano::format::Format::try_from(format).is_err());
+        assert!(ColorSpace::try_from(color_space).is_err());
+        assert_ne!(pair, LEGACY);
+        assert_ne!(pair.color_space(), SurfaceColorSpace::SRGB_NON_LINEAR);
+        assert_eq!(pair.format().0, format);
+        assert_eq!(pair.color_space().to_string(), "1999999992");
+        assert!(pair.format().to_string().contains("1999999991"));
+        assert_eq!(
+            SurfaceColorConfig::exact(pair.format(), pair.color_space()).exact_pair(),
+            Some(pair)
+        );
     }
 }

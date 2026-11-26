@@ -254,9 +254,10 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     ///
     /// After a logical or framebuffer resize, `submit` recreates the
     /// swapchain images and framebuffers before recording the next frame. It resolves the
-    /// extent, minimum image count, surface transform and composite alpha from fresh
-    /// capabilities. A zero-sized framebuffer or surface, for example while minimized, returns
-    /// `VMNLErrorKind::VulkanOutOfDate` until it has a renderable extent again.
+    /// extent, surface transform and composite alpha from fresh capabilities. It retains the
+    /// requested minimum image count while it remains valid. The driver can still return a
+    /// different actual image count. A zero-sized framebuffer or surface, for example while
+    /// minimized, returns `VMNLErrorKind::VulkanOutOfDate` until it has a renderable extent again.
     ///
     /// Returns `Ok(())` when command recording, queue submission, presentation,
     /// and optional event polling complete without error. This does not guarantee
@@ -267,7 +268,8 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     /// Raw pipeline, geometry, and resource compatibility, raw viewport/scissor
     /// validity, and frame-uniform image counts are checked before acquisition.
     /// If acquisition requires swapchain recreation, these checks run again for
-    /// the replacement swapchain before retrying.
+    /// the replacement swapchain before retrying. If the actual image count changes, rebuild
+    /// the affected raw `FrameUniform` values and the `Resources` that bind them.
     ///
     /// Returns `TextureUploadFailed` before acquiring a swapchain image if an initial
     /// upload used by a raw draw has a known failure or its fence status query fails.

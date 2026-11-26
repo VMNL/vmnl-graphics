@@ -3221,6 +3221,7 @@ impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::VideoMode
 pub struct vmnl_graphics::Window
 impl vmnl_graphics::Window
 pub fn vmnl_graphics::Window::builder() -> vmnl_graphics::WindowBuilder
+pub fn vmnl_graphics::Window::is_surface_color_pair_selectable(&self, vmnl_graphics::SurfaceColorPair) -> vmnl_graphics::VMNLResult<bool>
 pub fn vmnl_graphics::Window::new(&vmnl_graphics::Context) -> vmnl_graphics::VMNLResult<Self>
 pub const fn vmnl_graphics::Window::render_target_config(&self) -> vmnl_graphics::RenderTargetConfig
 pub const fn vmnl_graphics::Window::render_target_info(&self) -> vmnl_graphics::RenderTargetInfo

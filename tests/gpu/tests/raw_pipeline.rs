@@ -140,6 +140,7 @@ fn depth_attachments_submit_raw_resources_and_d2_across_resize() -> VMNLResult<(
     let discovery = Window::builder().size(640, 480).build(&context)?;
     let pair = discovery.surface_color_info().pair();
     assert!(discovery.surface_color_pairs()?.contains(&pair));
+    assert!(discovery.is_surface_color_pair_selectable(pair)?);
     drop(discovery);
     for format in [
         vmnl_graphics::DepthFormat::D16Unorm,

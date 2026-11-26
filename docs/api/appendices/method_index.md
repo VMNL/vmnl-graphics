@@ -373,6 +373,7 @@
 | `vmnl_graphics::Window` | `is_scroll_polling_enabled` | [Window polling](../reference/window/polling.md) | [`is_scroll_polling_enabled`](../../../target/doc/vmnl_graphics/struct.Window.html#method.is_scroll_polling_enabled) |
 | `vmnl_graphics::Window` | `is_sticky_keys_enabled` | [Input modes](../reference/window/input/modes.md) | [`is_sticky_keys_enabled`](../../../target/doc/vmnl_graphics/struct.Window.html#method.is_sticky_keys_enabled) |
 | `vmnl_graphics::Window` | `is_sticky_mouse_buttons_enabled` | [Input modes](../reference/window/input/modes.md) | [`is_sticky_mouse_buttons_enabled`](../../../target/doc/vmnl_graphics/struct.Window.html#method.is_sticky_mouse_buttons_enabled) |
+| `vmnl_graphics::Window` | `is_surface_color_pair_selectable` | [Window](../reference/window/window.md) | [`is_surface_color_pair_selectable`](../../../target/doc/vmnl_graphics/struct.Window.html#method.is_surface_color_pair_selectable) |
 | `vmnl_graphics::Window` | `is_visible` | [Window lifecycle](../reference/window/lifecycle.md) | [`is_visible`](../../../target/doc/vmnl_graphics/struct.Window.html#method.is_visible) |
 | `vmnl_graphics::Window` | `maximize` | [Window lifecycle](../reference/window/lifecycle.md) | [`maximize`](../../../target/doc/vmnl_graphics/struct.Window.html#method.maximize) |
 | `vmnl_graphics::Window` | `monitor` | [Window configuration](../reference/window/configuration.md) | [`monitor`](../../../target/doc/vmnl_graphics/struct.Window.html#method.monitor) |
