@@ -69,6 +69,24 @@ their layout; run an update only when the underlying inventory intentionally cha
 API snapshots, symbol and method indexes, and the graphics GLFW inventory and window compatibility
 matrix. Build outputs and third-party documentation are outside this scope.
 
+## Automated checks
+
+Run `just test-markdown` (Python 3.10+ only). It runs the checker's regression tests and then
+`python3 tools/check_markdown.py`. The check is read-only, reports `file:line:rule` diagnostics,
+and exits with a nonzero status for violations or an empty Markdown inventory. It is included
+in `just validate` and the CI Quality job.
+
+Discovery includes new files, nested documentation and hidden agent guides. It skips symlinks,
+`.git`, `target`, `vendor`, `third_party`, `third-party`, `node_modules`, `.venv` and `__pycache__`
+directories. Generated-file notices exempt their files from style checks.
+
+The checker enforces UTF-8/LF, the final newline, trailing whitespace, blank-line spacing, ATX
+heading syntax, list markers and continuation indentation, table layout and prose width. It
+recognizes fenced/indented code, front matter and HTML blocks as literal regions, and applies
+the wrapping exceptions above. It does not rewrite documents or validate technical meaning.
+Link/anchor validity and preservation of existing wording, examples and section order remain
+part of documentation checks and review.
+
 ## Reviewing a formatting change
 
 Compare the Markdown structure and inline content before and after formatting. Text may differ only

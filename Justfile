@@ -284,7 +284,7 @@ _test-total report:
         validate)
             report_name='VALIDATION'
             report_unit='steps'
-            recipes=(build-workspace check-fmt check-clippy test-unit test-api test-smoke test-platform doctest docs _docs-api-check)
+            recipes=(build-workspace check-fmt test-markdown check-clippy test-unit test-api test-smoke test-platform doctest docs _docs-api-check)
             ;;
         *)
             printf 'unknown VMNL aggregate report: %s\n' '{{ report }}' >&2
@@ -347,6 +347,10 @@ _test-total report:
             check-fmt)
                 stage_name='FORMAT'
                 stage_detail='formatting checked'
+                ;;
+            test-markdown)
+                stage_name='MARKDOWN'
+                stage_detail='conventions and checker regressions checked'
                 ;;
             test-api)
                 stage_name='API'
@@ -424,6 +428,11 @@ check: check-fmt check-clippy
 # Check formatting.
 check-fmt:
     cargo fmt --all --check
+
+# Check Markdown conventions and the checker regressions without installing tools.
+test-markdown:
+    python3 -m unittest discover -s tools/tests -p test_markdown.py
+    python3 tools/check_markdown.py
 
 # Run Clippy with warnings denied.
 check-clippy:

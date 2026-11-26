@@ -36,6 +36,7 @@ target. `just validate` runs the required non-GPU build, check, Rustdoc, and hea
 
 ```text
 just test                  unit + API + smoke tests
+just test-markdown         Markdown conventions + checker regressions (Python 3.10+ only)
 just test-unit             unit tests
 just test-api              API tests
 just test-smoke            smoke tests

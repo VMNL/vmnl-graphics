@@ -9,6 +9,7 @@ Run every applicable automatic check in this order:
 ```bash
 just build-workspace
 just check-fmt
+just test-markdown
 just check-clippy
 just doctest
 just docs
@@ -28,6 +29,10 @@ just test-gpu         # when the environment supports it
 Do not reorder applicable completion checks without documenting the technical reason. Run
 `just test-gpu` only on a machine with a Vulkan-capable GPU and a display server. `just test` is the
 combined headless suite, not an additional suite.
+
+`just test-markdown` checks the [Markdown convention](docs/markdown_style.md) and its Python
+regressions. It is included in `just validate` and the CI Quality job, without Python packages
+or native graphics prerequisites.
 
 - Public API changes update Rustdoc and API tests.
 - Feature, public API, and architecture changes preserve the project direction, control model, and
