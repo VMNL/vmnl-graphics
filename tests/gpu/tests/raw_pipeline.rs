@@ -128,6 +128,88 @@ fn two_uniform_pipeline(window: &Window) -> VMNLResult<raw::Pipeline<RawVertex>>
 }
 
 #[test]
+#[ignore = "Requires Vulkan + GLFW display and reported nonlinear sRGB surface pairs."]
+fn managed_surface_policy_preserves_raw_draws_on_srgb_and_unorm() -> VMNLResult<()> {
+    use vmnl_graphics::common::Rgba;
+    use vmnl_graphics::d2::{Shape, TexturedVertex2D, Vector2f};
+    use vmnl_graphics::texture::{PixelSource, Texture2D, TextureFormat};
+    use vmnl_graphics::{ColorFormat, SurfaceColorConfig, SurfaceColorPair, SurfaceColorSpace};
+
+    let _guard = gpu_test_guard();
+    let context = Context::new()?;
+    let geometry = triangle(&context)?;
+    let source = PixelSource::new(1, 1, TextureFormat::Rgba8Srgb, &[128, 128, 128, 255])?;
+    let view = Texture2D::from_pixels(&context, source).build()?.view();
+    let vertices = [[20.0, 20.0], [80.0, 20.0], [20.0, 80.0]].map(|[x, y]| TexturedVertex2D {
+        position: Vector2f { x, y },
+        color: Rgba::WHITE,
+        uv: [0.5, 0.5],
+    });
+    let space = SurfaceColorSpace::SRGB_NON_LINEAR;
+    for (formats, accepts_managed) in [
+        (
+            [ColorFormat::B8G8R8A8_SRGB, ColorFormat::R8G8B8A8_SRGB],
+            true,
+        ),
+        (
+            [ColorFormat::B8G8R8A8_UNORM, ColorFormat::R8G8B8A8_UNORM],
+            false,
+        ),
+    ] {
+        let request =
+            SurfaceColorConfig::prefer(formats.map(|format| SurfaceColorPair::new(format, space)))?;
+        let mut window = match Window::builder()
+            .size(640, 480)
+            .surface_color(request)
+            .build(&context)
+        {
+            Err(error) if matches!(error.kind(), VMNLErrorKind::SurfaceColorUnavailable { .. }) => {
+                println!("No compatible {formats:?} / {space} pair reported");
+                continue;
+            }
+            result => result?,
+        };
+        let pair = window.surface_color_info().pair();
+        assert_eq!(pair.color_space(), space);
+        assert!(formats.contains(&pair.format()));
+        assert_eq!(window.render_target_info().color_format(), pair.format());
+
+        let textured = Shape::indexed_textured(vertices, [0, 1, 2], &view).build(&window);
+        let shape = if accepts_managed {
+            Some(textured?)
+        } else {
+            assert!(matches!(textured, Err(error)
+                if matches!(error.kind(), VMNLErrorKind::UnsupportedManagedColorTarget { pair: actual }
+                    if *actual == pair)));
+            None
+        };
+
+        let pipeline = uniform_pipeline(&window)?;
+        let tint = raw::Uniform::builder(Tint {
+            tint: [0.25, 0.5, 0.75, 1.0],
+        })
+        .build(&context)?;
+        let resources = raw::Resources::builder(&pipeline)
+            .uniform(0, 0, &tint)
+            .build(&context)?;
+        let mut frame = window.render();
+        if let Some(shape) = &shape {
+            frame = frame.draw2d([shape]);
+        }
+        frame
+            .draw_raw_2d_with(&pipeline, &resources, [&geometry])
+            .submit()?;
+        assert_eq!(window.surface_color_info().pair(), pair);
+        println!(
+            "{} / {}: managed accepted={accepts_managed}, raw submission passed",
+            pair.format(),
+            pair.color_space()
+        );
+    }
+    Ok(())
+}
+
+#[test]
 #[ignore = "Requires Vulkan + GLFW display."]
 fn depth_attachments_submit_raw_resources_and_d2_across_resize() -> VMNLResult<()> {
     let _guard = gpu_test_guard();

@@ -78,6 +78,9 @@
 | struct | `vmnl_graphics::d2::RectBuilder` | [RectBuilder](../reference/d2/shapes/rect_builder.md) | [Rustdoc](../../../target/doc/vmnl_graphics/d2/struct.RectBuilder.html) |
 | struct | `vmnl_graphics::d2::RenderItem2D` | [RenderItem2D](../reference/d2/render_item_2d.md) | [Rustdoc](../../../target/doc/vmnl_graphics/d2/struct.RenderItem2D.html) |
 | struct | `vmnl_graphics::d2::Shape` | [Shape](../reference/d2/shapes/shape.md) | [Rustdoc](../../../target/doc/vmnl_graphics/d2/struct.Shape.html) |
+| struct | `vmnl_graphics::d2::TexturedShape` | [Indexed textured shapes](../reference/d2/textured_shape.md) | [Rustdoc](../../../target/doc/vmnl_graphics/d2/struct.TexturedShape.html) |
+| struct | `vmnl_graphics::d2::TexturedShapeBuilder` | [Indexed textured shapes](../reference/d2/textured_shape.md) | [Rustdoc](../../../target/doc/vmnl_graphics/d2/struct.TexturedShapeBuilder.html) |
+| struct | `vmnl_graphics::d2::TexturedVertex2D` | [Indexed textured shapes](../reference/d2/textured_shape.md) | [Rustdoc](../../../target/doc/vmnl_graphics/d2/struct.TexturedVertex2D.html) |
 | struct | `vmnl_graphics::d2::TriangleBuilder` | [TriangleBuilder](../reference/d2/shapes/triangle_builder.md) | [Rustdoc](../../../target/doc/vmnl_graphics/d2/struct.TriangleBuilder.html) |
 | struct | `vmnl_graphics::d2::Vector2f` | [Vector2f](../reference/d2/vector_2f.md) | [Rustdoc](../../../target/doc/vmnl_graphics/d2/struct.Vector2f.html) |
 | struct | `vmnl_graphics::d2::Vertex2D` | [Vertex2D](../reference/d2/vertex_2d.md) | [Rustdoc](../../../target/doc/vmnl_graphics/d2/struct.Vertex2D.html) |

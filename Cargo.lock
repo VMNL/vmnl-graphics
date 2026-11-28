@@ -209,6 +209,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "d2_textured_color"
+version = "0.1.0"
+dependencies = [
+ "vmnl_graphics",
+]
+
+[[package]]
 name = "d2_triangle"
 version = "0.1.0"
 dependencies = [

@@ -4,10 +4,13 @@
 //! Vulkan graphics pipeline and shader module creation helpers.
 
 use super::VMNLWindow;
-use crate::common::{BlendMode, ShaderSource};
-use crate::d2::GpuVertex2D;
-use crate::window::shaders::{WindowShaders, DEFAULT_FRAGMENT_SHADER, DEFAULT_VERTEX_SHADER};
-use crate::{VMNLError, VMNLErrorKind, VMNLResult};
+use crate::common::{BlendMode, ColorBlendConfig, ShaderSource};
+use crate::d2::{GpuTexturedVertex2D, GpuVertex2D};
+use crate::window::shaders::{
+    WindowShaders, DEFAULT_FRAGMENT_SHADER, DEFAULT_VERTEX_SHADER, TEXTURED_FRAGMENT_SHADER,
+    TEXTURED_VERTEX_SHADER,
+};
+use crate::{VMNLError, VMNLErrorKind, VMNLResult, Window};
 use std::sync::Arc;
 use vulkano::{
     device::Device,
@@ -101,8 +104,9 @@ impl VMNLWindow {
     ///
     /// # Arguments
     /// - `device`: Logical Vulkan device.
-    /// - `swapchain`: Swapchain to determine image extent.
     /// - `render_pass`: Render pass the pipeline must be compatible with.
+    /// - `shaders`: Optional client shaders for the color-only path.
+    /// - `blend_mode`: Opaque or alpha blending for color-only draws.
     ///
     /// # Sources
     /// <https://registry.khronos.org/vulkan/specs/1.3-extensions/html/chap9.html>
@@ -112,6 +116,27 @@ impl VMNLWindow {
         render_pass: &Arc<RenderPass>,
         shaders: &WindowShaders,
         blend_mode: BlendMode,
+    ) -> VMNLResult<Arc<GraphicsPipeline>> {
+        let attachment = match blend_mode {
+            BlendMode::Opaque => ColorBlendAttachmentState::default(),
+            BlendMode::Alpha => ColorBlendAttachmentState {
+                blend: Some(AttachmentBlend::alpha()),
+                ..Default::default()
+            },
+        };
+        Self::create_2d_pipeline::<GpuVertex2D>(
+            device,
+            render_pass,
+            shaders,
+            ColorBlendState::with_attachment_states(1, attachment),
+        )
+    }
+
+    fn create_2d_pipeline<T: VulkanoVertex>(
+        device: &Arc<Device>,
+        render_pass: &Arc<RenderPass>,
+        shaders: &WindowShaders,
+        blend: ColorBlendState,
     ) -> VMNLResult<Arc<GraphicsPipeline>> {
         let compiler: shaderc::Compiler = shaderc::Compiler::new()
             .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanShaderCompilationFailed))?;
@@ -178,17 +203,9 @@ impl VMNLWindow {
         .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanPipelineLayoutCreationFailed))?;
         let subpass: Subpass = Subpass::from(render_pass.clone(), 0)
             .ok_or_else(|| VMNLError::new(VMNLErrorKind::VulkanRenderPassCreationFailed))?;
-        let vertex_input_state: VertexInputState = GpuVertex2D::per_vertex()
+        let vertex_input_state: VertexInputState = T::per_vertex()
             .definition(&vs)
             .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanValidationFailed))?;
-        let color_blend_attachment_state = match blend_mode {
-            BlendMode::Opaque => ColorBlendAttachmentState::default(),
-            BlendMode::Alpha => ColorBlendAttachmentState {
-                blend: Some(AttachmentBlend::alpha()),
-                ..Default::default()
-            },
-        };
-
         GraphicsPipeline::new(
             device.clone(),
             None,
@@ -205,14 +222,28 @@ impl VMNLWindow {
                     .depth_stencil_attachment
                     .as_ref()
                     .map(|_| DepthStencilState::default()),
-                color_blend_state: Some(ColorBlendState::with_attachment_states(
-                    subpass.num_color_attachments(),
-                    color_blend_attachment_state,
-                )),
+                color_blend_state: Some(blend),
                 subpass: Some(subpass.into()),
                 ..GraphicsPipelineCreateInfo::layout(layout)
             },
         )
         .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanPipelineCreationFailed))
+    }
+}
+
+impl Window {
+    pub(crate) fn create_textured_2d_pipeline(
+        &self,
+        blend: ColorBlendConfig,
+    ) -> VMNLResult<Arc<GraphicsPipeline>> {
+        VMNLWindow::create_2d_pipeline::<GpuTexturedVertex2D>(
+            &self.device(),
+            &self.render_pass(),
+            &WindowShaders {
+                vertex: Some(ShaderSource::Src(TEXTURED_VERTEX_SHADER.into())),
+                fragment: Some(ShaderSource::Src(TEXTURED_FRAGMENT_SHADER.into())),
+            },
+            crate::raw::color_blend_state(blend),
+        )
     }
 }

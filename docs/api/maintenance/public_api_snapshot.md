@@ -579,6 +579,8 @@ pub fn vmnl_graphics::d2::Shape::polyline<P>(P) -> vmnl_graphics::d2::PolylineBu
 pub fn vmnl_graphics::d2::Shape::rect(f32, f32) -> vmnl_graphics::d2::RectBuilder
 pub fn vmnl_graphics::d2::Shape::triangle(vmnl_graphics::d2::Vector2f, vmnl_graphics::d2::Vector2f, vmnl_graphics::d2::Vector2f) -> vmnl_graphics::d2::TriangleBuilder
 pub fn vmnl_graphics::d2::Shape::triangle_from_vertices([vmnl_graphics::d2::Vertex2D; 3]) -> vmnl_graphics::d2::TriangleBuilder
+impl vmnl_graphics::d2::Shape
+pub fn vmnl_graphics::d2::Shape::indexed_textured(impl core::iter::traits::collect::IntoIterator<Item = vmnl_graphics::d2::TexturedVertex2D>, impl core::iter::traits::collect::IntoIterator<Item = u32>, &vmnl_graphics::texture::TextureView2D) -> vmnl_graphics::d2::TexturedShapeBuilder
 impl core::convert::AsRef<vmnl_graphics::d2::Shape> for vmnl_graphics::d2::Shape
 pub fn vmnl_graphics::d2::Shape::as_ref(&self) -> &Self
 impl core::ops::drop::Drop for vmnl_graphics::d2::Shape
@@ -592,6 +594,56 @@ impl core::marker::Unpin for vmnl_graphics::d2::Shape
 impl core::marker::UnsafeUnpin for vmnl_graphics::d2::Shape
 impl !core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::d2::Shape
 impl !core::panic::unwind_safe::UnwindSafe for vmnl_graphics::d2::Shape
+pub struct vmnl_graphics::d2::TexturedShape
+impl vmnl_graphics::d2::TexturedShape
+pub const fn vmnl_graphics::d2::TexturedShape::color_blend_config(&self) -> vmnl_graphics::common::ColorBlendConfig
+pub const fn vmnl_graphics::d2::TexturedShape::modulation_encoding(&self) -> vmnl_graphics::texture::ColorEncoding
+pub const fn vmnl_graphics::d2::TexturedShape::sampler_config(&self) -> vmnl_graphics::texture::SamplerConfig
+pub const fn vmnl_graphics::d2::TexturedShape::tint(&self) -> vmnl_graphics::common::Rgba
+pub const fn vmnl_graphics::d2::TexturedShape::view(&self) -> &vmnl_graphics::texture::TextureView2D
+impl vmnl_graphics::d2::Drawable2D for vmnl_graphics::d2::TexturedShape
+pub fn vmnl_graphics::d2::TexturedShape::render_item_2d(&self) -> vmnl_graphics::d2::RenderItem2D
+impl core::marker::Freeze for vmnl_graphics::d2::TexturedShape
+impl !core::marker::Send for vmnl_graphics::d2::TexturedShape
+impl !core::marker::Sync for vmnl_graphics::d2::TexturedShape
+impl core::marker::Unpin for vmnl_graphics::d2::TexturedShape
+impl core::marker::UnsafeUnpin for vmnl_graphics::d2::TexturedShape
+impl !core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::d2::TexturedShape
+impl !core::panic::unwind_safe::UnwindSafe for vmnl_graphics::d2::TexturedShape
+pub struct vmnl_graphics::d2::TexturedShapeBuilder
+impl vmnl_graphics::d2::TexturedShapeBuilder
+pub const fn vmnl_graphics::d2::TexturedShapeBuilder::buffer_memory_preference(self, vmnl_graphics::common::BufferMemoryPreference) -> Self
+pub fn vmnl_graphics::d2::TexturedShapeBuilder::build(self, &vmnl_graphics::Window) -> vmnl_graphics::VMNLResult<vmnl_graphics::d2::TexturedShape>
+pub const fn vmnl_graphics::d2::TexturedShapeBuilder::color_blend(self, vmnl_graphics::common::ColorBlendConfig) -> Self
+pub const fn vmnl_graphics::d2::TexturedShapeBuilder::modulation_encoding(self, vmnl_graphics::texture::ColorEncoding) -> Self
+pub fn vmnl_graphics::d2::TexturedShapeBuilder::sampler(self, &vmnl_graphics::texture::Sampler) -> Self
+pub fn vmnl_graphics::d2::TexturedShapeBuilder::tint(self, impl core::convert::Into<vmnl_graphics::common::Rgba>) -> Self
+impl core::marker::Freeze for vmnl_graphics::d2::TexturedShapeBuilder
+impl !core::marker::Send for vmnl_graphics::d2::TexturedShapeBuilder
+impl !core::marker::Sync for vmnl_graphics::d2::TexturedShapeBuilder
+impl core::marker::Unpin for vmnl_graphics::d2::TexturedShapeBuilder
+impl core::marker::UnsafeUnpin for vmnl_graphics::d2::TexturedShapeBuilder
+impl !core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::d2::TexturedShapeBuilder
+impl !core::panic::unwind_safe::UnwindSafe for vmnl_graphics::d2::TexturedShapeBuilder
+pub struct vmnl_graphics::d2::TexturedVertex2D
+pub vmnl_graphics::d2::TexturedVertex2D::color: vmnl_graphics::common::Rgba
+pub vmnl_graphics::d2::TexturedVertex2D::position: vmnl_graphics::d2::Vector2f
+pub vmnl_graphics::d2::TexturedVertex2D::uv: [f32; 2]
+impl core::clone::Clone for vmnl_graphics::d2::TexturedVertex2D
+pub fn vmnl_graphics::d2::TexturedVertex2D::clone(&self) -> vmnl_graphics::d2::TexturedVertex2D
+impl core::cmp::PartialEq for vmnl_graphics::d2::TexturedVertex2D
+pub fn vmnl_graphics::d2::TexturedVertex2D::eq(&self, &vmnl_graphics::d2::TexturedVertex2D) -> bool
+impl core::fmt::Debug for vmnl_graphics::d2::TexturedVertex2D
+pub fn vmnl_graphics::d2::TexturedVertex2D::fmt(&self, &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+impl core::marker::Copy for vmnl_graphics::d2::TexturedVertex2D
+impl core::marker::StructuralPartialEq for vmnl_graphics::d2::TexturedVertex2D
+impl core::marker::Freeze for vmnl_graphics::d2::TexturedVertex2D
+impl core::marker::Send for vmnl_graphics::d2::TexturedVertex2D
+impl core::marker::Sync for vmnl_graphics::d2::TexturedVertex2D
+impl core::marker::Unpin for vmnl_graphics::d2::TexturedVertex2D
+impl core::marker::UnsafeUnpin for vmnl_graphics::d2::TexturedVertex2D
+impl core::panic::unwind_safe::RefUnwindSafe for vmnl_graphics::d2::TexturedVertex2D
+impl core::panic::unwind_safe::UnwindSafe for vmnl_graphics::d2::TexturedVertex2D
 pub struct vmnl_graphics::d2::TriangleBuilder
 impl vmnl_graphics::d2::TriangleBuilder
 pub const fn vmnl_graphics::d2::TriangleBuilder::buffer_memory_preference(self, vmnl_graphics::common::BufferMemoryPreference) -> Self
@@ -681,6 +733,8 @@ pub trait vmnl_graphics::d2::Drawable2D
 pub fn vmnl_graphics::d2::Drawable2D::render_item_2d(&self) -> vmnl_graphics::d2::RenderItem2D
 impl vmnl_graphics::d2::Drawable2D for vmnl_graphics::d2::Shape
 pub fn vmnl_graphics::d2::Shape::render_item_2d(&self) -> vmnl_graphics::d2::RenderItem2D
+impl vmnl_graphics::d2::Drawable2D for vmnl_graphics::d2::TexturedShape
+pub fn vmnl_graphics::d2::TexturedShape::render_item_2d(&self) -> vmnl_graphics::d2::RenderItem2D
 pub mod vmnl_graphics::raw
 pub use vmnl_graphics::raw::Pod
 pub use vmnl_graphics::raw::Vertex
@@ -2425,6 +2479,8 @@ pub vmnl_graphics::VMNLErrorKind::TextureCpuAllocationFailed(alloc::string::Stri
 pub vmnl_graphics::VMNLErrorKind::TextureDecodeFailed(alloc::string::String)
 pub vmnl_graphics::VMNLErrorKind::TextureSourceReadFailed(alloc::string::String)
 pub vmnl_graphics::VMNLErrorKind::TextureUploadFailed(alloc::string::String)
+pub vmnl_graphics::VMNLErrorKind::UnsupportedManagedColorTarget
+pub vmnl_graphics::VMNLErrorKind::UnsupportedManagedColorTarget::pair: vmnl_graphics::SurfaceColorPair
 pub vmnl_graphics::VMNLErrorKind::UnsupportedTextureSource(alloc::string::String)
 pub vmnl_graphics::VMNLErrorKind::VulkanCommandBufferCreationFailed
 pub vmnl_graphics::VMNLErrorKind::VulkanDescriptorPoolCreationFailed

@@ -12,6 +12,9 @@ Owns GPU-backed 2D geometry accepted by `FrameRenderer::draw2d`.
 
 Builder entry points: `circle(radius)`, `rect(w, h)`, `indexed(vertices, indices)`, `triangle(a, b, c)`, `triangle_from_vertices([Vertex2D; 3])`, `polygon(points)`, `polygon_from_vertices(vertices)`, `line(from, to)`, and `polyline(points)`. Implements `Drawable2D` and `AsRef<Shape>`; fields and direct construction are private.
 
+`indexed_textured(vertices, indices, view)` starts the separate
+[indexed textured shape builder](../textured_shape.md) for managed texture color.
+
 `circle` returns the inferred [`CircleBuilder`](circle_builder.md), with outlined geometry by default.
 Use `.ellipse(radius_y)` for a second radius, `.width(w)` for a ring, and
 `.sector(start, sweep).cap(LineCap::...)` for a sector or arc. `Shape::ellipse` and `EllipseBuilder`

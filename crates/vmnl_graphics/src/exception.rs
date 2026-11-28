@@ -90,6 +90,11 @@ pub enum VMNLErrorKind {
         /// The pair that the window requires to resume rendering.
         pair: crate::SurfaceColorPair,
     },
+    /// The selected surface pair is unsupported by managed textured 2D rendering.
+    UnsupportedManagedColorTarget {
+        /// Actual attachment format and presentation color space.
+        pair: crate::SurfaceColorPair,
+    },
     /// Vulkan swapchain creation failed.
     VulkanSwapchainCreationFailed,
     /// Swapchain replacement failed after retirement. The window must be rebuilt.
@@ -349,6 +354,12 @@ impl fmt::Display for VMNLError {
             VMNLErrorKind::SurfaceColorPairLost { pair } => {
                 write!(f, "surface no longer offers {} / {}", pair.format(), pair.color_space())
             }
+            VMNLErrorKind::UnsupportedManagedColorTarget { pair } => write!(
+                f,
+                "managed textured 2D requires an RGBA8 or BGRA8 sRGB attachment with nonlinear sRGB presentation, got {} / {}",
+                pair.format(),
+                pair.color_space()
+            ),
             VMNLErrorKind::VulkanSwapchainCreationFailed => {
                 f.write_str("vulkan swapchain creation failed")
             }

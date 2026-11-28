@@ -25,6 +25,7 @@ just build <example>
 | [`d2_ring`](d2/ring/src/main.rs) | `just run d2_ring` | Two complete rings show a width on the left and an explicit inner offset on the right. |
 | [`d2_rounded_rectangle`](d2/rounded_rectangle/src/main.rs) | `just run d2_rounded_rectangle` | Compare uniform, asymmetric, rotated and partially rounded corners. |
 | [`d2_sector`](d2/sector/src/main.rs) | `just run d2_sector` | A green filled quarter-circle appears, with two straight radial edges. |
+| [`d2_textured_color`](d2/textured_color/src/main.rs) | `just run d2_textured_color` | Compare straight and premultiplied panels over black and white. With the reported sRGB target, both panels should match before and after resize. Escape closes. |
 | [`d2_triangle`](d2/triangle/src/main.rs) | `just run d2_triangle` | Equivalent triangles show the same three-color gradient through the two triangle constructors. |
 | [`input_cursor`](input/cursor/src/main.rs) | `just run input_cursor` | Press S for the standard pointing hand, U for a custom cross and O for the backend default. |
 | [`input_cursor_modes`](input/cursor_modes/src/main.rs) | `just run input_cursor_modes` | Move the mouse and press N/V/D/G to change modes. Press P to center it on supported backends. In Disabled mode, M toggles raw motion where supported. |

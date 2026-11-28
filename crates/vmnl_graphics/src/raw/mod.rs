@@ -2911,7 +2911,7 @@ fn raw_rasterization_state(
     }
 }
 
-fn color_blend_state(config: ColorBlendConfig) -> ColorBlendState {
+pub(crate) fn color_blend_state(config: ColorBlendConfig) -> ColorBlendState {
     let blend = config.blend_enabled().then_some(AttachmentBlend {
         src_color_blend_factor: config.color_source_factor().to_vulkano(),
         dst_color_blend_factor: config.color_destination_factor().to_vulkano(),

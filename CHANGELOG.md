@@ -15,6 +15,8 @@ Notable user-facing changes are recorded here.
   Ordered preferences skip formats without blending support. Resize preserves the resolved pair.
   The inventory preserves all reported pairs, with a separate selectability check and optional
   Vulkan support for extended presentation color spaces.
+- Indexed 2D shapes can sample a texture on native sRGB window targets with explicit
+  color modulation and straight, premultiplied, or opaque alpha handling.
 - Circle builder getters expose the selected fill mode and stored inner/outer offsets.
 - `vmnl_graphics::time::{Clock, Duration}`: an owned elapsed-time `Clock` for independent
   measurements such as frame deltas, with explicit `pause`/`resume`/`restart`, backed by

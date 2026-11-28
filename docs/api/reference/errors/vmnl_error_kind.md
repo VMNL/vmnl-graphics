@@ -20,6 +20,7 @@ Classifies initialization, windowing, Vulkan, validation, and client-state failu
 | Device requirements | `DeviceRequirementsNotMet { required_features: Vec<DeviceFeature> }` |
 | Pipeline rasterization | `DeviceFeatureNotEnabled { feature: DeviceFeature }`, `InvalidLineWidth { value: f32, min: f32, max: f32 }` |
 | Surface color and recreation | `VulkanSurfaceColorQueryFailed`, `SurfaceColorUnavailable { requested: SurfaceColorConfig }`, `SurfaceColorPairLost { pair: SurfaceColorPair }`, `SwapchainRecreationRequiresNewWindow` |
+| Managed textured 2D output | `UnsupportedManagedColorTarget { pair: SurfaceColorPair }` |
 
 Only `Debug` is derived. Human-readable text is provided through `VMNLError`'s `Display` implementation.
 

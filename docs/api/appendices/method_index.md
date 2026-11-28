@@ -578,6 +578,7 @@
 | `vmnl_graphics::d2::Shape` | `circle` | [Shape](../reference/d2/shapes/shape.md) | [`circle`](../../../target/doc/vmnl_graphics/d2/struct.Shape.html#method.circle) |
 | `vmnl_graphics::d2::Shape` | `drop` | [Shape](../reference/d2/shapes/shape.md) | [`drop`](../../../target/doc/vmnl_graphics/d2/struct.Shape.html#method.drop) |
 | `vmnl_graphics::d2::Shape` | `indexed` | [Shape](../reference/d2/shapes/shape.md) | [`indexed`](../../../target/doc/vmnl_graphics/d2/struct.Shape.html#method.indexed) |
+| `vmnl_graphics::d2::Shape` | `indexed_textured` | [Shape](../reference/d2/shapes/shape.md) | [`indexed_textured`](../../../target/doc/vmnl_graphics/d2/struct.Shape.html#method.indexed_textured) |
 | `vmnl_graphics::d2::Shape` | `line` | [Shape](../reference/d2/shapes/shape.md) | [`line`](../../../target/doc/vmnl_graphics/d2/struct.Shape.html#method.line) |
 | `vmnl_graphics::d2::Shape` | `polygon` | [Shape](../reference/d2/shapes/shape.md) | [`polygon`](../../../target/doc/vmnl_graphics/d2/struct.Shape.html#method.polygon) |
 | `vmnl_graphics::d2::Shape` | `polygon_from_vertices` | [Shape](../reference/d2/shapes/shape.md) | [`polygon_from_vertices`](../../../target/doc/vmnl_graphics/d2/struct.Shape.html#method.polygon_from_vertices) |
@@ -586,6 +587,21 @@
 | `vmnl_graphics::d2::Shape` | `render_item_2d` | [Shape](../reference/d2/shapes/shape.md) | [`render_item_2d`](../../../target/doc/vmnl_graphics/d2/struct.Shape.html#method.render_item_2d) |
 | `vmnl_graphics::d2::Shape` | `triangle` | [Shape](../reference/d2/shapes/shape.md) | [`triangle`](../../../target/doc/vmnl_graphics/d2/struct.Shape.html#method.triangle) |
 | `vmnl_graphics::d2::Shape` | `triangle_from_vertices` | [Shape](../reference/d2/shapes/shape.md) | [`triangle_from_vertices`](../../../target/doc/vmnl_graphics/d2/struct.Shape.html#method.triangle_from_vertices) |
+| `vmnl_graphics::d2::TexturedShape` | `color_blend_config` | [Indexed textured shapes](../reference/d2/textured_shape.md) | [`color_blend_config`](../../../target/doc/vmnl_graphics/d2/struct.TexturedShape.html#method.color_blend_config) |
+| `vmnl_graphics::d2::TexturedShape` | `modulation_encoding` | [Indexed textured shapes](../reference/d2/textured_shape.md) | [`modulation_encoding`](../../../target/doc/vmnl_graphics/d2/struct.TexturedShape.html#method.modulation_encoding) |
+| `vmnl_graphics::d2::TexturedShape` | `render_item_2d` | [Indexed textured shapes](../reference/d2/textured_shape.md) | [`render_item_2d`](../../../target/doc/vmnl_graphics/d2/struct.TexturedShape.html#method.render_item_2d) |
+| `vmnl_graphics::d2::TexturedShape` | `sampler_config` | [Indexed textured shapes](../reference/d2/textured_shape.md) | [`sampler_config`](../../../target/doc/vmnl_graphics/d2/struct.TexturedShape.html#method.sampler_config) |
+| `vmnl_graphics::d2::TexturedShape` | `tint` | [Indexed textured shapes](../reference/d2/textured_shape.md) | [`tint`](../../../target/doc/vmnl_graphics/d2/struct.TexturedShape.html#method.tint) |
+| `vmnl_graphics::d2::TexturedShape` | `view` | [Indexed textured shapes](../reference/d2/textured_shape.md) | [`view`](../../../target/doc/vmnl_graphics/d2/struct.TexturedShape.html#method.view) |
+| `vmnl_graphics::d2::TexturedShapeBuilder` | `buffer_memory_preference` | [Indexed textured shapes](../reference/d2/textured_shape.md) | [`buffer_memory_preference`](../../../target/doc/vmnl_graphics/d2/struct.TexturedShapeBuilder.html#method.buffer_memory_preference) |
+| `vmnl_graphics::d2::TexturedShapeBuilder` | `build` | [Indexed textured shapes](../reference/d2/textured_shape.md) | [`build`](../../../target/doc/vmnl_graphics/d2/struct.TexturedShapeBuilder.html#method.build) |
+| `vmnl_graphics::d2::TexturedShapeBuilder` | `color_blend` | [Indexed textured shapes](../reference/d2/textured_shape.md) | [`color_blend`](../../../target/doc/vmnl_graphics/d2/struct.TexturedShapeBuilder.html#method.color_blend) |
+| `vmnl_graphics::d2::TexturedShapeBuilder` | `modulation_encoding` | [Indexed textured shapes](../reference/d2/textured_shape.md) | [`modulation_encoding`](../../../target/doc/vmnl_graphics/d2/struct.TexturedShapeBuilder.html#method.modulation_encoding) |
+| `vmnl_graphics::d2::TexturedShapeBuilder` | `sampler` | [Indexed textured shapes](../reference/d2/textured_shape.md) | [`sampler`](../../../target/doc/vmnl_graphics/d2/struct.TexturedShapeBuilder.html#method.sampler) |
+| `vmnl_graphics::d2::TexturedShapeBuilder` | `tint` | [Indexed textured shapes](../reference/d2/textured_shape.md) | [`tint`](../../../target/doc/vmnl_graphics/d2/struct.TexturedShapeBuilder.html#method.tint) |
+| `vmnl_graphics::d2::TexturedVertex2D` | `clone` | [Indexed textured shapes](../reference/d2/textured_shape.md) | [`clone`](../../../target/doc/vmnl_graphics/d2/struct.TexturedVertex2D.html#method.clone) |
+| `vmnl_graphics::d2::TexturedVertex2D` | `eq` | [Indexed textured shapes](../reference/d2/textured_shape.md) | [`eq`](../../../target/doc/vmnl_graphics/d2/struct.TexturedVertex2D.html#method.eq) |
+| `vmnl_graphics::d2::TexturedVertex2D` | `fmt` | [Indexed textured shapes](../reference/d2/textured_shape.md) | [`fmt`](../../../target/doc/vmnl_graphics/d2/struct.TexturedVertex2D.html#method.fmt) |
 | `vmnl_graphics::d2::TriangleBuilder` | `buffer_memory_preference` | [TriangleBuilder](../reference/d2/shapes/triangle_builder.md) | [`buffer_memory_preference`](../../../target/doc/vmnl_graphics/d2/struct.TriangleBuilder.html#method.buffer_memory_preference) |
 | `vmnl_graphics::d2::TriangleBuilder` | `build` | [TriangleBuilder](../reference/d2/shapes/triangle_builder.md) | [`build`](../../../target/doc/vmnl_graphics/d2/struct.TriangleBuilder.html#method.build) |
 | `vmnl_graphics::d2::TriangleBuilder` | `color` | [TriangleBuilder](../reference/d2/shapes/triangle_builder.md) | [`color`](../../../target/doc/vmnl_graphics/d2/struct.TriangleBuilder.html#method.color) |

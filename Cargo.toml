@@ -16,6 +16,7 @@ members = [
     "examples/d2/ring",
     "examples/d2/rounded_rectangle",
     "examples/d2/sector",
+    "examples/d2/textured_color",
     "examples/d2/triangle",
     "examples/input/cursor",
     "examples/input/cursor_modes",

@@ -272,6 +272,13 @@ impl Window {
         self.inner.handle.vmnl_instance.memory_allocator.clone()
     }
 
+    /// Clones the context for constructing resources bound to this window.
+    pub(crate) fn resource_context(&self) -> Context {
+        Context {
+            inner: self.inner.handle.vmnl_instance.clone(),
+        }
+    }
+
     pub(crate) fn render_pass(&self) -> Arc<RenderPass> {
         self.inner.handle.render_pass.clone()
     }

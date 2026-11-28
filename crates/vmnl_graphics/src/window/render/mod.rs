@@ -10,7 +10,7 @@ mod acquire;
 mod command_buffer;
 mod sync;
 
-use crate::d2::RenderItem2D;
+use crate::d2::{Draw2D, RenderItem2D, TexturedDraw};
 use crate::raw::{PendingFrameUniformWrite, RenderItemRaw};
 use crate::texture::TextureUploadDependency;
 use crate::window::{inner::VMNLWindow, RenderMode};
@@ -32,11 +32,27 @@ fn raw_draw_items(commands: &[RenderPassCommand]) -> impl Iterator<Item = &Rende
     })
 }
 
+fn textured_draw_items(commands: &[RenderPassCommand]) -> impl Iterator<Item = &TexturedDraw> {
+    commands
+        .iter()
+        .flat_map(|command| match command {
+            RenderPassCommand::D2 { items } => items.as_slice(),
+            RenderPassCommand::Raw { .. } => &[],
+        })
+        .filter_map(|item| match &item.draw {
+            Draw2D::Textured(draw) => Some(draw.as_ref()),
+            Draw2D::Color(_) => None,
+        })
+}
+
 fn prepare_texture_uploads(
     commands: &[RenderPassCommand],
 ) -> VMNLResult<Vec<TextureUploadDependency>> {
     let mut dependencies = Vec::new();
-    for dependency in raw_draw_items(commands).flat_map(RenderItemRaw::upload_dependencies) {
+    let uploads = raw_draw_items(commands)
+        .flat_map(RenderItemRaw::upload_dependencies)
+        .chain(textured_draw_items(commands).map(|draw| draw.upload.clone()));
+    for dependency in uploads {
         if !dependencies
             .iter()
             .any(|seen| Arc::ptr_eq(seen, &dependency))
@@ -654,8 +670,11 @@ mod tests {
     }
 
     fn install_rgba8_readback_target(window: &mut Window) -> Option<Arc<Image>> {
+        install_color_readback_target(window, Format::R8G8B8A8_UNORM)
+    }
+
+    fn install_color_readback_target(window: &mut Window, format: Format) -> Option<Arc<Image>> {
         let device = window.device();
-        let format = Format::R8G8B8A8_UNORM;
         let usage = ImageUsage::COLOR_ATTACHMENT | ImageUsage::TRANSFER_SRC;
         let properties = device
             .physical_device()
@@ -725,6 +744,112 @@ mod tests {
             crate::RenderTargetInfo::from_render_pass(&render_pass)
                 .expect("readback render target properties should resolve");
         Some(image)
+    }
+
+    #[test]
+    #[ignore = "Requires Vulkan + GLFW display and a native sRGB target."]
+    fn managed_indexed_textures_apply_linear_modulation_and_blending() -> VMNLResult<()> {
+        use crate::common::Rgba;
+        use crate::d2::{Drawable2D, Shape, TexturedVertex2D, Vector2f};
+        use crate::{ColorFormat, SurfaceColorConfig, SurfaceColorPair, SurfaceColorSpace};
+
+        let _guard = crate::test_support::gpu_test_guard();
+        let context = Context::new()?;
+        let space = SurfaceColorSpace::SRGB_NON_LINEAR;
+        let request = SurfaceColorConfig::prefer([
+            SurfaceColorPair::new(ColorFormat::R8G8B8A8_SRGB, space),
+            SurfaceColorPair::new(ColorFormat::B8G8R8A8_SRGB, space),
+        ])?;
+        let mut window = match Window::builder()
+            .size(640, 480)
+            .set_clear_color([0, 0, 0, 0])
+            .surface_color(request)
+            .build(&context)
+        {
+            Err(error) if matches!(error.kind(), VMNLErrorKind::SurfaceColorUnavailable { .. }) => {
+                log::info!("no RGBA8/BGRA8 nonlinear sRGB surface pair; skipped");
+                return Ok(());
+            }
+            result => result?,
+        };
+        let format = window.inner.handle.swapchain.image_format();
+        let Some(target) = install_color_readback_target(&mut window, format) else {
+            log::info!("the selected sRGB format does not support color and transfer; skipped");
+            return Ok(());
+        };
+        let sampler = Sampler::builder(&context)
+            .config(SamplerConfig::nearest())
+            .build()?;
+        let textured_cell = |left: f32, top: f32, pixels: [u8; 4], alpha, tint: Rgba| {
+            let source =
+                PixelSource::new(1, 1, TextureFormat::Rgba8Srgb, &pixels)?.with_alpha_mode(alpha);
+            let texture = Texture2D::from_pixels(&context, source).build()?;
+            let vertex = |x, y, uv| TexturedVertex2D {
+                position: Vector2f { x, y },
+                color: Rgba::WHITE,
+                uv,
+            };
+            Shape::indexed_textured(
+                [
+                    vertex(left, top, [0.0, 0.0]),
+                    vertex(left + 1.0, top, [1.0, 0.0]),
+                    vertex(left, top + 1.0, [0.0, 1.0]),
+                    vertex(left + 1.0, top + 1.0, [1.0, 1.0]),
+                ],
+                [0, 1, 2, 2, 1, 3],
+                &texture.view(),
+            )
+            .sampler(&sampler)
+            .tint(tint)
+            .build(&window)
+        };
+        let tinted = Rgba::new(128, 128, 128, 128);
+        let round_trip = textured_cell(
+            0.0,
+            0.0,
+            [128, 128, 128, 255],
+            AlphaMode::Straight,
+            Rgba::WHITE,
+        )?;
+        let straight = textured_cell(1.0, 0.0, [255, 255, 255, 128], AlphaMode::Straight, tinted)?;
+        let premultiplied = textured_cell(
+            0.0,
+            1.0,
+            [188, 188, 188, 128],
+            AlphaMode::Premultiplied,
+            tinted,
+        )?;
+        let opaque = textured_cell(1.0, 1.0, [255; 4], AlphaMode::Opaque, tinted)?;
+        let color_only = Shape::rect(4.0, 4.0).position(8.0, 8.0).build(&context)?;
+
+        window
+            .render()
+            .draw2d::<dyn Drawable2D, 6>([
+                &color_only,
+                &round_trip,
+                &straight,
+                &premultiplied,
+                &opaque,
+                &color_only,
+            ])
+            .submit()?;
+        let row = usize::try_from(window.inner.handle.swapchain.image_extent()[0])
+            .expect("width should fit usize")
+            * 4;
+        let readback = readback_first_2x2(&mut window, target);
+        for (index, expected) in [
+            (0, [128, 128, 128, 255]),
+            (4, [99, 99, 99, 64]),
+            (row, [99, 99, 99, 64]),
+            (row + 4, [137, 137, 137, 128]),
+        ] {
+            let actual = &readback[index..index + 4];
+            assert!(
+                actual.iter().zip(expected).all(|(channel, value)| channel.abs_diff(value) <= 2),
+                "expected {expected:?} within two codes for {format:?} at byte {index}, got {actual:?}"
+            );
+        }
+        Ok(())
     }
 
     fn supports_mutable_rgba8_srgb_view(context: &Context) -> bool {

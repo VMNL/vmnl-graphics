@@ -8,4 +8,5 @@ The 2D path in `0.1.0` is operational. Builders validate CPU geometry, allocate 
 | [`RenderItem2D`](render_item_2d.md) | Opaque backend draw descriptor |
 | [`Vector2f`](vector_2f.md) | 2D scalar pair |
 | [`Vertex2D`](vertex_2d.md) | Public position/color vertex |
+| [Indexed textured shapes](textured_shape.md) | Managed texture color and alpha on indexed geometry |
 | [Shapes](shapes/README.md) | GPU-backed shape and builders |

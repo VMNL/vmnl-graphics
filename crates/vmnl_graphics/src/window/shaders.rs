@@ -46,3 +46,49 @@ pub(crate) const DEFAULT_FRAGMENT_SHADER: &str = r"
         f_color = in_color;
     }
 ";
+
+pub(crate) const TEXTURED_VERTEX_SHADER: &str = r"
+    #version 460
+
+    layout(push_constant) uniform TexturedDraw {
+        vec2 window_size;
+        uint alpha_mode;
+    } draw;
+
+    layout(location = 0) in vec2 position;
+    layout(location = 1) in vec4 modulation;
+    layout(location = 2) in vec2 uv;
+    layout(location = 0) out vec4 out_modulation;
+    layout(location = 1) out vec2 out_uv;
+
+    void main() {
+        gl_Position = vec4(2.0 * position / draw.window_size - 1.0, 0.0, 1.0);
+        out_modulation = modulation;
+        out_uv = uv;
+    }
+";
+
+pub(crate) const TEXTURED_FRAGMENT_SHADER: &str = r"
+    #version 460
+
+    layout(push_constant) uniform TexturedDraw {
+        vec2 window_size;
+        uint alpha_mode;
+    } draw;
+
+    layout(set = 0, binding = 0) uniform sampler2D source_texture;
+    layout(location = 0) in vec4 modulation;
+    layout(location = 1) in vec2 uv;
+    layout(location = 0) out vec4 color;
+
+    void main() {
+        vec4 sample_color = texture(source_texture, uv);
+        // 0 is straight, 1 is premultiplied, 2 is opaque.
+        vec3 rgb = sample_color.rgb * modulation.rgb;
+        if (draw.alpha_mode == 1) {
+            rgb *= modulation.a;
+        }
+        float source_alpha = draw.alpha_mode == 2 ? 1.0 : sample_color.a;
+        color = vec4(rgb, source_alpha * modulation.a);
+    }
+";

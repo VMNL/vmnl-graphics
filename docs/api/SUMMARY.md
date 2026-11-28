@@ -79,6 +79,7 @@
   - [2D](reference/d2/README.md)
     - [Drawable2D](reference/d2/drawable_2d.md)
     - [RenderItem2D](reference/d2/render_item_2d.md)
+    - [Indexed textured shapes](reference/d2/textured_shape.md)
     - [Vector2f](reference/d2/vector_2f.md)
     - [Vertex2D](reference/d2/vertex_2d.md)
     - [Shapes](reference/d2/shapes/README.md)

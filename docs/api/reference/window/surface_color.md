@@ -87,6 +87,19 @@ controls attachment encoding, including conversion of clear and fragment output.
 color space controls how the presentation engine interprets those pixels. Window alpha composition
 belongs to the platform's presentation path, independent of blend equations inside the attachment.
 
+The [managed indexed 2D path](../d2/textured_shape.md) checks the resolved pair when building a
+textured shape.
+
+| Resolved pair | Managed textured shapes |
+|---|---|
+| `B8G8R8A8_SRGB` or `R8G8B8A8_SRGB` with `SRGB_NON_LINEAR` | Sample texture RGB as linear light, modulate and blend in linear light, then let the attachment encode RGB once. Alpha stays linear. |
+| Any other pair, including `B8G8R8A8_UNORM` or `R8G8B8A8_UNORM` with `SRGB_NON_LINEAR` | Return `UnsupportedManagedColorTarget { pair }`. |
+
+Raw pipelines write the client shader output directly to the selected attachment, with the
+selected pipeline blend state and the attachment's format conversion. On UNORM with
+`SRGB_NON_LINEAR`, the presentation space alone supplies no sRGB attachment encoding. The raw
+client owns any required output encoding and compositing strategy.
+
 ## Example and related types
 
 Run [`window_surface_color`](../../../../examples/window/surface_color/src/main.rs) to inspect

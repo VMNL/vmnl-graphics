@@ -87,6 +87,8 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     ///
     /// Each item must implement [`Drawable2D`]. The pass is rendered in the
     /// same logical order as it was added when [`FrameRenderer::submit`] runs.
+    /// Indexed textured shapes use their managed shaders and must belong to this window.
+    /// A pass can combine drawable types by using `&dyn Drawable2D` references.
     ///
     /// # Arguments
     ///
@@ -272,7 +274,8 @@ impl<'w, 'g> FrameRenderer<'w, 'g> {
     /// the affected raw `FrameUniform` values and the `Resources` that bind them.
     ///
     /// Returns `TextureUploadFailed` before acquiring a swapchain image if an initial
-    /// upload used by a raw draw has a known failure or its fence status query fails.
+    /// upload used by a raw or managed textured draw has a known failure or its fence
+    /// status query fails.
     /// Returns an error if frame-uniform allocation/write/binding, frame acquisition,
     /// command recording, submission, or presentation fails. An out-of-date swapchain
     /// during acquisition or presentation returns `VMNLErrorKind::VulkanOutOfDate`.

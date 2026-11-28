@@ -10,9 +10,11 @@ mod polygon;
 mod polyline;
 mod rect;
 mod stroke;
+mod textured;
 mod triangle;
 mod validation;
 
+use super::render_item::{ColorDraw, Draw2D};
 use super::{Drawable2D, GpuVertex2D, RenderItem2D, Vector2f, Vertex2D};
 use crate::{
     common::{BlendMode, GpuGeometry, GraphicsResourceFactory, MaterialKey, PipelineKey},
@@ -23,6 +25,8 @@ pub use line::{LineBuilder, LineCap};
 pub use polygon::PolygonBuilder;
 pub use polyline::{LineJoin, PolylineBuilder};
 pub use rect::{Anchor, CornerRadii, RectBuilder};
+pub(crate) use textured::{GpuTexturedVertex2D, TexturedDraw};
+pub use textured::{TexturedShape, TexturedShapeBuilder, TexturedVertex2D};
 pub use triangle::TriangleBuilder;
 
 /// Types of shape data that can be rendered in VMNL.
@@ -102,13 +106,15 @@ impl Drawable2D for Shape {
     /// Convert the shape into a 2D backend draw item.
     fn render_item_2d(&self) -> RenderItem2D {
         RenderItem2D {
-            pipeline_key: PipelineKey::Color2D,
-            material_key: MaterialKey::VertexColor,
-            blend_mode: self.blend_mode,
-            vertex_buffer: self.geometry.vertex_buffer.clone(),
-            index_buffer: self.geometry.index_buffer.clone(),
-            vertex_count: self.geometry.vertex_count,
-            index_count: self.geometry.index_count,
+            draw: Draw2D::Color(ColorDraw {
+                pipeline_key: PipelineKey::Color2D,
+                material_key: MaterialKey::VertexColor,
+                blend_mode: self.blend_mode,
+                vertex_buffer: self.geometry.vertex_buffer.clone(),
+                index_buffer: self.geometry.index_buffer.clone(),
+                vertex_count: self.geometry.vertex_count,
+                index_count: self.geometry.index_count,
+            }),
         }
     }
 }

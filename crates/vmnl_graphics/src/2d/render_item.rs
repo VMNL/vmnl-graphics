@@ -3,12 +3,24 @@
 
 //! 2D render item descriptors.
 
-use super::GpuVertex2D;
+use super::{GpuVertex2D, TexturedDraw};
 use crate::common::{BlendMode, IndexBuffer, MaterialKey, PipelineKey, VertexBuffer};
+use std::sync::Arc;
 
 /// Minimal backend draw description emitted by 2D renderable objects.
 #[derive(Clone)]
 pub struct RenderItem2D {
+    pub(crate) draw: Draw2D,
+}
+
+#[derive(Clone)]
+pub(crate) enum Draw2D {
+    Color(ColorDraw),
+    Textured(Arc<TexturedDraw>),
+}
+
+#[derive(Clone)]
+pub(crate) struct ColorDraw {
     /// Pipeline family required to draw the item.
     pub(crate) pipeline_key: PipelineKey,
     /// Material family required to draw the item.

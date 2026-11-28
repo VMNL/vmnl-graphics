@@ -3,7 +3,7 @@
 
 //! Shared numeric validation for built-in 2D shape parameters.
 
-use super::Vertex2D;
+use super::{Vector2f, Vertex2D};
 use crate::{VMNLError, VMNLErrorKind, VMNLResult};
 
 /// Rejects non-finite values, giving NaN precedence over infinities across the slice.
@@ -27,19 +27,23 @@ pub(super) fn validate_finite(values: &[f32], subject: &str) -> VMNLResult<()> {
 ///
 /// Rejects any NaN coordinate before reporting an infinite coordinate.
 pub(super) fn validate_finite_positions(vertices: &[Vertex2D], subject: &str) -> VMNLResult<()> {
-    if vertices
-        .iter()
-        .any(|vertex| vertex.position.x.is_nan() || vertex.position.y.is_nan())
+    validate_positions(vertices.iter().map(|vertex| vertex.position), subject)
+}
+
+pub(super) fn validate_positions(
+    mut positions: impl Iterator<Item = Vector2f> + Clone,
+    subject: &str,
+) -> VMNLResult<()> {
+    if positions
+        .clone()
+        .any(|position| position.x.is_nan() || position.y.is_nan())
     {
         return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
             "{subject} vertex positions must not be NaN"
         ))));
     }
 
-    if vertices
-        .iter()
-        .any(|vertex| vertex.position.x.is_infinite() || vertex.position.y.is_infinite())
-    {
+    if positions.any(|position| position.x.is_infinite() || position.y.is_infinite()) {
         return Err(VMNLError::new(VMNLErrorKind::InvalidState(format!(
             "{subject} vertex positions must be finite"
         ))));

@@ -7,8 +7,10 @@
 //! into the current swapchain framebuffer.
 
 use crate::common::{BlendMode, MaterialKey, PipelineKey};
+use crate::d2::{Draw2D, TexturedDraw};
 use crate::raw::{pipeline_targets_window, resolve_viewport_scissor, PendingFrameUniformWrite};
-use crate::window::render::{raw_draw_items, RenderPassCommand};
+use crate::texture::AlphaMode;
+use crate::window::render::{raw_draw_items, textured_draw_items, RenderPassCommand};
 use crate::window::PushConstants;
 use crate::{window::inner::VMNLWindow, VMNLError, VMNLErrorKind, VMNLResult};
 use smallvec::smallvec;
@@ -28,6 +30,13 @@ use vulkano::{
     swapchain::Swapchain,
 };
 
+#[repr(C)]
+#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+struct TexturedPushConstants {
+    window_size: [f32; 2],
+    alpha_mode: u32,
+}
+
 impl VMNLWindow {
     /// Validates raw draw bindings and resolves viewport/scissor pairs before image acquisition.
     ///
@@ -44,6 +53,13 @@ impl VMNLWindow {
         }
         let device = &self.handle.vmnl_instance.device;
         let extent = self.handle.swapchain.image_extent();
+        if textured_draw_items(commands)
+            .any(|item| !Arc::ptr_eq(&item.render_pass, &self.handle.render_pass))
+        {
+            return Err(VMNLError::new(VMNLErrorKind::InvalidState(
+                "textured shape must be drawn on its originating window".into(),
+            )));
+        }
         raw_draw_items(commands)
             .map(|item| {
                 if !pipeline_targets_window(
@@ -91,6 +107,44 @@ impl VMNLWindow {
     #[allow(clippy::cast_precision_loss)]
     fn extent_as_f32(extent: [u32; 2]) -> [f32; 2] {
         [extent[0] as f32, extent[1] as f32]
+    }
+
+    fn record_textured_draw(
+        builder: &mut AutoCommandBufferBuilder<PrimaryAutoCommandBuffer>,
+        item: &TexturedDraw,
+        window_size: [f32; 2],
+    ) -> VMNLResult<()> {
+        let constants = TexturedPushConstants {
+            window_size,
+            alpha_mode: match item.alpha_mode {
+                AlphaMode::Straight => 0,
+                AlphaMode::Premultiplied => 1,
+                AlphaMode::Opaque => 2,
+            },
+        };
+        let layout = item.pipeline.layout();
+        builder
+            .bind_pipeline_graphics(item.pipeline.clone())
+            .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanPipelineCreationFailed))?
+            .bind_descriptor_sets(
+                PipelineBindPoint::Graphics,
+                layout.clone(),
+                0,
+                item.descriptors.clone(),
+            )
+            .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanDescriptorSetCreationFailed))?
+            .push_constants(layout.clone(), 0, constants)
+            .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanValidationFailed))?
+            .bind_vertex_buffers(0, item.vertices.as_subbuffer())
+            .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanVertexBufferCreationFailed))?
+            .bind_index_buffer(item.indices.as_subbuffer())
+            .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanIndexBufferCreationFailed))?;
+        // SAFETY: The builder validated every index before uploading immutable buffers.
+        // Preflight checked the originating render pass and this path binds its pipeline and
+        // matching descriptor set. The enclosing 2D pass has set the full viewport.
+        unsafe { builder.draw_indexed(item.index_count, 1, 0, 0, 0) }
+            .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanValidationFailed))?;
+        Ok(())
     }
 
     /// Builds a Vulkan command buffer for rendering the provided graphics objects to the specified swapchain image.
@@ -185,7 +239,15 @@ impl VMNLWindow {
                                 }],
                             )
                             .map_err(|_| VMNLError::new(VMNLErrorKind::VulkanValidationFailed))?;
-                        for render_item in items {
+                        for item in items {
+                            let render_item = match &item.draw {
+                                Draw2D::Color(item) => item,
+                                Draw2D::Textured(item) => {
+                                    Self::record_textured_draw(&mut builder, item, extent_f32)?;
+                                    current_blend_mode = None;
+                                    continue;
+                                }
+                            };
                             debug_assert_eq!(render_item.pipeline_key, PipelineKey::Color2D);
                             debug_assert_eq!(render_item.material_key, MaterialKey::VertexColor);
                             let pipeline: &Arc<GraphicsPipeline> = match render_item.blend_mode {
